@@ -31,6 +31,19 @@ APVTS::ParameterLayout WhiskerwaveProcessor::layout()
     f("lfoAmt", "LFO to wave position", 0.f, 1.f, 0.f);
     f("vol", "Volume", 0.f, 1.f, 0.6f);
     f("bend", "Pitch bend range (semitones)", 0.f, 24.f, 2.f);
+    // Built-in FX (shared catfx code): shimmer delay then reverb
+    p.push_back(std::make_unique<juce::AudioParameterChoice>(juce::ParameterID{"rvType", 1}, "Reverb type",
+                juce::StringArray{ "Off", "Plate", "Hall", "Shimmer Plate", "Shimmer Hall" }, 0));
+    f("rvDecay", "Reverb decay", 0.f, 1.f, 0.6f);
+    f("rvDamp", "Reverb damping (Hz)", 500.f, 16000.f, 6000.f, 3000.f);
+    f("rvMix", "Reverb mix", 0.f, 1.f, 0.25f);
+    f("rvShift", "Reverb shimmer pitch", -12.f, 12.f, 12.f);
+    f("rvShim", "Reverb shimmer amount", 0.f, 1.f, 0.5f);
+    f("dlMix", "Delay mix (0 = off)", 0.f, 1.f, 0.f);
+    f("dlTime", "Delay time (ms)", 20.f, 2000.f, 400.f, 400.f);
+    f("dlFb", "Delay feedback", 0.f, 0.95f, 0.5f);
+    f("dlShift", "Delay shimmer pitch", -12.f, 12.f, 12.f);
+    f("dlShim", "Delay shimmer amount", 0.f, 1.f, 1.f);
     return { p.begin(), p.end() };
 }
 
@@ -50,6 +63,20 @@ void WhiskerwaveProcessor::processBlock(juce::AudioBuffer<float>& buf, juce::Mid
     juce::ScopedNoDenormals nd;
     buf.clear();
     synth.renderNextBlock(buf, midi, 0, buf.getNumSamples());
+    if (buf.getNumChannels() >= 2)
+    {
+        auto v = [&](const char* id) { return apvts.getRawParameterValue(id)->load(); };
+        catfx::FxRackParams fp;
+        const int type = (int) v("rvType");
+        fp.reverbOn = type > 0;
+        fp.reverb.type = catfx::ReverbType(std::max(0, type - 1));
+        fp.reverb.p.decay = v("rvDecay"); fp.reverb.p.dampHz = v("rvDamp"); fp.reverb.mix = v("rvMix");
+        fp.reverb.shimmerSemis = v("rvShift"); fp.reverb.shimmerAmount = v("rvShim");
+        fp.delayOn = v("dlMix") > 0.001f;
+        fp.delay.mix = v("dlMix"); fp.delay.timeMs = v("dlTime"); fp.delay.feedback = v("dlFb");
+        fp.delay.shiftSemis = v("dlShift"); fp.delay.shimmerAmount = v("dlShim");
+        fx.process(buf.getWritePointer(0), buf.getWritePointer(1), buf.getNumSamples(), fp);
+    }
     outLevel = buf.getMagnitude(0, buf.getNumSamples());
 }
 

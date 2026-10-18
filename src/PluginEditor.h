@@ -37,6 +37,8 @@ private:
     catui::CatLookAndFeel laf;
     catui::RenderGate gate { *this };
     whisker::WaveView wave;
-    std::array<whisker::Knob, 19> knobs;
+    std::array<whisker::Knob, 29> knobs;
+    juce::ComboBox reverbType;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> reverbTypeAttach;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(WhiskerwaveEditor)
 };

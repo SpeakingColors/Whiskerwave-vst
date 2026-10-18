@@ -41,11 +41,16 @@ WhiskerwaveEditor::WhiskerwaveEditor(WhiskerwaveProcessor& p) : AudioProcessorEd
     setLookAndFeel(&laf);
     addAndMakeVisible(wave);
     static const char* ids[] = { "pos", "uni", "det", "spread", "lfoRate", "lfoAmt", "fc", "fr", "fe", "vol",
-                                 "aA", "aD", "aS", "aR", "fA", "fD", "fS", "fR", "bend" };
+                                 "aA", "aD", "aS", "aR", "fA", "fD", "fS", "fR", "bend",
+                                 "rvDecay", "rvDamp", "rvMix", "rvShift", "rvShim", "dlMix", "dlTime", "dlFb", "dlShift", "dlShim" };
     static const char* nm[] = { "Wave pos", "Unison", "Detune", "Spread", "LFO rate", "LFO>pos", "Cutoff", "Reso", "Filt env", "Volume",
-                                "Amp A", "Amp D", "Amp S", "Amp R", "Filt A", "Filt D", "Filt S", "Filt R", "Bend" };
+                                "Amp A", "Amp D", "Amp S", "Amp R", "Filt A", "Filt D", "Filt S", "Filt R", "Bend",
+                                "Rev decay", "Rev damp", "Rev mix", "Rev pitch", "Rev shim", "Dly mix", "Dly time", "Dly fb", "Dly pitch", "Dly shim" };
     for (size_t i = 0; i < knobs.size(); ++i) knobs[i].init(*this, p.apvts, ids[i], nm[i]);
-    setSize(900, 460);
+    reverbType.addItemList(p.apvts.getParameter("rvType")->getAllValueStrings(), 1);
+    addAndMakeVisible(reverbType);
+    reverbTypeAttach = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(p.apvts, "rvType", reverbType);
+    setSize(900, 560);
     gate.onFrame = [this] { wave.repaint(); };
     gate.start(30);
 }
@@ -60,6 +65,7 @@ void WhiskerwaveEditor::paint(juce::Graphics& g)
 void WhiskerwaveEditor::resized()
 {
     auto r = getLocalBounds().reduced(10);
+    reverbType.setBounds(r.getRight() - 170, r.getY() - 2, 170, 24);
     r.removeFromTop(30);
     wave.setBounds(r.removeFromTop(150));
     r.removeFromTop(8);
