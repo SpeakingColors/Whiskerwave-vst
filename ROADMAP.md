@@ -1,5 +1,9 @@
 # Roadmap: Whiskerwave
 
+## Done
+- [x] Python wave generators (38 waves)
+- [x] Original MIDI test patterns and a quick audition renderer
+
 ## Next
 - [ ] Wave generator in C++ (same shapes as `tools/gen_waves.py`, plus FM, formant, spectral drawing, harmonic sliders)
 - [ ] MIDI test-drive: a set of original MIDI patterns (hardstyle lead, happy hardcore, bass, funk) to audition any generated wave quickly, with a keep/skip list

@@ -41,6 +41,8 @@ WAVES = {
 }
 
 def write(path, data):
+    mean = sum(data) / len(data)
+    data = [v - mean for v in data]  # remove DC offset
     with wave.open(path, "wb") as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(44100)
         w.writeframes(b"".join(struct.pack("<h", int(max(-1, min(1, v)) * 32000)) for v in data))

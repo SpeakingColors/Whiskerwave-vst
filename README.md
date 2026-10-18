@@ -6,8 +6,10 @@ Free, open source wavetable synth for Linux (VST3). Wavetable oscillators with m
 Planning. A first wave generator script and 12 generated waves are in the repo. Free and open source. Donations welcome (link coming).
 
 ## What is in here today
-- `tools/gen_waves.py`: makes single-cycle waveforms from math (sine, triangle, saw, square, pulses, organ, vowels and more). Run `python3 tools/gen_waves.py waves`.
-- `waves/`: the generated waves (2048 samples, mono, 16-bit WAV).
+- `tools/gen_waves.py` and `tools/gen_waves2.py`: make 38 original single-cycle waves from math (basic shapes, organ, vowels, FM, wavefolding, saw stacks, comb, reed, brass, screech and more). Run `python3 tools/gen_waves.py waves` then `python3 tools/gen_waves2.py waves`.
+- `waves/`: the generated waves (2048 samples, mono, 16-bit WAV, no DC offset).
+- `tools/gen_midi.py` and `midi/`: 9 original 4-bar test patterns (hardstyle, happy hardcore, UK hardcore, rolling bass, funk bass, pads, range check).
+- `tools/audition.py`: renders any wave through any pattern to a WAV so you can listen right away. Example: `python3 tools/audition.py waves/fm_growl_1_2.wav hardstyle_lead_150`
 
 ## Planned
 - Wavetable synth plugin on cat-ui
