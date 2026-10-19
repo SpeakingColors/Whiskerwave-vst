@@ -5,7 +5,13 @@
 Free, open source wavetable synth for Linux (VST3). Wavetable oscillators with morphing, layered voices, a flexible modulation matrix, built-in effects, and a tool to sample your own hardware into wavetables. Ships with CC0 waveforms and waves made by code. Tuned for dance, house, UK hardcore and hardstyle. AGPL-3.0.
 
 ## Status
-Planning. A first wave generator script and 12 generated waves are in the repo. Free and open source. Donations welcome: https://ko-fi.com/studio87
+Planning. A first wave generator script and 12 generated waves are in the repo.
+
+<p align="center">
+  <a href="https://ko-fi.com/studio87"><img src="https://img.shields.io/badge/Support_Studio_87-on_Ko--fi-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white" alt="Support Studio 87 on Ko-fi"></a>
+</p>
+
+☕ Free and open source, made by one person. If it helps your music, a coffee on [Ko-fi](https://ko-fi.com/studio87) keeps it coming. 💜
 
 ## What is in here today
 - `tools/gen_waves.py` and `tools/gen_waves2.py`: make 38 original single-cycle waves from math (basic shapes, organ, vowels, FM, wavefolding, saw stacks, comb, reed, brass, screech and more). Run `python3 tools/gen_waves.py waves` then `python3 tools/gen_waves2.py waves`.
