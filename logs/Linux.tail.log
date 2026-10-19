@@ -28,7 +28,7 @@
 -- Exporting juceaide
 -- Testing juceaide
 -- Finished setting up juceaide
--- Configuring done (71.7s)
+-- Configuring done (90.5s)
 -- Generating done (0.0s)
 -- Build files have been written to: /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build
 [  1%] Building VST3 manifest helper for Whiskerwave
@@ -41,7 +41,7 @@
 -- Check for working CXX compiler: /usr/bin/c++ - skipped
 -- Detecting CXX compile features
 -- Detecting CXX compile features - done
--- Configuring done (0.2s)
+-- Configuring done (0.3s)
 -- Generating done (0.0s)
 -- Build files have been written to: /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/vst3_helpers/Whiskerwave
 gmake[3]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
@@ -64,8 +64,8 @@ gmake[3]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rul
 [ 27%] Built target cat_ui
 [ 28%] Building CXX object CMakeFiles/Whiskerwave.dir/src/PluginProcessor.cpp.o
 [ 30%] Building CXX object CMakeFiles/Whiskerwave.dir/src/PluginEditor.cpp.o
-[ 32%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_processors/juce_audio_processors.cpp.o
-[ 33%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_gui_extra/juce_gui_extra.cpp.o
+[ 32%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_gui_extra/juce_gui_extra.cpp.o
+[ 33%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_processors/juce_audio_processors.cpp.o
 In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_basics/juce_audio_basics.h:135,
                  from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless.h:66,
                  from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_processors/juce_audio_processors.h:64,
@@ -128,19 +128,19 @@ In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_d
 [ 69%] Linking CXX static library Whiskerwave_artefacts/Release/libWhiskerwave_SharedCode.a
 [ 69%] Built target Whiskerwave
 [ 71%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o
-[ 74%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o
+[ 72%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o
 [ 74%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
 [ 76%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
 [ 77%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
-[ 79%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
-[ 81%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o
-[ 83%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o
-[ 84%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
-[ 86%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
-[ 88%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
-[ 89%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o
-[ 91%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
-[ 93%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o
+[ 79%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o
+[ 83%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
+[ 83%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
+[ 88%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o
+[ 88%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o
+[ 88%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
+[ 89%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o
+[ 93%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
+[ 93%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
 [ 94%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o
 [ 96%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o
 [ 98%] Linking CXX executable Whiskerwave_artefacts/Release/Standalone/Whiskerwave
