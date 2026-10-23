@@ -3,6 +3,8 @@
 ## Done
 - [x] Python wave generators (38 waves)
 - [x] Original MIDI test patterns and a quick audition renderer
+- [x] Synth scaffold in C++ (src/Synth.h, WaveBank.h): band-limited wavetable bank, 8 voices, unison, filter, envelopes, LFO morph, editor, CI
+- [x] Built-in shimmer delay and reverb (plate, hall, shimmer plate, shimmer hall) from the shared catfx code
 
 ## Next
 - [ ] Wave generator in C++ (same shapes as `tools/gen_waves.py`, plus FM, formant, spectral drawing, harmonic sliders)
