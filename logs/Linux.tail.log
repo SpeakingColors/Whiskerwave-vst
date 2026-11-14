@@ -28,7 +28,7 @@
 -- Exporting juceaide
 -- Testing juceaide
 -- Finished setting up juceaide
--- Configuring done (81.2s)
+-- Configuring done (76.9s)
 -- Generating done (0.0s)
 -- Build files have been written to: /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build
 [  1%] Building VST3 manifest helper for Whiskerwave
@@ -70,18 +70,6 @@ In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_d
                  from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_processors/juce_audio_processors.h:64,
                  from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Synth.h:2,
                  from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.h:2,
-                 from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.cpp:1:
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_basics/synthesisers/juce_Synthesiser.h:203:18: warning: ‘virtual void juce::SynthesiserVoice::renderNextBlock(juce::AudioBuffer<double>&, int, int)’ was hidden [-Woverloaded-virtual=]
-  203 |     virtual void renderNextBlock (AudioBuffer<double>& outputBuffer,
-      |                  ^~~~~~~~~~~~~~~
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Synth.h:51:10: note:   by ‘virtual void whisker::Voice::renderNextBlock(juce::AudioBuffer<float>&, int, int)’
-   51 |     void renderNextBlock(juce::AudioBuffer<float>& out, int start, int num) override
-      |          ^~~~~~~~~~~~~~~
-In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_basics/juce_audio_basics.h:135,
-                 from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless.h:66,
-                 from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_processors/juce_audio_processors.h:64,
-                 from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Synth.h:2,
-                 from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.h:2,
                  from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.h:2,
                  from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp:1:
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_basics/synthesisers/juce_Synthesiser.h:203:18: warning: ‘virtual void juce::SynthesiserVoice::renderNextBlock(juce::AudioBuffer<double>&, int, int)’ was hidden [-Woverloaded-virtual=]
@@ -97,6 +85,18 @@ In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_d
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.h:12:10: note:   by ‘virtual void WhiskerwaveProcessor::processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&)’
    12 |     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
       |          ^~~~~~~~~~~~
+In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_basics/juce_audio_basics.h:135,
+                 from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless.h:66,
+                 from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_processors/juce_audio_processors.h:64,
+                 from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Synth.h:2,
+                 from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.h:2,
+                 from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.cpp:1:
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_basics/synthesisers/juce_Synthesiser.h:203:18: warning: ‘virtual void juce::SynthesiserVoice::renderNextBlock(juce::AudioBuffer<double>&, int, int)’ was hidden [-Woverloaded-virtual=]
+  203 |     virtual void renderNextBlock (AudioBuffer<double>& outputBuffer,
+      |                  ^~~~~~~~~~~~~~~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Synth.h:51:10: note:   by ‘virtual void whisker::Voice::renderNextBlock(juce::AudioBuffer<float>&, int, int)’
+   51 |     void renderNextBlock(juce::AudioBuffer<float>& out, int start, int num) override
+      |          ^~~~~~~~~~~~~~~
 In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless.h:145:
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_processors_headless/processors/juce_AudioProcessor.h:292:18: warning: ‘virtual void juce::AudioProcessor::processBlock(juce::AudioBuffer<double>&, juce::MidiBuffer&)’ was hidden [-Woverloaded-virtual=]
   292 |     virtual void processBlock (AudioBuffer<double>& buffer,
@@ -126,22 +126,22 @@ In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_d
 [ 67%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_dsp/juce_dsp.cpp.o
 [ 69%] Linking CXX static library Whiskerwave_artefacts/Release/libWhiskerwave_SharedCode.a
 [ 69%] Built target Whiskerwave
-[ 72%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o
+[ 71%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o
 [ 74%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
-[ 72%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o
+[ 74%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o
 [ 76%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
-[ 79%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
 [ 79%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
-[ 81%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o
-[ 83%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o
-[ 86%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
-[ 86%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
-[ 89%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
-[ 89%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
-[ 91%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o
-[ 94%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o
-[ 94%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o
-[ 96%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o
+[ 79%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
+[ 81%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o
+[ 83%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o
+[ 84%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
+[ 86%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
+[ 88%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o
+[ 89%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
+[ 91%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o
+[ 93%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
+[ 94%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o
+[ 96%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o
 [ 98%] Linking CXX executable Whiskerwave_artefacts/Release/Standalone/Whiskerwave
 [ 98%] Built target Whiskerwave_Standalone
 [100%] Linking CXX shared module Whiskerwave_artefacts/Release/VST3/Whiskerwave.vst3/Contents/x86_64-linux/Whiskerwave.so
