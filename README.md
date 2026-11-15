@@ -12,7 +12,7 @@
 Free, open source wavetable synth for Linux (VST3). Wavetable oscillators with morphing, layered voices, a flexible modulation matrix, built-in effects, and a tool to sample your own hardware into wavetables. Ships with CC0 waveforms and waves made by code. Tuned for dance, house, UK hardcore and hardstyle. AGPL-3.0.
 
 ## Status
-Planning. A first wave generator script and 12 generated waves are in the repo.
+Scaffold, no release and no mockup yet. The repo has the wave generators (38 waves), original MIDI test patterns, and a C++ synth scaffold that builds in CI. Its editor is a plain placeholder (wave display and a grid of knobs), not the real window: the design mockup comes first. See the [web page](docs/index.html) for what exists today and what does not.
 
 <p align="center">
   <a href="https://ko-fi.com/studio87"><img src="https://img.shields.io/badge/Support_Studio_87-on_Ko--fi-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white" alt="Support Studio 87 on Ko-fi"></a>
