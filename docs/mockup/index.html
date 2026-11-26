@@ -234,6 +234,15 @@ textarea.txt{background:var(--disp);border:1px solid var(--line);color:var(--tex
 .pwr:focus-visible{outline:2px solid #FFA600;outline-offset:2px}
 .pn.oscoff>*:not(:first-child){opacity:.4}
 
+.grp{border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);border-radius:7px;padding:3px 4px 2px;display:flex;flex-direction:column;gap:2px}
+.grp .gh{display:flex;align-items:center;gap:4px;min-height:20px}
+.grp .gh .cap{color:var(--acc);font-weight:600;margin-right:2px}
+.grp select.sel{height:20px;font-size:11px;padding-top:0;padding-bottom:0}
+.engsel{width:84px}
+.grp{flex:1 1 auto}
+.grp .gh .cap,.grp .gc{color:var(--acc);font-weight:600}
+.limgr{font:600 9px 'JetBrains Mono',monospace;color:var(--dim);text-align:right;line-height:10px}.limgr.on{color:#e8c25a}.limgr.hot{color:#ff6b6b}
+
 </style></head><body>
 <div id="viewport"><div id="stage"><div class="cheek"></div><div id="app"></div><div class="cheek"></div></div></div>
 <div id="tip"></div><div id="ghost"></div><div class="toast" id="toast"></div><div class="dlg" id="dlg"></div>
@@ -486,7 +495,8 @@ const FORM={a:[800,1150,2900],e:[400,1600,2700],i:[270,2140,2950],o:[450,830,283
 function vowelFrame(f1,f2,f3,f0){ // harmonic amplitudes shaped by 3 formants for a fundamental of f0 Hz
   return add(k=>{const f=k*f0;let a=0;for(const [fc,g] of [[f1,1],[f2,.6],[f3,.35]]){a+=g/(1+Math.pow((f-fc)/(fc*.12+60),2));}return a/k*.9;},120);}
 const RECIPES=[
- ['Sine to Saw','Basic',t=>norm(add(k=>Math.pow(1/k,2-1.9*t)))],
+ ['Sine to Saw','Basic',t=>{const c=Math.pow(1024,t)-1;return norm(add(k=>k===1?1:c<=0?0:(1/k)/Math.sqrt(1+Math.pow((k-1)/c,4))));}], // frame 1 pure sine, harmonics fade in from the bottom, last frame a saw
+ ['Soft to Buzz','Basic',t=>norm(add(k=>Math.pow(1/k,2-1.9*t)))], // the old Sine to Saw (before v1.7.7), kept so older saves sound the same
  ['Saw to Square','Basic',t=>norm(add(k=>(k%2?1/k:(1-t)/k)))],
  ['Pulse Sweep','Basic',t=>{const w=.5-t*.45;return norm(dcrm(td(x=>(x<w?1:-1))));}],
  ['Triangle to Saw','Basic',t=>norm(add(k=>(k%2?1/(k*k):0)*(1-t)+t/k))],
@@ -679,7 +689,7 @@ class VFilt{
   /* zero-delay (trapezoidal) 4-pole ladder: exact bilinear poles, so the top end rolls off at the true 24 dB per octave and stays stable at any cutoff. */
   lad(ch,xi,sat){const s=this.s,o=ch*24,G=this.gg,k=this.kfb,G2=G*G,G3=G2*G,G4=G2*G2,c=1-G;
     const z1=s[o+20],z2=s[o+21],z3=s[o+22],z4=s[o+23];
-    let u=(xi-k*c*(G3*z1+G2*z2+G*z3+z4))/(1+k*G4);if(sat)u=fastTanh(u);
+    let u=(xi-k*c*(G3*z1+G2*z2+G*z3+z4))/(1+k*G4);if(sat)u=fastTanh(u*.3)*3.333333; // gentle: about 3 percent squash at full level, so chords and sub stay clean; the Drive knob adds the grit
     let v=(u-z1)*G;const y1=v+z1;s[o+20]=y1+v;
     v=(y1-z2)*G;const y2=v+z2;s[o+21]=y2+v;
     v=(y2-z3)*G;const y3=v+z3;s[o+22]=y3+v;
@@ -1271,7 +1281,7 @@ fx('comp','Compressor','Dynamics','Smooth feed-forward compressor with soft knee
 /* Smooth lookahead limiter: gain only, no waveshaping. A sliding minimum of the needed gain is smoothed by a box average so the
    gain change is a ramp over the lookahead, and the audio is delayed by the same time, so every peak is already turned down when it arrives. */
 class LookLim{
-  constructor(sr){this.sr=sr||44100;this.N=Math.max(16,Math.round(this.sr*.002));const M=this.N+1;this.M=M;
+  constructor(sr){this.sr=sr||44100;this.N=Math.max(16,Math.round(this.sr*.005));const M=this.N+1;this.M=M;this.H=Math.round(this.sr*.025);this.hc=0;
     this.dl=new Float32Array(M);this.dr=new Float32Array(M);this.w=0;
     this.tg=new Float64Array(M);this.dq=new Float64Array(M+2);this.qh=0;this.qt=0;this.cnt=0;
     this.bx=new Float64Array(M).fill(1);this.bsum=M;this.bw=0;this.rel=1;this.gr=0;}
@@ -1285,7 +1295,7 @@ class LookLim{
       const wm=tg[dq[this.qh%Q]%M];
       const bi=this.bw;this.bsum+=wm-this.bx[bi];this.bx[bi]=wm;this.bw=(bi+1)%M;
       const g=this.bsum/M;
-      this.rel=g<this.rel?g:this.rel+(g-this.rel)*(1-rc);
+      if(g<this.rel){this.rel=g;this.hc=this.H;}else if(this.hc>0)this.hc--;else this.rel+=(g-this.rel)*(1-rc); // 25 ms hold: gain does not ride each bass cycle
       const go=this.rel;
       const wi=this.w,dl=this.dl[wi],dr=this.dr[wi];this.dl[wi]=l;this.dr[wi]=r;this.w=(wi+1)%M;
       let ol=dl*go,or_=dr*go;if(ol>ce)ol=ce;else if(ol<-ce)ol=-ce;if(or_>ce)or_=ce;else if(or_<-ce)or_=-ce;
@@ -1964,7 +1974,7 @@ class Engine{
     while(pos<n){const m=Math.min(BLK,n-pos);this.block(m);for(let i=0;i<m;i++){oL[pos+i]=this.ml[i];oR[pos+i]=this.mr[i];}pos+=m;}}
   vis(){let nv=0,nw=null;for(const x of this.voices)if(x.active){nv++;if(!nw||x.serial>nw.serial)nw=x;}
     const sc=new Float32Array(2048);for(let i=0;i<2048;i++)sc[i]=this.scope[(this.sp+i)&2047];
-    return {meter:this.meter,nodes:this.nodeMeter,bands:this.bandMeter,gl:this.gl.slice(),nv,
+    return {meter:this.meter,lgr:this.limGR||0,nodes:this.nodeMeter,bands:this.bandMeter,gl:this.gl.slice(),nv,
       env:nw?[nw.sv.e1,nw.sv.e2,nw.sv.e3,nw.sv.e4,nw.sv.e5,nw.sv.e6,nw.sv.e7,nw.sv.e8]:[0,0,0,0,0,0,0,0],lfo:nw?[nw.sv.l1,nw.sv.l2,nw.sv.l3,nw.sv.l4]:this.gl.slice(),
       sen:nw?Array.from(nw.senV):[0,0,0,0,0,0,0,0],pos:nw&&nw.pcache?nw.pcache.map(c=>c.pos):[0,0,0,0,0,0],steps:this.si%(this.seq.len||16),scope:sc};}
   msg(m){switch(m.t){
@@ -2348,20 +2358,27 @@ function oscPanel(o){const k='abcdef'[o],p=k+'.';
   const L=(arr)=>h('div',{class:'row',style:'gap:2px'},arr.map(x=>knob(p+x[0],{sm:true,label:x[1]})));
   const kn=(x)=>knob(p+x[0],{sm:true,label:x[1]});
   const stepSel=(key)=>{const e=sel(key);e.style.width='70px';const mk=(t,d,tip)=>h('button',{class:'btn sm stp',text:t,'data-tip':tip,onclick:()=>{const n=listOf(specOf(key)).length;setV(key,(getV(key)+d+n)%n);}});return h('div',{class:'row',style:'gap:1px;align-items:center;flex:none'},[mk('<',-1,'Previous warp mode.'),e,mk('>',1,'Next warp mode.')]);};
-  const tsel=tableSelect(o);tsel.style.width='92px';
-  const wtRow=h('div',{class:'col',style:'gap:3px'},[
-    h('div',{class:'row',style:'gap:2px;align-items:flex-start'},[kn(['pos','Wave Pos']),kn(['w1a','Warp1']),h('div',{style:'height:32px;display:flex;align-items:center'},[stepSel(p+'w1')]),kn(['w2a','Warp2']),h('div',{style:'height:32px;display:flex;align-items:center'},[stepSel(p+'w2')])]),
-    h('div',{class:'row',style:'gap:2px;align-items:flex-start'},[h('div',{class:'row',style:'gap:1px;align-items:center;height:32px;flex:none'},[tsel,h('button',{class:'btn sm stp',text:'<','data-tip':'Previous wavetable.',onclick:()=>stepTable(o,-1)}),h('button',{class:'btn sm stp',text:'>','data-tip':'Next wavetable.',onclick:()=>stepTable(o,1)})]),...[['sw','Spec'],['sk','Smear'],['oct','Oct'],['semi','Semi'],['fine','Fine']].map(kn)])]);
-  const smpRow=h('div',{class:'col',style:'gap:3px;display:none'},[
-    h('div',{class:'row',style:'align-items:center;height:26px'},[h('span',{class:'cap',style:'text-transform:none',text:'Load a sample on the Wave Lab page'}),tog(p+'sloop','Loop')]),
-    L([['sroot','Root'],['gp','G.pos'],['gs','G.size'],['gd','Dens.'],['gj','Jitter'],['oct','Oct'],['semi','Semi'],['fine','Fine']])]);
+  const tsel=tableSelect(o);tsel.style.width='118px';
+  const G=(title,ctl,ks,tip)=>h('div',{class:'grp','data-tip':tip},[h('div',{class:'gh'},[h('span',{class:'cap',text:title}),...(ctl||[])]),h('div',{class:'row',style:'gap:0'},ks.map(kn))]);
+const WG=(n,key,ak)=>h('div',{class:'grp'},[h('div',{class:'row',style:'gap:3px;align-items:center'},[h('div',{class:'col',style:'gap:3px'},[h('span',{class:'cap gc',text:n}),stepSel(key)]),kn([ak,'Amount'])])]);
+  const engSel=sel(p+'eng');engSel.classList.add('engsel');
+  const wtRow=h('div',{class:'col',style:'gap:4px'},[
+    h('div',{class:'grp'},[h('div',{class:'row',style:'gap:4px;align-items:center'},[
+      h('div',{class:'col',style:'gap:3px;flex:none'},[h('span',{class:'cap gc',text:'Wavetable'}),h('div',{class:'row',style:'gap:1px;align-items:center'},[tsel,h('button',{class:'btn sm stp',text:'<','data-tip':'Previous wavetable.',onclick:()=>stepTable(o,-1)}),h('button',{class:'btn sm stp',text:'>','data-tip':'Next wavetable.',onclick:()=>stepTable(o,1)})])]),
+      h('span',{class:'sp'}),...[['pos','Wave Pos'],['sw','Spec'],['sk','Smear']].map(kn)])]),
+    h('div',{class:'row',style:'gap:4px'},[WG('Warp 1',p+'w1','w1a'),WG('Warp 2',p+'w2','w2a')])]);
+  const smpRow=h('div',{class:'col',style:'gap:4px;display:none'},[
+    h('div',{class:'grp'},[h('div',{class:'gh'},[h('span',{class:'cap',text:'Sample and grains'}),h('span',{class:'sp'}),tog(p+'sloop','Loop')]),
+      h('div',{class:'row',style:'gap:0'},[['sroot','Root'],['gp','G.pos'],['gs','G.size'],['gd','Dens.'],['gj','Jitter']].map(kn)),
+      h('span',{class:'cap',style:'text-transform:none',text:'Load a sample on the Wave Lab page'})])]);
   const engUpd=()=>{if(!alive(wtRow))return false;const e=S.p[p+'eng'];wtRow.style.display=e===0?'':'none';smpRow.style.display=e===0?'none':'';};bind(p+'eng',engUpd);engUpd();
+  const envSel=sel(p+'env');
   const pn=panel(null,[
-    h('div',{class:'row',style:'align-items:center'},[oscPower(p+'on'),h('h3',{text:'OSC',style:'margin:0;font-size:14px'}),oscSwitch(o%3),seg(p+'eng',{short:['Wave','Sample','Grain']}),h('span',{class:'sp'}),h('span',{class:'cap',text:'To'}),sel(p+'rt')]),
+    h('div',{class:'row',style:'align-items:center'},[oscPower(p+'on'),h('h3',{text:'OSC',style:'margin:0;font-size:14px'}),oscSwitch(o%3),engSel,h('span',{class:'sp'}),h('span',{class:'cap',text:'To'}),sel(p+'rt')]),
     disp,wtRow,smpRow,
-    L([['lvl','Level'],['pan','Pan'],['ph','Phase'],['rnd','Rand'],['uv','Voices'],['ud','Detune'],['ub','Blend'],['usp','Spread']]),
-    h('div',{class:'row',style:'align-items:center'},[sel(p+'us',{prefix:'Style: '}),sel(p+'mm',{prefix:'Mod: '}),sel(p+'ms',{prefix:'Src: '}),sel(p+'env')]),
-    L([['ma','Mod amt'],['fb','Fdbk'],['dv','Dive'],['dt','D.time'],['pit','Pitch']])],'width:388px');
+    h('div',{class:'row',style:'gap:4px'},[G('Pitch',null,[['oct','Oct'],['semi','Semi'],['fine','Fine'],['pit','Pitch']]),G('Output',[envSel],[['lvl','Level'],['pan','Pan']])]),
+    h('div',{class:'row',style:'gap:4px'},[G('Unison',[sel(p+'us')],[['uv','Voices'],['ud','Detune'],['ub','Blend'],['usp','Spread']]),G('Start',null,[['ph','Phase'],['rnd','Rand']])]),
+    h('div',{class:'row',style:'gap:4px'},[G('Mod',[sel(p+'mm'),sel(p+'ms',{prefix:'from '})],[['ma','Amount'],['fb','Fdbk']]),G('Dive',null,[['dv','Dive'],['dt','Time']])])],'width:388px');
   const ubUpd=()=>{if(!alive(pn))return false;const sp=S.p[p+'us']===1,kb=pn.querySelector('[data-p="'+p+'ub"]');if(kb){kb.style.opacity=sp?1:.35;const l=kb.querySelector('.l');if(l)l.textContent=sp?'Side mix':'Blend';kb.dataset.tip=sp?'Supersaw only: level of the detuned side voices against the centre voice. Raise Voices (7 is the classic) and Detune to hear it.':'Blend only works in the Supersaw style. Set Style to Supersaw to use it.';}};bind(p+'us',ubUpd);setTimeout(ubUpd,0);
   const offUpd=()=>{if(!alive(pn))return false;pn.classList.toggle('oscoff',!S.p[p+'on']);};bind(p+'on',offUpd);offUpd();
   return pn;}
@@ -2982,7 +2999,7 @@ const FT_=n=>D.FT.findIndex(f=>f[0]===n);
 const FACT=[];
 function PS(name,type,genre,o){FACT.push(Object.assign({id:'f'+FACT.length,name,type,genre,start:false,p:{},slots:[],chains:{},tabs:{},seq:null},o));}
 const sl=(s,d,a,u)=>({s,d,a,u:u||0});
-PS('Init','Lead','Basic',{start:true,p:{}});
+PS('Init','Lead','Basic',{start:true,p:{'a.pos':1}});
 PS('Hands Up Hyper Saw','Lead','Hands Up',{start:true,tabs:{a:'Wide Saw Stack',b:'Wide Saw Stack'},p:{'b.on':1,'a.uv':7,'a.ud':.4,'a.us':1,'b.uv':5,'b.ud':.3,'b.us':1,'b.oct':1,'b.lvl':.5,'f1.type':FT_('Ladder 24'),'f1.cut':3500,'f1.res':.2,'f1.env':.5,'e2.d':420,'e2.s':.3,'e1.s':.9,'s.sub':1,'s.sl':.3,'bus.t0.s1':.25,'bus.t1.s1':.25},slots:[sl('wheel','f1.cut',.4)],chains:{t0:[['chorus',{mix:.35}]],mst:[['maxi',{gain:2.5,ceil:-.3}]]}});
 PS('Trance Mainliner','Lead','Trance',{tabs:{a:'Wide Saw Stack',b:'Wide Saw Stack',c:'Wide Saw Stack'},p:{'a.uv':8,'a.ud':.38,'a.us':1,'a.ub':.6,'a.usp':1,'a.fine':-8,'a.pan':-.2,'a.lvl':.7,'b.on':1,'b.uv':8,'b.ud':.38,'b.us':1,'b.ub':.6,'b.usp':1,'b.oct':1,'b.fine':8,'b.pan':.2,'b.lvl':.5,'c.on':1,'c.uv':6,'c.ud':.3,'c.us':1,'c.usp':.8,'c.oct':-1,'c.lvl':.38,'s.nz':1,'s.nl':.1,'s.nt':0,'s.nhp':7000,'f1.type':FT_('Smooth 24'),'f1.cut':15000,'f1.res':.12,'f1.drv':.12,'f1.kt':.4,'f1.es':0,'e1.a':3,'e1.d':300,'e1.s':1,'e1.r':420,'bus.t0.s1':.22,'bus.t0.s2':.22,'bus.t1.s1':.22,'bus.t1.s2':.2,'bus.t2.s1':.15,'bus.t2.s2':.1,'bus.t3.s1':.2},chains:{t0:[['eq',{hp:170}],['chorus',{mix:.22,depth:.4,rate:.35,hp:250}]],t1:[['eq',{hp:260}],['chorus',{mix:.22,depth:.4,rate:.3,hp:300}]],t2:[['eq',{hp:120}]],mst:[['exciter',{freq:5000,drive:6,amount:.3}],['comp',{thr:-14,ratio:2.5,att:.5,rel:100,makeup:2,mix:.8}]],x1:[['verb',{type:2,decay:3.2,lc:220,damp:6500,pre:25,mix:1}]],x2:[['delay',{syncl:11,fb:.4,lc:250,hc:6500,mix:1}]]}});
 PS('Rawstyle Screamer','Lead','Rawstyle',{tabs:{a:'Hardstyle Screech',b:'Screech'},p:{'b.on':1,'a.uv':3,'a.ud':.2,'b.lvl':.5,'b.oct':1,'f1.type':FT_('Comb +'),'f1.cut':620,'f1.res':.7,'f1.sh':.6,'bus.t0.s1':.1},slots:[sl('l1','f1.cut',.25),sl('e2','f1.cut',.2)],chains:{mst:[['dist',{drive:12,type:2,mix:.6,level:-5}],['maxi',{gain:3}]]}});
@@ -3057,10 +3074,10 @@ const NEWP=[
 ['Liquid Pad','Pad','Liquid DnB',{a:'Wide Saw Stack',b:'Wide Saw Stack'},{'a.uv':6,'a.ud':.3,'a.us':1,'b.on':1,'b.uv':6,'b.ud':.25,'b.us':1,'b.oct':1,'b.lvl':.4,'f1.type':'LP 24','f1.cut':2600,'f1.res':.1,'f1.es':0,'e1.a':900,'e1.s':1,'e1.r':1800,'l1.rate':.12,'bus.t0.s1':.35},[['l1','f1.cut',.25]],{x1:[['verb',{type:2,decay:5,mix:1}]]}],
 ];
 for(const x of NEWP){const pp={};for(const k in x[4])pp[k]=(typeof x[4][k]==='string')?FT_(x[4][k]):x[4][k];PS(x[0],x[1],x[2],{tabs:x[3],p:pp,slots:x[5].map(a=>sl(a[0],a[1],a[2])),chains:x[6]});}
-const MASTERS={"Init":6.2,"Hands Up Hyper Saw":0.3,"Trance Mainliner":3.6,"Rawstyle Screamer":0.3,"Hoover Rave":9.3,"Dream Pluck":3.9,"Glass Pluck":8.9,"Reese Bass":1.5,"Sub Kick Tail":0.6,"Growl Bass":3.3,"Acid Squelch":4.7,"Wobble Harmonics":10,"FM Electric Piano":5.3,"Glass Bell":3.6,"Drawbar Organ":2.6,"Vowel Choir Pad":6.4,"Brass Swell":-0.9,"Wide Odd Pad":2,"Trance Gate Pad":8.4,"Formant Talker":7.4,"Digital Steps":1.8,"Metal Hit":6.5,"Noise Riser":4,"Lo-Fi Keys":10,"Pulse Sweep Arp":7.1,"Uplifting Lead":1.1,"Euphoria Lead":-0.5,"Hardstyle Screech":-2.4,"Rawstyle Square Lead":3.8,"Happy Hardcore Lead":0.3,"Eurodance Saw":0.8,"Synthwave Lead":10,"Soft Mono Lead":10,"Hoover Stab":9.9,"Detune Super Lead":-0.5,"Plucked Pentatonic":3.8,"Dream Harp":7.5,"Bell Pluck":4.4,"Pizzicato":7.5,"Acid Bass":4.5,"Reese Bass#2":0.1,"Sub Sine":7.7,"Wobble Bass":-0.5,"Hardstyle Rumble":-0.6,"Growl Bass#2":6.2,"Trance Gate Bass":8,"Warm Pad":-1.2,"Choir Pad":4.3,"Strings Ensemble":-0.8,"Dark Drone":-1.4,"Glass Pad":1.6,"Electric Piano":4,"House Organ":2.1,"Piano House Stab":1.5,"Lo-Fi Chords":4.2,"Trance Arp":2.1,"Rave Arp":10,"Sequence Bass Arp":9.7,"Laser Riser":10,"Alien Sweep":-3.6,"Impact Boom":2.9,"Anthem Stack":-2,"Pluck to Lead":-1.2,"Hands Up Bright":2.1,"Euphoric Lead":4.4,"Screech Lead":0.3,"Neuro Reese":-0.5,"Neuro Growl":-2.4,"Liquid Sub":7.3,"Liquid Bell Lead":2.7,"Liquid Pad":-0.8};
+const MASTERS={"Init":7.8,"Hands Up Hyper Saw":0.3,"Trance Mainliner":3.6,"Rawstyle Screamer":0.3,"Hoover Rave":9.2,"Dream Pluck":3.9,"Glass Pluck":8.8,"Reese Bass":1.5,"Sub Kick Tail":0.6,"Growl Bass":3,"Acid Squelch":4.6,"Wobble Harmonics":10,"FM Electric Piano":5.3,"Glass Bell":3.6,"Drawbar Organ":2.6,"Vowel Choir Pad":6.4,"Brass Swell":-0.9,"Wide Odd Pad":1.9,"Trance Gate Pad":8.3,"Formant Talker":7.4,"Digital Steps":1.8,"Metal Hit":6.4,"Noise Riser":4,"Lo-Fi Keys":10,"Pulse Sweep Arp":7,"Uplifting Lead":1,"Euphoria Lead":-0.5,"Hardstyle Screech":-2.4,"Rawstyle Square Lead":3.7,"Happy Hardcore Lead":0.3,"Eurodance Saw":0.8,"Synthwave Lead":10,"Soft Mono Lead":10,"Hoover Stab":9.9,"Detune Super Lead":-0.6,"Plucked Pentatonic":3.8,"Dream Harp":7.5,"Bell Pluck":4.4,"Pizzicato":7.5,"Acid Bass":4.4,"Reese Bass#2":0.1,"Sub Sine":7.7,"Wobble Bass":-0.5,"Hardstyle Rumble":-0.6,"Growl Bass#2":6.1,"Trance Gate Bass":8,"Warm Pad":-1.2,"Choir Pad":4.3,"Strings Ensemble":-0.8,"Dark Drone":-1.4,"Glass Pad":1.6,"Electric Piano":4,"House Organ":2.1,"Piano House Stab":1.5,"Lo-Fi Chords":4.2,"Trance Arp":2.1,"Rave Arp":10,"Sequence Bass Arp":9.6,"Laser Riser":10,"Alien Sweep":-3.6,"Impact Boom":2.9,"Anthem Stack":-2,"Pluck to Lead":-1.2,"Hands Up Bright":2.1,"Euphoric Lead":4.4,"Screech Lead":0.3,"Neuro Reese":-0.5,"Neuro Growl":-2.4,"Liquid Sub":7.3,"Liquid Bell Lead":2.7,"Liquid Pad":-0.8};
 {const seen={};for(const f of FACT){const n=seen[f.name]=(seen[f.name]||0)+1;const key=n>1?f.name+'#'+n:f.name;if(MASTERS[key]!==undefined&&f.p.master===undefined)f.p.master=MASTERS[key];}}
 const TYPES=['All','Lead','Pluck','Bass','Keys','Pad','Arp','FX'];
-function presetState(){const p={};for(const k in S.p)if(S.p[k]!==PR[k].d)p[k]=S.p[k];return {v:2,p,slots:JSON.parse(JSON.stringify(S.slots)),chains:JSON.parse(JSON.stringify(S.chains)),tabs:Object.assign({},S.tabs),seq:JSON.parse(JSON.stringify(S.seq)),draw:JSON.parse(JSON.stringify(S.draw)),envpts:JSON.parse(JSON.stringify(S.envpts)),custom:JSON.parse(JSON.stringify(S.custom))};}
+function presetState(){const p={};for(const k in S.p)if(S.p[k]!==PR[k].d)p[k]=S.p[k];return {v:3,p,slots:JSON.parse(JSON.stringify(S.slots)),chains:JSON.parse(JSON.stringify(S.chains)),tabs:Object.assign({},S.tabs),seq:JSON.parse(JSON.stringify(S.seq)),draw:JSON.parse(JSON.stringify(S.draw)),envpts:JSON.parse(JSON.stringify(S.envpts)),custom:JSON.parse(JSON.stringify(S.custom))};}
 function loadState(st,name,id){
   for(const k in PR)S.p[k]=PR[k].d;
   if(!st.v)for(const k of ['f1.kt','f2.kt'])S.p[k]=.5; // saves from before v1.7.6 used key track .5 as default
@@ -3068,12 +3085,13 @@ function loadState(st,name,id){
   S.slots=(st.slots||[]).map(x=>Object.assign({},x));
   if(st.chainsSpec){S.chains=D.defaultChains();for(const b in st.chainsSpec)S.chains[b]=st.chainsSpec[b].map(mkNode);}else if(st.chains)S.chains=JSON.parse(JSON.stringify(st.chains));else S.chains=D.defaultChains();
   if(st.chainsSpec&&Object.keys(st.chainsSpec).length===0)S.chains=D.defaultChains();
-  S.tabs=Object.assign({a:'Sine to Saw',b:'Sine to Saw',c:'Sine to Saw',d:'Sine to Saw',e:'Sine to Saw',f:'Sine to Saw'},st.tabs||{});S.frames={};tableCache.a=tableCache.b=tableCache.c=tableCache.d=tableCache.e=tableCache.f=null;
+  S.tabs=Object.assign({a:'Sine to Saw',b:'Sine to Saw',c:'Sine to Saw',d:'Sine to Saw',e:'Sine to Saw',f:'Sine to Saw'},st.tabs||{});if(!st.fact&&(st.v||0)<3&&st.tabs)for(const o in S.tabs)if(st.tabs[o]==='Sine to Saw')S.tabs[o]='Soft to Buzz'; // saves before v1.7.7: keep their old table sound
+  S.frames={};tableCache.a=tableCache.b=tableCache.c=tableCache.d=tableCache.e=tableCache.f=null;
   if(st.seq)S.seq=JSON.parse(JSON.stringify(st.seq));S.envpts=st.envpts?JSON.parse(JSON.stringify(st.envpts)):{};if(st.draw)S.draw=JSON.parse(JSON.stringify(st.draw));if(st.custom)S.custom=JSON.parse(JSON.stringify(st.custom));
   reindex();S.sel.node=null;S.name=name;S.pid=id;S.muted={};S.solo={};if(typeof applyMix==='function')setTimeout(applyMix,0);
   if(!HIST.busy)send({t:'panic'});syncAll();refreshAll();tableBinds.forEach(f=>f());renderFx();rebuildMatrix&&rebuildMatrix();$('#pname').textContent=name;
   if(!HIST.busy){S.hist=[name].concat(S.hist.filter(x=>x!==name)).slice(0,8);}updateFavBtn();if(!HIST.busy)histCommit('Load '+name);}
-function loadFactory(i){const f=FACT[i];loadState({v:f.name==='Init'?2:0,p:f.p,slots:f.slots,chainsSpec:f.chains,tabs:f.tabs},f.name,f.id);if(f.id==='f0'){S.seq={len:16,on:[],vel:[],semi:[],rat:[]};for(let j=0;j<16;j++){S.seq.on.push(1);S.seq.vel.push(1);S.seq.semi.push(0);S.seq.rat.push(1);}send({t:'seq',seq:S.seq});}}
+function loadFactory(i){const f=FACT[i];loadState({fact:1,v:f.name==='Init'?2:0,p:f.p,slots:f.slots,chainsSpec:f.chains,tabs:f.tabs},f.name,f.id);if(f.id==='f0'){S.seq={len:16,on:[],vel:[],semi:[],rat:[]};for(let j=0;j<16;j++){S.seq.on.push(1);S.seq.vel.push(1);S.seq.semi.push(0);S.seq.rat.push(1);}send({t:'seq',seq:S.seq});}}
 
 /* ---------- header, scopes, keys ---------- */
 const LOGO='<svg class="logo" viewBox="0 0 128 128"><defs><linearGradient id="wwg" x1="0" y1="0" x2="0.9" y2="1"><stop offset="0" style="stop-color:var(--acc2)"/><stop offset="1" style="stop-color:var(--acc)"/></linearGradient><radialGradient id="wwgl" cx="0.3" cy="0.2" r="0.8"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><radialGradient id="wwe" cx="0.5" cy="0.4" r="0.7"><stop offset="0" style="stop-color:var(--acc4)"/><stop offset="1" style="stop-color:var(--acc3)"/></radialGradient></defs><path d="M24 52 L26 10 L56 33 Q64 31 72 33 L102 10 L104 52 Q113 67 104 83 Q92 110 64 110 Q36 110 24 83 Q15 67 24 52 Z" fill="url(#wwg)" stroke="var(--text)" stroke-width="3.5" stroke-linejoin="round"/><path d="M24 52 L26 10 L56 33 Q64 31 72 33 L102 10 L104 52 Q113 67 104 83 Q92 110 64 110 Q36 110 24 83 Q15 67 24 52 Z" fill="url(#wwgl)"/><path d="M33 22 L34 42 L50 33 Z M95 22 L94 42 L78 33 Z" fill="#0b0b0d" opacity=".35"/><g fill="none" stroke="#0b0b0d" stroke-width="3" stroke-linecap="round" opacity=".55"><path d="M64 38 L64 48"/><path d="M53 40 Q55 45 57 49"/><path d="M75 40 Q73 45 71 49"/></g><ellipse cx="46" cy="67" rx="11.5" ry="10" fill="url(#wwe)" stroke="#0b0b0d" stroke-width="2"/><ellipse cx="82" cy="67" rx="11.5" ry="10" fill="url(#wwe)" stroke="#0b0b0d" stroke-width="2"/><ellipse cx="46" cy="67" rx="2.8" ry="8.6" fill="#0b0b0d"/><ellipse cx="82" cy="67" rx="2.8" ry="8.6" fill="#0b0b0d"/><circle cx="50.5" cy="62.5" r="2.6" fill="#fff"/><circle cx="86.5" cy="62.5" r="2.6" fill="#fff"/><circle cx="42.5" cy="71" r="1.3" fill="#fff" opacity=".8"/><circle cx="78.5" cy="71" r="1.3" fill="#fff" opacity=".8"/><path d="M59.5 80 L68.5 80 L64 85.5 Z" fill="#0b0b0d" stroke="#0b0b0d" stroke-width="2" stroke-linejoin="round"/><path d="M64 85.5 Q64 93 57.5 93 Q52.5 93 50.5 88.5 M64 85.5 Q64 93 70.5 93 Q75.5 93 77.5 88.5" fill="none" stroke="#0b0b0d" stroke-width="2.8" stroke-linecap="round"/><g fill="none" stroke="var(--text)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M40.0 76.0 L38.9 76.3 L37.9 76.5 L36.8 76.5 L35.8 76.2 L34.7 75.6 L33.7 74.7 L32.6 73.6 L31.6 72.5 L30.5 71.6 L29.4 70.9 L28.4 70.6 L27.3 70.6 L26.3 71.0 L25.2 71.5 L24.2 72.0 L23.1 72.3 L22.1 72.3 L21.0 71.9 L19.9 71.1 L18.9 70.0 L17.8 68.8 L16.8 67.5 L15.7 66.5 L14.7 65.8 L13.6 65.6 L12.6 65.8 L11.5 66.3 L10.4 67.0 L9.4 67.7 L8.3 68.1 L7.3 68.1 L6.2 67.6 L5.2 66.7 L4.1 65.4 L3.1 63.9 L2.0 62.5" opacity="1"/><path d="M40.0 83.0 L38.9 83.6 L37.9 84.2 L36.8 84.5 L35.8 84.5 L34.7 84.2 L33.7 83.7 L32.6 82.9 L31.6 82.2 L30.5 81.6 L29.4 81.3 L28.4 81.3 L27.3 81.6 L26.3 82.3 L25.2 83.1 L24.2 84.0 L23.1 84.6 L22.1 85.0 L21.0 84.9 L19.9 84.5 L18.9 83.7 L17.8 82.8 L16.8 81.9 L15.7 81.2 L14.7 80.8 L13.6 80.9 L12.6 81.4 L11.5 82.3 L10.4 83.3 L9.4 84.3 L8.3 85.1 L7.3 85.4 L6.2 85.3 L5.2 84.7 L4.1 83.7 L3.1 82.6 L2.0 81.5" opacity="0.8"/><path d="M40.0 90.0 L38.9 91.0 L37.9 91.8 L36.8 92.5 L35.8 92.8 L34.7 92.9 L33.7 92.7 L32.6 92.3 L31.6 91.9 L30.5 91.6 L29.4 91.6 L28.4 91.9 L27.3 92.6 L26.3 93.6 L25.2 94.8 L24.2 96.0 L23.1 96.9 L22.1 97.6 L21.0 97.9 L19.9 97.8 L18.9 97.4 L17.8 96.8 L16.8 96.2 L15.7 95.8 L14.7 95.8 L13.6 96.2 L12.6 97.1 L11.5 98.3 L10.4 99.7 L9.4 101.0 L8.3 102.1 L7.3 102.8 L6.2 103.0 L5.2 102.7 L4.1 102.0 L3.1 101.2 L2.0 100.5" opacity="0.6"/><path d="M88.0 76.0 L89.1 76.3 L90.1 76.5 L91.2 76.5 L92.2 76.2 L93.3 75.6 L94.3 74.7 L95.4 73.6 L96.4 72.5 L97.5 71.6 L98.6 70.9 L99.6 70.6 L100.7 70.6 L101.7 71.0 L102.8 71.5 L103.8 72.0 L104.9 72.3 L105.9 72.3 L107.0 71.9 L108.1 71.1 L109.1 70.0 L110.2 68.8 L111.2 67.5 L112.3 66.5 L113.3 65.8 L114.4 65.6 L115.4 65.8 L116.5 66.3 L117.6 67.0 L118.6 67.7 L119.7 68.1 L120.7 68.1 L121.8 67.6 L122.8 66.7 L123.9 65.4 L124.9 63.9 L126.0 62.5" opacity="1"/><path d="M88.0 83.0 L89.1 83.6 L90.1 84.2 L91.2 84.5 L92.2 84.5 L93.3 84.2 L94.3 83.7 L95.4 82.9 L96.4 82.2 L97.5 81.6 L98.6 81.3 L99.6 81.3 L100.7 81.6 L101.7 82.3 L102.8 83.1 L103.8 84.0 L104.9 84.6 L105.9 85.0 L107.0 84.9 L108.1 84.5 L109.1 83.7 L110.2 82.8 L111.2 81.9 L112.3 81.2 L113.3 80.8 L114.4 80.9 L115.4 81.4 L116.5 82.3 L117.6 83.3 L118.6 84.3 L119.7 85.1 L120.7 85.4 L121.8 85.3 L122.8 84.7 L123.9 83.7 L124.9 82.6 L126.0 81.5" opacity="0.8"/><path d="M88.0 90.0 L89.1 91.0 L90.1 91.8 L91.2 92.5 L92.2 92.8 L93.3 92.9 L94.3 92.7 L95.4 92.3 L96.4 91.9 L97.5 91.6 L98.6 91.6 L99.6 91.9 L100.7 92.6 L101.7 93.6 L102.8 94.8 L103.8 96.0 L104.9 96.9 L105.9 97.6 L107.0 97.9 L108.1 97.8 L109.1 97.4 L110.2 96.8 L111.2 96.2 L112.3 95.8 L113.3 95.8 L114.4 96.2 L115.4 97.1 L116.5 98.3 L117.6 99.7 L118.6 101.0 L119.7 102.1 L120.7 102.8 L121.8 103.0 L122.8 102.7 L123.9 102.0 L124.9 101.2 L126.0 100.5" opacity="0.6"/></g></svg>';
@@ -3088,10 +3106,11 @@ function aboutDialog(){dialog('About and support',h('div',{class:'col',style:'ga
 function setTheme(t){S.theme=t;document.body.className='look-'+t;store.set('ww_theme',t);refreshAll();}
 function buildApp(){const app=$('#app');
   const hdr=h('div',{id:'hdr'});hdr.innerHTML=LOGO;
+  const limEl=h('div',{class:'limgr','data-tip':'Master limiter gain reduction in dB. Above about 3 dB the limiter is squashing hard, which can make bass sound gritty: turn Master down until this stays low.',text:'LIM 0.0 dB'});let limHold=0,limT=0;
   const mm=cv(150,34);mm.dataset.tip='Master output level in dB. Blue is safe, purple is hot, pink is clipping.';
   hdr.append(h('div',null,[h('h1',{text:'WhiskerWave'}),h('small',{text:'STUDIO 87'})]),h('span',{class:'sp'}),
     h('div',{id:'presetbar'},[h('button',{class:'btn',text:'<','data-tip':'Previous preset.',onclick:()=>stepPreset(-1)}),h('div',{id:'pname','data-tip':'Click to open the preset browser.',text:S.name,onclick:()=>showPage('presets')}),h('button',{class:'btn',text:'>','data-tip':'Next preset.',onclick:()=>stepPreset(1)}),h('button',{class:'btn',id:'favbtn',text:'\u2661','data-tip':'Favorite this preset.',onclick:()=>toggleFav()}),h('button',{class:'btn on',text:'Save','data-tip':'Save the current sound as your own preset.',onclick:savePresetDialog}),h('button',{class:'btn',id:'undobtn','data-tip':'Undo the last change (Ctrl+Z).',text:'\u21B6',onclick:undo}),h('button',{class:'btn',id:'redobtn','data-tip':'Redo (Ctrl+Shift+Z or Ctrl+Y).',text:'\u21B7',onclick:redo}),h('button',{class:'btn',text:'History','data-tip':'List of your last steps. Click one to jump back to it.',onclick:histDialog})]),h('span',{class:'sp'}),
-    mm,h('div',{style:'transform:scale(.72);margin:-10px -6px;transform-origin:center'},[knob('master',{sm:true,label:'Master'})]),h('button',{class:'btn pulse',id:'audiobtn',text:'Start audio','data-tip':'Browsers only allow sound after a click. Press to start the engine.',onclick:()=>startAudio()}),
+    h('div',{class:'col',style:'gap:1px;align-items:stretch'},[mm,limEl]),h('div',{style:'transform:scale(.72);margin:-10px -6px;transform-origin:center'},[knob('master',{sm:true,label:'Master'})]),h('button',{class:'btn pulse',id:'audiobtn',text:'Start audio','data-tip':'Browsers only allow sound after a click. Press to start the engine.',onclick:()=>startAudio()}),
     h('button',{class:'btn',text:'Theme','data-tip':'Cycle through the colour schemes. More choices in Settings.',onclick:()=>{const i=THEMES.findIndex(t=>t[0]===S.theme);const n=THEMES[(i+1)%THEMES.length];setTheme(n[0]);toast(n[1]);}}),h('button',{class:'btn',text:'Guide',onclick:guideDialog}),h('button',{class:'btn',text:'Settings',onclick:settingsDialog}),h('button',{class:'btn',text:'About',onclick:aboutDialog}));
   const tabs=h('div',{id:'tabs'},PAGELIST.map(p=>h('b',{'data-page':p[0],text:p[1],onclick:()=>showPage(p[0])})));
   const pages=h('div',{id:'pages'});for(const p of PAGELIST){pages.appendChild(PAGES[p[0]]());}
@@ -3125,7 +3144,7 @@ function buildApp(){const app=$('#app');
   const foot=h('div',{id:'foot'},[h('span',{text:'Studio 87 · WhiskerWave v1 design mockup'}),h('span',{class:'sp'}),h('span',{id:'zoomread',class:'mono'})]);
   app.append(hdr,tabs,pages,scopes,keys,foot);
   buildKeys(kb);wheelDrag(pw,v=>{S.bendV=v*2-1;send({t:'bend',v:v*2-1});},true);wheelDrag(mw,v=>{S.wheelV=v;send({t:'wheel',v});},false);
-  animators.push({draw:()=>{const V=S.V;if(!V){drawMeter(mm,0,0,false);for(const c of [osc,spec]){c.g.fillStyle=cssv('--disp');c.g.fillRect(0,0,c.W,c.H);}return;}const m=V.meter.mst;drawMeter(mm,m.l,m.r,false);
+  animators.push({draw:()=>{const V=S.V;if(!V){drawMeter(mm,0,0,false);for(const c of [osc,spec]){c.g.fillStyle=cssv('--disp');c.g.fillRect(0,0,c.W,c.H);}return;}const m=V.meter.mst;drawMeter(mm,m.l,m.r,false);{const g=-(V.lgr||0),now=performance.now();if(g>=limHold||now-limT>700){limHold=g;limT=now;}limEl.textContent='LIM '+(limHold<.05?'0.0':'-'+limHold.toFixed(1))+' dB';limEl.className='limgr'+(limHold>3?' hot':limHold>.5?' on':'');}
     let g=osc.g;g.clearRect(0,0,osc.W,osc.H);g.fillStyle=cssv('--disp');g.fillRect(0,0,osc.W,osc.H);g.strokeStyle=cssv('--grid');g.beginPath();g.moveTo(0,osc.H/2);g.lineTo(osc.W,osc.H/2);g.stroke();
     const sc=V.scope;if(sc){g.beginPath();for(let x=0;x<osc.W;x++){const v=sc[Math.floor(x/osc.W*512)*2]||0;const y=osc.H/2-clamp(v,-1,1)*(osc.H/2-4);x?g.lineTo(x,y):g.moveTo(x,y);}g.strokeStyle=cssv('--acc');g.lineWidth=1.5;g.stroke();}
     g=spec.g;g.clearRect(0,0,spec.W,spec.H);g.fillStyle=cssv('--disp');g.fillRect(0,0,spec.W,spec.H);
