@@ -242,6 +242,13 @@ textarea.txt{background:var(--disp);border:1px solid var(--line);color:var(--tex
 .grp{flex:1 1 auto}
 .grp .gh .cap,.grp .gc{color:var(--acc);font-weight:600}
 .limgr{font:600 9px 'JetBrains Mono',monospace;color:var(--dim);text-align:right;line-height:10px}.limgr.on{color:#e8c25a}.limgr.hot{color:#ff6b6b}
+.sgrow{display:flex;gap:0;align-items:flex-start}
+.sg{display:flex;flex-direction:column;gap:1px;padding:0 1px;border-left:1px solid rgba(255,255,255,.07);flex:none;box-sizing:border-box}
+.sgrow>.sg:first-child,.col>.sgrow>.sg:first-child{border-left:none}
+.sg .sgh{display:flex;align-items:center;gap:2px;height:20px;padding-left:3px;overflow:hidden}
+.sg .sgh .gc{color:var(--acc);font-weight:600;font-size:10px;margin-right:2px}
+.sg select.sel{height:19px;font-size:11px;padding-top:0;padding-bottom:0;min-width:0}
+.sg .btn.stp{height:19px;min-width:15px;padding:0 3px}
 
 </style></head><body>
 <div id="viewport"><div id="stage"><div class="cheek"></div><div id="app"></div><div class="cheek"></div></div></div>
@@ -2354,31 +2361,25 @@ function drawWaterfall(c,k){const g=c.g,W=c.W,H=c.H,fr=framesOf(k),nf=fr.length;
   g.fillText('frame '+(fp+1).toFixed(1)+'/'+nf,W-76,10);}
 function drawSmallFrame(c,k){/* live single frame */}
 function oscPanel(o){const k='abcdef'[o],p=k+'.';
-  const disp=cv(365,92);disp.dataset.osc=k;
+  const disp=cv(365,68);disp.dataset.osc=k;
   const L=(arr)=>h('div',{class:'row',style:'gap:2px'},arr.map(x=>knob(p+x[0],{sm:true,label:x[1]})));
   const kn=(x)=>knob(p+x[0],{sm:true,label:x[1]});
   const stepSel=(key)=>{const e=sel(key);e.style.width='70px';const mk=(t,d,tip)=>h('button',{class:'btn sm stp',text:t,'data-tip':tip,onclick:()=>{const n=listOf(specOf(key)).length;setV(key,(getV(key)+d+n)%n);}});return h('div',{class:'row',style:'gap:1px;align-items:center;flex:none'},[mk('<',-1,'Previous warp mode.'),e,mk('>',1,'Next warp mode.')]);};
-  const tsel=tableSelect(o);tsel.style.width='118px';
-  const G=(title,ctl,ks,tip)=>h('div',{class:'grp','data-tip':tip},[h('div',{class:'gh'},[h('span',{class:'cap',text:title}),...(ctl||[])]),h('div',{class:'row',style:'gap:0'},ks.map(kn))]);
-const WG=(n,key,ak)=>h('div',{class:'grp'},[h('div',{class:'row',style:'gap:3px;align-items:center'},[h('div',{class:'col',style:'gap:3px'},[h('span',{class:'cap gc',text:n}),stepSel(key)]),kn([ak,'Amount'])])]);
-  const engSel=sel(p+'eng');engSel.classList.add('engsel');
-  const wtRow=h('div',{class:'col',style:'gap:4px'},[
-    h('div',{class:'grp'},[h('div',{class:'row',style:'gap:4px;align-items:center'},[
-      h('div',{class:'col',style:'gap:3px;flex:none'},[h('span',{class:'cap gc',text:'Wavetable'}),h('div',{class:'row',style:'gap:1px;align-items:center'},[tsel,h('button',{class:'btn sm stp',text:'<','data-tip':'Previous wavetable.',onclick:()=>stepTable(o,-1)}),h('button',{class:'btn sm stp',text:'>','data-tip':'Next wavetable.',onclick:()=>stepTable(o,1)})])]),
-      h('span',{class:'sp'}),...[['pos','Wave Pos'],['sw','Spec'],['sk','Smear']].map(kn)])]),
-    h('div',{class:'row',style:'gap:4px'},[WG('Warp 1',p+'w1','w1a'),WG('Warp 2',p+'w2','w2a')])]);
-  const smpRow=h('div',{class:'col',style:'gap:4px;display:none'},[
-    h('div',{class:'grp'},[h('div',{class:'gh'},[h('span',{class:'cap',text:'Sample and grains'}),h('span',{class:'sp'}),tog(p+'sloop','Loop')]),
-      h('div',{class:'row',style:'gap:0'},[['sroot','Root'],['gp','G.pos'],['gs','G.size'],['gd','Dens.'],['gj','Jitter']].map(kn)),
-      h('span',{class:'cap',style:'text-transform:none',text:'Load a sample on the Wave Lab page'})])]);
+  const tsel=tableSelect(o);tsel.style.width='100px';
+  // compact layout: each segment = a header line (menus or caption) right above its knobs; no boxes
+  const SG=(head,ks,slots,cls)=>h('div',{class:'sg'+(cls?' '+cls:''),style:'width:'+(slots*46)+'px'},[h('div',{class:'sgh'},head.map(x=>typeof x==='string'?h('span',{class:'cap gc',text:x}):x)),h('div',{class:'row',style:'gap:0'},ks.map(kn))]);
+  const msel=(key,w,o)=>{const e=sel(key,o);e.style.width=w+'px';return e;};
+  const engSel=msel(p+'eng',84);engSel.classList.add('engsel');
+  const tbar=h('div',{class:'row',style:'gap:1px;align-items:center;flex:none'},[tsel,h('button',{class:'btn sm stp',text:'<','data-tip':'Previous wavetable.',onclick:()=>stepTable(o,-1)}),h('button',{class:'btn sm stp',text:'>','data-tip':'Next wavetable.',onclick:()=>stepTable(o,1)})]);
+  const wtRow=h('div',{class:'sgrow'},[SG([tbar],[['pos','Wave Pos'],['sw','Spec'],['sk','Smear']],3),SG([msel(p+'w1',66),msel(p+'w2',66)],[['w1a','Warp 1'],['w2a','Warp 2']],3)]);
+  const smpRow=h('div',{class:'sgrow',style:'display:none'},[SG(['Sample',h('span',{class:'sp'}),tog(p+'sloop','Loop')],[['sroot','Root'],['gp','G.pos'],['gs','G.size'],['gd','Dens.'],['gj','Jitter']],6)]);
   const engUpd=()=>{if(!alive(wtRow))return false;const e=S.p[p+'eng'];wtRow.style.display=e===0?'':'none';smpRow.style.display=e===0?'none':'';};bind(p+'eng',engUpd);engUpd();
-  const envSel=sel(p+'env');
   const pn=panel(null,[
     h('div',{class:'row',style:'align-items:center'},[oscPower(p+'on'),h('h3',{text:'OSC',style:'margin:0;font-size:14px'}),oscSwitch(o%3),engSel,h('span',{class:'sp'}),h('span',{class:'cap',text:'To'}),sel(p+'rt')]),
-    disp,wtRow,smpRow,
-    h('div',{class:'row',style:'gap:4px'},[G('Pitch',null,[['oct','Oct'],['semi','Semi'],['fine','Fine'],['pit','Pitch']]),G('Output',[envSel],[['lvl','Level'],['pan','Pan']])]),
-    h('div',{class:'row',style:'gap:4px'},[G('Unison',[sel(p+'us')],[['uv','Voices'],['ud','Detune'],['ub','Blend'],['usp','Spread']]),G('Start',null,[['ph','Phase'],['rnd','Rand']])]),
-    h('div',{class:'row',style:'gap:4px'},[G('Mod',[sel(p+'mm'),sel(p+'ms',{prefix:'from '})],[['ma','Amount'],['fb','Fdbk']]),G('Dive',null,[['dv','Dive'],['dt','Time']])])],'width:388px');
+    disp,
+    h('div',{class:'row',style:'gap:0;align-items:flex-start'},[h('div',{class:'col',style:'gap:0'},[wtRow,smpRow]),SG(['Out',msel(p+'env',52)],[['lvl','Level'],['pan','Pan']],2)]),
+    h('div',{class:'sgrow'},[SG(['Unison',msel(p+'us',84)],[['uv','Voices'],['ud','Detune'],['ub','Blend'],['usp','Spread']],4),SG(['Pitch'],[['oct','Oct'],['semi','Semi'],['fine','Fine'],['pit','Pitch']],4)]),
+    h('div',{class:'sgrow'},[SG([msel(p+'mm',58),msel(p+'ms',70,{prefix:'from '})],[['ma','Mod amt'],['fb','Fdbk']],3),SG(['Start'],[['ph','Phase'],['rnd','Rand']],2),SG(['Dive'],[['dv','Dive'],['dt','Time']],2)])],'width:388px');
   const ubUpd=()=>{if(!alive(pn))return false;const sp=S.p[p+'us']===1,kb=pn.querySelector('[data-p="'+p+'ub"]');if(kb){kb.style.opacity=sp?1:.35;const l=kb.querySelector('.l');if(l)l.textContent=sp?'Side mix':'Blend';kb.dataset.tip=sp?'Supersaw only: level of the detuned side voices against the centre voice. Raise Voices (7 is the classic) and Detune to hear it.':'Blend only works in the Supersaw style. Set Style to Supersaw to use it.';}};bind(p+'us',ubUpd);setTimeout(ubUpd,0);
   const offUpd=()=>{if(!alive(pn))return false;pn.classList.toggle('oscoff',!S.p[p+'on']);};bind(p+'on',offUpd);offUpd();
   return pn;}
