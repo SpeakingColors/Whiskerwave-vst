@@ -12,8 +12,8 @@
 Free, open source wavetable synth for Linux (VST3). Wavetable oscillators with morphing, layered voices, a flexible modulation matrix, built-in effects, and a tool to sample your own hardware into wavetables. Ships with CC0 waveforms and waves made by code. Tuned for dance, house, UK hardcore and hardstyle. AGPL-3.0.
 
 ## Status
-**Playable preview v1.7.6.** The full design runs as an interactive mockup with its own sound engine, offline, in Chrome, Edge or Firefox on Linux, macOS and Windows.
-- Download: [WhiskerWave preview release](https://github.com/SpeakingColors/whiskerwave-vst/releases/tag/v1.7.6-preview) (one zip: WhiskerWave.html, PDF manual, INSTALL.txt).
+**Playable preview v1.7.7.** The full design runs as an interactive mockup with its own sound engine, offline, in Chrome, Edge or Firefox on Linux, macOS and Windows.
+- Download: [WhiskerWave preview release](https://github.com/SpeakingColors/whiskerwave-vst/releases/tag/v1.7.7-preview) (one zip: WhiskerWave.html, PDF manual, INSTALL.txt).
 - Or open [`docs/mockup/index.html`](docs/mockup/index.html) from this repo in your browser.
 
 The VST3 plugin is **not released yet**: it comes after the C++ port of this exact design. The C++ code in `src/` is still an early scaffold with a placeholder window and is not shipped.

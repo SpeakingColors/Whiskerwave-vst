@@ -228,10 +228,10 @@ textarea.txt{background:var(--disp);border:1px solid var(--line);color:var(--tex
 .btn.solo.on{background:#f3d34a;color:#1a1420;border-color:#f3d34a}
 .strip.dim{opacity:.55}
 
-.pwr{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;border-radius:50%;border:2px solid #8a3d4b;background:#241721;color:#c0707e;cursor:pointer;flex:none}
-.pwr svg{width:17px;height:17px}
-.pwr.on{background:#123a24;border-color:#3be07a;color:#7dffaa;box-shadow:0 0 10px rgba(59,224,122,.7),inset 0 0 7px rgba(59,224,122,.3)}
-.pwr:hover{filter:brightness(1.25)}
+.pwr{width:11px;height:11px;padding:0;margin:0 7px 0 2px;border-radius:50%;border:1px solid #5a1f28;background:radial-gradient(circle at 35% 35%,#ff7b7b,#d02a36 60%,#7a1018);box-shadow:0 0 4px rgba(230,50,60,.55);cursor:pointer;flex:none}
+.pwr.on{border-color:#1c6b3a;background:radial-gradient(circle at 35% 35%,#b8ffc9,#2fdc6a 60%,#127a3a);box-shadow:0 0 6px rgba(59,224,122,.8)}
+.pwr:hover{filter:brightness(1.2)}
+.pwr:focus-visible{outline:2px solid #FFA600;outline-offset:2px}
 .pn.oscoff>*:not(:first-child){opacity:.4}
 
 </style></head><body>
@@ -2306,9 +2306,7 @@ function filterXY(){const pad=cv(380,150);let drag=false,which=0;pad.dataset.tip
 
 /* Oscillator power button: round power icon, glows green when the oscillator is on, plain ON / OFF text next to it. */
 function oscPower(key){
-  const ic='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.6 6.6a8 8 0 1 0 10.8 0"/></svg>';
-  const b=h('button',{class:'pwr','data-tip':'Turns this oscillator on or off. Green and lit means it is playing; grey means it is silent and uses no CPU.',onclick:()=>setV(key,getV(key)?0:1)});
-  b.innerHTML=ic;
+  const b=h('button',{class:'pwr','aria-label':'Oscillator on or off','data-tip':'Click to turn this oscillator on or off. Green: on. Red: off (silent, uses no CPU).',onclick:()=>setV(key,getV(key)?0:1)});
   const upd=()=>{if(!alive(b))return false;const on=!!getV(key);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false');};
   bind(key,upd);upd();return b;}
 
@@ -2359,7 +2357,7 @@ function oscPanel(o){const k='abcdef'[o],p=k+'.';
     L([['sroot','Root'],['gp','G.pos'],['gs','G.size'],['gd','Dens.'],['gj','Jitter'],['oct','Oct'],['semi','Semi'],['fine','Fine']])]);
   const engUpd=()=>{if(!alive(wtRow))return false;const e=S.p[p+'eng'];wtRow.style.display=e===0?'':'none';smpRow.style.display=e===0?'none':'';};bind(p+'eng',engUpd);engUpd();
   const pn=panel(null,[
-    h('div',{class:'row',style:'align-items:center'},[h('h3',{text:'OSC',style:'margin:0;font-size:14px'}),oscSwitch(o%3),oscPower(p+'on'),seg(p+'eng',{short:['Wave','Sample','Grain']}),h('span',{class:'sp'}),h('span',{class:'cap',text:'To'}),sel(p+'rt')]),
+    h('div',{class:'row',style:'align-items:center'},[oscPower(p+'on'),h('h3',{text:'OSC',style:'margin:0;font-size:14px'}),oscSwitch(o%3),seg(p+'eng',{short:['Wave','Sample','Grain']}),h('span',{class:'sp'}),h('span',{class:'cap',text:'To'}),sel(p+'rt')]),
     disp,wtRow,smpRow,
     L([['lvl','Level'],['pan','Pan'],['ph','Phase'],['rnd','Rand'],['uv','Voices'],['ud','Detune'],['ub','Blend'],['usp','Spread']]),
     h('div',{class:'row',style:'align-items:center'},[sel(p+'us',{prefix:'Style: '}),sel(p+'mm',{prefix:'Mod: '}),sel(p+'ms',{prefix:'Src: '}),sel(p+'env')]),
