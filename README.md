@@ -12,7 +12,13 @@
 Free, open source wavetable synth for Linux (VST3). Wavetable oscillators with morphing, layered voices, a flexible modulation matrix, built-in effects, and a tool to sample your own hardware into wavetables. Ships with CC0 waveforms and waves made by code. Tuned for dance, house, UK hardcore and hardstyle. AGPL-3.0.
 
 ## Status
-Scaffold, no release and no mockup yet. The repo has the wave generators (38 waves), original MIDI test patterns, and a C++ synth scaffold that builds in CI. Its editor is a plain placeholder (wave display and a grid of knobs), not the real window: the design mockup comes first. See the [web page](docs/index.html) for what exists today and what does not.
+**Playable preview v1.7.6.** The full design runs as an interactive mockup with its own sound engine, offline, in Chrome, Edge or Firefox on Linux, macOS and Windows.
+- Download: [WhiskerWave preview release](https://github.com/SpeakingColors/whiskerwave-vst/releases/tag/v1.7.6-preview) (one zip: WhiskerWave.html, PDF manual, INSTALL.txt).
+- Or open [`docs/mockup/index.html`](docs/mockup/index.html) from this repo in your browser.
+
+The VST3 plugin is **not released yet**: it comes after the C++ port of this exact design. The C++ code in `src/` is still an early scaffold with a placeholder window and is not shipped.
+
+What the preview has: 6 wavetable oscillators (wavetable, sample and grain engines, unison up to 8, 12 warp modes, FM/AM/ring), sub and noise, 2 filters with 47 types, 8 envelopes, 4 LFOs, drag-to-modulate matrix, 30 effects on tracks and buses, mixer, arp, Wave Lab and 71 presets. Sound quality work so far (measured, not yet heard by ear): lookahead limiter, zero-delay ladder filters, 4x oversampled warp/FM oscillators and distortion effects, phase-aligned dry/wet mixing.
 
 <p align="center">
   <a href="https://ko-fi.com/studio87"><img src="https://img.shields.io/badge/Support_Studio_87-on_Ko--fi-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white" alt="Support Studio 87 on Ko-fi"></a>

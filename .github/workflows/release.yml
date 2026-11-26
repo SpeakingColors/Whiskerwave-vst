@@ -1,0 +1,46 @@
+# Publishes the playable preview (the interactive design mockup, offline HTML) as one zip on a GitHub release.
+# Run by hand: Actions, Release, Run workflow, type the tag (for example v1.7.6-preview).
+# The VST3 plugin is not released here yet: the C++ port of this design comes first.
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, for example v1.7.6-preview"
+        required: true
+permissions:
+  contents: write
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Package
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -e
+          name="WhiskerWave_Preview_${TAG}"
+          mkdir -p "pkg/$name"
+          cp docs/mockup/index.html "pkg/$name/WhiskerWave.html"
+          cp docs/preview/WhiskerWave_Preview_Manual.pdf "pkg/$name/"
+          cp release/INSTALL.txt LICENSE docs/mockup/OFL-*.txt "pkg/$name/"
+          (cd "pkg/$name" && sha256sum * > SHA256SUMS.txt)
+          (cd pkg && zip -qr "$name.zip" "$name")
+          ls -la pkg
+          echo "ZIP=pkg/$name.zip" >> "$GITHUB_ENV"
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ZIP" --clobber
+            gh release edit "$TAG" --notes-file release/NOTES.md --prerelease
+          else
+            gh release create "$TAG" "$ZIP" --target "$GITHUB_SHA" --title "WhiskerWave preview ${TAG}" --notes-file release/NOTES.md --prerelease
+          fi

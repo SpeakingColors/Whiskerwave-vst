@@ -1,0 +1,26 @@
+WhiskerWave preview: install and remove
+=======================================
+
+This is the playable preview of WhiskerWave: the full design and sound engine running in your web browser.
+It is NOT the VST3 plugin yet. The plugin build follows when the C++ port of this same design is done.
+
+Works on Linux, macOS and Windows. Nothing to install. Works offline. Sends nothing anywhere.
+
+Open it
+1. Open WhiskerWave.html with Chrome, Edge or Firefox (double-click, or drag it onto a browser window).
+2. Click once anywhere: browsers only start audio after a click.
+3. Play the on-screen keys, or your computer keyboard:
+   A S D F G H J K L are white keys, W E T Y U O P black keys, Z and X move the octave, C and V change velocity.
+
+Your presets
+- Presets you save are stored in this browser on this computer (browser local storage), not in a file.
+- To keep a copy, use Export in the preset browser and save the text.
+
+Remove it
+- Delete WhiskerWave.html and this folder.
+- To also remove your saved presets: clear the site data for this file in your browser settings
+  (Chrome or Edge: Settings, Privacy, Site data; Firefox: Settings, Privacy, Cookies and Site Data).
+
+Manual: WhiskerWave_Preview_Manual.pdf (every page and every control with its help text).
+
+Studio 87. Free and open source, AGPL-3.0-or-later. Fonts: Barlow Condensed and JetBrains Mono, SIL Open Font License 1.1.

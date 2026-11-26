@@ -6,13 +6,17 @@
 - [x] Synth scaffold in C++ (src/Synth.h, WaveBank.h): band-limited wavetable bank, 8 voices, unison, filter, envelopes, LFO morph, editor, CI
 - [x] Built-in shimmer delay and reverb (plate, hall, shimmer plate, shimmer hall) from the shared catfx code
 
+## Done (preview)
+- [x] Interactive design mockup with full JS sound engine (docs/mockup/index.html), preview release with PDF manual
+
 ## Next
+- [ ] Port the mockup engine and window to C++/JUCE (VST3), parity tests against the JS engine
+- [ ] Installers for Linux, macOS and Windows with manual and uninstaller
 - [ ] Wave generator in C++ (same shapes as `tools/gen_waves.py`, plus FM, formant, spectral drawing, harmonic sliders)
 - [ ] MIDI test-drive: a set of original MIDI patterns (hardstyle lead, happy hardcore, bass, funk) to audition any generated wave quickly, with a keep/skip list
 - [ ] Hardware capture tool: sends MIDI notes to a synth, records audio, trims, loops, pitch-detects and exports wavetables and multisamples
 - [ ] Wavetable oscillator with morphing and unison
 - [ ] Mod matrix, filters, built-in FX (use Clawpressor-style MB comp)
-- [ ] Mockup page on cat-ui look, then JUCE VST3 shell, RenderGate for drawing
 - [ ] Import CC0 packs (AKWF) with credit in the browser
 
 ## Rules for every cat plugin
