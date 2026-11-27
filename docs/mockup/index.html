@@ -303,7 +303,7 @@ G.PR=PR;G.toN=toN;G.fromN=fromN;G.def=def;
 const LISTS={
  eng:['Wavetable','Sample','Granular'],
  warp:['Off','Sync','Bend +','Bend -','Bend +/-','PWM','Mirror','Asym','Quantize','Fold','Clip','Crush','Flip'],
- ustyle:['Classic','Supersaw','Octaves','Power','Minor'],
+ ustyle:['Classic','Supersaw','Octaves','Power','Minor','JP Super'],
  rt:['Dry','F1','F2','F1+F2'],
  msrc:['A','B','C','Sub','D','E','F'],
  mmode:['None','FM','AM','Ring'],
@@ -356,7 +356,7 @@ for(const o of ['a','b','c','d','e','f']){
   def(o+'.rnd','Rand',0,1,1,{tip:'Random start phase. 0 gives the same attack every note.'});
   def(o+'.uv','Unison',1,8,1,{k:'int',tip:'Number of stacked voices per note.'});
   def(o+'.ud','Detune',0,1,.25,{vo:true,tip:'Unison detune. The curve is slow at first and steep at the end.'});
-  def(o+'.us','Style',0,4,0,{k:'list',list:'ustyle',tip:'Classic spreads evenly. Supersaw uses a centre voice plus detuned sides. Octaves, Power and Minor stack intervals.'});
+  def(o+'.us','Style',0,5,0,{k:'list',list:'ustyle',tip:'Classic spreads evenly. Supersaw uses a centre voice plus detuned sides. Octaves, Power and Minor stack intervals. JP Super follows the measured JP-8000 curves: narrow detune until near the top, Blend trades the centre against the sides, and a high-pass at the note removes low rumble. Best with 7 voices.'});
   def(o+'.ub','Blend',0,1,.5,{vo:true,tip:'Centre voice against side voices.'});
   def(o+'.usp','Spread',0,1,.7,{vo:true,tip:'Stereo spread of the unison voices.'});
   def(o+'.mm','Mod',0,3,0,{k:'list',list:'mmode',tip:'Let another oscillator modulate this one: FM, AM or ring.'});
@@ -780,6 +780,11 @@ VFilt.shape=(x,dg,dm)=>{const mk=1/Math.sqrt(dg);switch(dm){
   default:{let y=x*dg*.7,n=0;while((y>1||y<-1)&&n++<8)y=y>1?2-y:-2-y;return y*mk*1.1;}}};
 VFilt.SC=['gg','a','kfb','G','fg','rate','D','fb','damp','cap','dg','mk','mix','res','sh'];
 G.VFilt=VFilt;
+const JPOFF=[-0.11002313,-0.06288439,-0.01952356,0.01991221,0.06216538,0.10745242];
+const JPC=[10028.7312891634,-50818.8652045924,111363.4808729368,-138150.6761080548,106649.6679158292,-53046.9642751875,17019.9518580080,-3425.0836591318,404.2703938388,-24.1878824391,0.6717417634,0.0030115596];
+function jpCurve(x){let y=0;for(const c of JPC)y=y*x+c;return Math.max(0,y);}
+function jpCen(m){return -0.55366*m+0.99785;}function jpSide(m){return -0.73764*m*m+1.2841*m+0.044372;}
+const SQ2=Math.SQRT2;
 /* part 2: modulation sources, filters, voice */
 const BLK=32;
 G.BLK=BLK;
@@ -935,7 +940,7 @@ class Voice{
     this.fade=0;this.pfresh=true;this.kf=1;this.kfd=0;}
   fadeKill(ms){if(!this.active)return;this.kfd=1/Math.max(1,this.E.sr*(ms||6)/1000);if(!this.kf)this.kf=1;}
   release(){this.gate=false;for(const e of this.env)e.off();for(const e of this.sen)e.off();}
-  kill(){this.active=false;this.gate=false;this.kfd=0;this.kf=1;for(const e of this.env){e.st=0;e.v=0;e.rf=0;}for(const e of this.sen){e.st=0;e.v=0;}
+  kill(){if(this.jps)this.jps.fill(0);this.active=false;this.gate=false;this.kfd=0;this.kf=1;for(const e of this.env){e.st=0;e.v=0;e.rf=0;}for(const e of this.sen){e.st=0;e.v=0;}
     for(const f of this.flt){f[0].reset();f[1].reset();}this.last.fill(0);}
   /* one oscillator sample at phase p including FM, feedback, warp and AM/ring (used by the 2x path) */
   oscS(o,c,p,msrc){let q=p;
@@ -1003,10 +1008,15 @@ class Voice{
         else if(us===1){cents=Math.sign(x)*Math.pow(Math.abs(x),1.35)*maxc;const side=Math.abs(x)>.01;gain=side?.15+.85*ub:1;}
         else if(us===2){semi=[0,-12,12,0,12,-12,0,12][u];cents=(u%2?-1:1)*maxc*.12;}
         else if(us===3){semi=[0,7,12,0,7,12,0,7][u];cents=(u%2?-1:1)*maxc*.12;}
+        else if(us===5){ // JP-8000 curves (Szabo 2010 thesis): voice 0 is the centre, the rest use the measured side offsets
+          if(u>0&&nU>1){const sx=nU>2?(u-1)/(nU-2)*5:2.5,i=Math.min(4,sx|0),f=sx-i,off=JPOFF[i]+(JPOFF[i+1]-JPOFF[i])*f;
+            cents=1200*Math.log2(Math.max(.5,1+jpCurve(ud)*off));gain=jpSide(ub)/jpCen(ub);}
+          }
         else {semi=[0,3,7,12,0,3,7,12][u];cents=(u%2?-1:1)*maxc*.12;}
         this.inc[o][u]=mtof(base+semi+cents/100)/E.sr;
         gg[u]=gain;gsum+=gain*gain;
-        const pan=clamp(x*usp,-1,1)*.5+.5+0; // 0..1
+        const xp=us===5?(u===0||nU<2?0:(nU>2?((u-1)/(nU-2))*2-1:0)):x;
+        const pan=clamp(xp*usp,-1,1)*.5+.5+0; // 0..1
         const pp=clamp(R(k+'.pan')*.5+.5+(pan-.5)*0.999,0,1);
         g[u]=Math.cos(pp*PI/2);gr[u]=Math.sin(pp*PI/2);}
       const nrm=1/Math.sqrt(gsum||1);
@@ -1017,6 +1027,7 @@ class Voice{
       c.mm=pv[k+'.mm'];c.ms=pv[k+'.ms'];c.ma=R(k+'.ma');c.fb=R(k+'.fb');c.eng=eng;c.os=eng===0&&((c.w1>0&&c.w1a>0)||(c.w2>0&&c.w2a>0)||(c.mm>0&&c.ma>0)||c.fb>0);c.fmax=this.inc[o][0]*E.sr;
       if(c.posP===undefined||this.pfresh){c.posP=c.pos;c.w1aP=c.w1a;c.w2aP=c.w2a;c.maP=c.ma;c.fbP=c.fb;c.lvlP=c.lvl;}
       let fm=0;for(let u=0;u<nU;u++)fm=Math.max(fm,this.inc[o][u]*E.sr);c.fmax=fm;
+      c.jp=eng===0&&us===5&&nU>1;if(c.jp){const fh=Math.min(.45*E.sr,mtof(base));c.jg=Math.tan(PI*fh/E.sr);}
       c.gp=R(k+'.gp');c.gs=R(k+'.gs');c.gd=R(k+'.gd');c.gj=pv[k+'.gj'];c.root=pv[k+'.sroot'];c.loop=pv[k+'.sloop'];c.pr=Math.pow(2,(base-c.root)/12);
     }
     // filters
@@ -1122,6 +1133,9 @@ class Voice{
               const i0=gr.pos|0,fq=gr.pos-i0,s=(buf.d[i0]*(1-fq)+buf.d[i0+1]*fq)*w*.5;gr.age++;
               const pp=gr.pan*.5+.5;sumL+=s*Math.cos(pp*PI/2)*1.4;sumR+=s*Math.sin(pp*PI/2)*1.4;}}
         }
+        if(c.jp){const S=this.jps||(this.jps=new Float64Array(24)),b=o*4,g=c.jg,dn=1/(1+SQ2*g+g*g);
+          let hp=(sumL-(SQ2+g)*S[b]-S[b+1])*dn,bp=g*hp+S[b];S[b]=g*hp+bp;S[b+1]+=2*g*bp;sumL=hp; // 2-pole high-pass at the note (JP-8000 style)
+          hp=(sumR-(SQ2+g)*S[b+2]-S[b+3])*dn;bp=g*hp+S[b+2];S[b+2]=g*hp+bp;S[b+3]+=2*g*bp;sumR=hp;}
         const lv=c.lvi*.5;let amp=lv;
         const own=sA[sl_]+(sB[sl_]-sA[sl_])*t;
         amp*=eo[sl_]?own:own*evS[sl_];
@@ -1223,7 +1237,8 @@ class BiS{
 class Delay{
   constructor(max){let n=2;while(n<max+8)n<<=1;this.b=new Float32Array(n);this.m=n-1;this.w=0;}
   write(x){this.b[this.w]=x;this.w=(this.w+1)&this.m;}
-  read(d){const p=this.w-1-d,i=Math.floor(p),f=p-i,m=this.m;const a=this.b[i&m],b=this.b[(i+1)&m];return a+(b-a)*f;}
+  read(d){const p=this.w-1-d,i=Math.floor(p),f=p-i,m=this.m,B=this.b;const xm=B[(i-1)&m],x0=B[i&m],x1=B[(i+1)&m],x2=B[(i+2)&m]; // 4-point cubic Hermite: keeps the highs when the delay time moves (chorus, flanger)
+    const c1=.5*(x1-xm),c2=xm-2.5*x0+2*x1-.5*x2,c3=.5*(x2-xm)+1.5*(x0-x1);return ((c3*f+c2)*f+c1)*f+x0;}
   clear(){this.b.fill(0);}
 }
 class OS2{ // 2x oversampling around a nonlinearity
