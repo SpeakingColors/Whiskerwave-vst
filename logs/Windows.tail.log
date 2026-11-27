@@ -16,7 +16,7 @@
 -- Exporting juceaide
 -- Testing juceaide
 -- Finished setting up juceaide
--- Configuring done (144.0s)
+-- Configuring done (142.0s)
 -- Generating done (0.1s)
 CMake Warning (unused-cli):
   Manually-specified variables were not used by the project:
@@ -110,9 +110,9 @@ MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
   juce_audio_plugin_client_AAX_utils.cpp
   juce_audio_plugin_client_ARA.cpp
   juce_audio_plugin_client_LV2.cpp
-  juce_audio_plugin_client_Standalone.cpp
   juce_audio_plugin_client_Unity.cpp
   juce_audio_plugin_client_VST2.cpp
+  juce_audio_plugin_client_Standalone.cpp
   juce_audio_plugin_client_VST3.cpp
   Whiskerwave_Standalone.vcxproj -> D:\a\Whiskerwave-vst\Whiskerwave-vst\build\Whiskerwave_artefacts\Release\Standalone\Whiskerwave.exe
   Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/CMakeLists.txt
