@@ -2361,7 +2361,7 @@ function drawWaterfall(c,k){const g=c.g,W=c.W,H=c.H,fr=framesOf(k),nf=fr.length;
   g.fillText('frame '+(fp+1).toFixed(1)+'/'+nf,W-76,10);}
 function drawSmallFrame(c,k){/* live single frame */}
 function oscPanel(o){const k='abcdef'[o],p=k+'.';
-  const disp=cv(365,96);disp.dataset.osc=k;
+  const disp=cv(365,105);disp.dataset.osc=k;
   const L=(arr)=>h('div',{class:'row',style:'gap:2px'},arr.map(x=>knob(p+x[0],{sm:true,label:x[1]})));
   const kn=(x)=>knob(p+x[0],{sm:true,label:x[1]});
   const stepSel=(key)=>{const e=sel(key);e.style.width='70px';const mk=(t,d,tip)=>h('button',{class:'btn sm stp',text:t,'data-tip':tip,onclick:()=>{const n=listOf(specOf(key)).length;setV(key,(getV(key)+d+n)%n);}});return h('div',{class:'row',style:'gap:1px;align-items:center;flex:none'},[mk('<',-1,'Previous warp mode.'),e,mk('>',1,'Next warp mode.')]);};
