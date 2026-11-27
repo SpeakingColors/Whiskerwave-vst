@@ -16,7 +16,7 @@
 -- Exporting juceaide
 -- Testing juceaide
 -- Finished setting up juceaide
--- Configuring done (96.2s)
+-- Configuring done (110.7s)
 -- Generating done (0.1s)
 CMake Warning (unused-cli):
   Manually-specified variables were not used by the project:
@@ -30,8 +30,8 @@ MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
   Checking File Globs
   1>Checking Build System
   Generating Whiskerwave_artefacts/JuceLibraryCode/Whiskerwave_resources.rc
-  Building VST3 manifest helper for Whiskerwave
   Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/CMakeLists.txt
+  Building VST3 manifest helper for Whiskerwave
   Whiskerwave_rc_lib.vcxproj -> D:\a\Whiskerwave-vst\Whiskerwave-vst\build\Whiskerwave_rc_lib.dir\Release\Whiskerwave_rc_lib.lib
   -- The CXX compiler identification is MSVC 19.52.37029.0
   -- Detecting CXX compiler ABI info
@@ -39,7 +39,7 @@ MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
   -- Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/18/Enterprise/VC/Tools/MSVC/14.52.37025/bin/Hostx64/x64/cl.exe - skipped
   -- Detecting CXX compile features
   -- Detecting CXX compile features - done
-  -- Configuring done (1.2s)
+  -- Configuring done (1.5s)
   -- Generating done (0.0s)
   -- Build files have been written to: D:/a/Whiskerwave-vst/Whiskerwave-vst/build/vst3_helpers/Whiskerwave
   MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
