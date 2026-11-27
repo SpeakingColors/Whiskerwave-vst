@@ -280,6 +280,8 @@ textarea.txt{background:var(--disp);border:1px solid var(--line);color:var(--tex
 
 .lfostrip .lfoprev{display:none!important}
 
+select.sel:focus,select.sel:focus-visible{outline:none;box-shadow:none}
+
 </style></head><body>
 <div id="viewport"><div id="stage"><div class="cheek"></div><div id="app"></div><div class="cheek"></div></div></div>
 <div id="tip"></div><div id="ghost"></div><div class="toast" id="toast"></div><div class="dlg" id="dlg"></div>
@@ -2548,13 +2550,13 @@ function oscPanel(o){const k='abcdef'[o],p=k+'.';
   const smpRow=h('div',{class:'sgrow',style:'display:none'},[SG(['Sample',h('span',{class:'sp'}),tog(p+'sloop','Loop')],[['sroot','Root'],['gp','G.pos'],['gs','G.size'],['gd','Dens.'],['gj','Jitter']],5)]);
   const engUpd=()=>{if(!alive(wtRow))return false;const e=S.p[p+'eng'];wtRow.style.display=e===0?'':'none';smpRow.style.display=e===0?'none':'';};bind(p+'eng',engUpd);engUpd();
   const semiStep=d=>h('button',{class:'btn sm stp',text:d<0?'<':'>','data-tip':(d<0?'Down':'Up')+' one octave (12 semitones). Tip: hold Ctrl, Cmd or Alt while dragging or scrolling the Semi knob to do the same.',onclick:()=>{const sp=specOf(p+'semi');setV(p+'semi',clamp(S.p[p+'semi']+12*d,sp.min,sp.max));}});
-  const pitchSG=h('div',{class:'sg',style:'width:184px'},[h('div',{class:'sgh'},[h('span',{class:'cap gc',text:'Pitch'}),semiStep(-1),semiStep(1)]),h('div',{class:'row',style:'gap:0'},[knob(p+'semi',{sm:true,label:'Semi',coarse:true}),kn(['fine','Fine']),kn(['pit','Pitch']),kn(['anl','Analog'])])]);
+  const pitchSG=h('div',{class:'sg',style:'width:184px'},[h('div',{class:'sgh'},[h('span',{class:'cap gc',text:'Pitch'})]),h('div',{class:'row',style:'gap:0;align-items:flex-start'},[h('span',{style:'margin-top:10px'},[semiStep(-1)]),knob(p+'semi',{sm:true,label:'Semi',coarse:true}),h('span',{style:'margin-top:10px'},[semiStep(1)]),kn(['fine','Fine']),kn(['pit','Pitch'])])]);
   const pn=panel(null,[
     h('div',{class:'row',style:'align-items:center'},[oscPower(p+'on'),h('h3',{text:'OSC',style:'margin:0;font-size:14px'}),oscSwitch(o%3),engSel,h('span',{class:'sp'}),h('span',{class:'cap',text:'To'}),sel(p+'rt')]),
     disp,
     h('div',{class:'row',style:'gap:0;align-items:flex-start'},[h('div',{class:'col',style:'gap:0'},[wtRow,smpRow]),C1(p+'mm',58,'ma','Mod amt'),C1(p+'ms',64,'fb','Fdbk',{prefix:'from '})]),
     h('div',{class:'sgrow'},[SG(['Unison',msel(p+'us',84)],[['uv','Voices'],['ud','Detune'],['ub','Blend'],['usp','Spread']],4),pitchSG]),
-    h('div',{class:'sgrow'},[SG(['Start'],[['ph','Phase'],['rnd','Rand']],2),SG(['Dive'],[['dv','Dive'],['dt','Time']],2),h('span',{class:'sp'}),SG(['Out',msel(p+'env',52)],[['lvl','Level'],['pan','Pan']],2)])],'width:388px');
+    h('div',{class:'sgrow'},[SG(['Start'],[['ph','Phase'],['rnd','Rand']],2),SG(['Dive'],[['dv','Dive'],['dt','Time']],2),SG(['Analog'],[['anl','Analog']],1),h('span',{class:'sp'}),SG(['Out',msel(p+'env',52)],[['lvl','Level'],['pan','Pan']],2)])],'width:388px');
   const ubUpd=()=>{if(!alive(pn))return false;const sp=S.p[p+'us']===1||S.p[p+'us']===2,kb=pn.querySelector('[data-p="'+p+'ub"]');if(kb){kb.style.opacity=sp?1:.35;const l=kb.querySelector('.l');if(l)l.textContent=sp?'Side mix':'Blend';kb.dataset.tip=sp?'Supersaw only: level of the detuned side voices against the centre voice. Raise Voices (7 is the classic) and Detune to hear it.':'Blend only works in the Supersaw style. Set Style to Supersaw to use it.';}};bind(p+'us',ubUpd);setTimeout(ubUpd,0);
   const offUpd=()=>{if(!alive(pn))return false;pn.classList.toggle('oscoff',!S.p[p+'on']);};bind(p+'on',offUpd);offUpd();
   return pn;}
@@ -3600,6 +3602,8 @@ function boot(){const tt=store.get('ww_theme');if(tt)S.theme=tt;S.tips=store.get
   document.addEventListener('visibilitychange',()=>{});requestAnimationFrame(frame);
   const first=()=>{startAudio();document.removeEventListener('pointerdown',first,true);};
   document.addEventListener('pointerdown',first,true);}
+
+addEventListener('change',e=>{if(e.target&&e.target.tagName==='SELECT')e.target.blur();}); // no leftover focus ring after picking from a menu
 
 window.addEventListener('DOMContentLoaded',boot);
 </script></body></html>
