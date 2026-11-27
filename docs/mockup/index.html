@@ -799,7 +799,7 @@ for(let i=1;i<=8;i++)def('e'+i+'.ca','Atk curve',-1,1,0,{vo:true,tip:'Attack cur
 for(let i=1;i<=8;i++){
   def('e'+i+'.mode','Type',0,1,0,{k:'list',list:'emode',tip:'ADSR or a drawn shape (multi-point envelope you draw yourself).'});
   def('e'+i+'.len','Length',20,16000,1000,{k:'exp',u:' ms',tip:'Length of the drawn shape when Sync is off.'});
-  def('e'+i+'.sync','Sync',0,8,0,{k:'list',list:'esync',tip:'Lock the drawn shape length to the tempo. Off uses the Length knob.'});
+  def('e'+i+'.sync','Sync',0,8,5,{k:'list',list:'esync',tip:'Length of the drawn shape in bars and beats, locked to the tempo (default 1 bar). Off uses the Length knob in milliseconds.'});
   def('e'+i+'.loop','Loop',0,3,0,{k:'list',list:'eloop',tip:'Off: play once and stay at the end. Loop: repeat the whole shape while the key is held. Hold: stop at the end marker while the key is held, then play the rest on release. Markers: repeat between the two markers while held, then play the rest on release.'});
   def('e'+i+'.ls','Loop start',0,1,0,{tip:'Start marker (snaps to a point).'});
   def('e'+i+'.le','Loop end',0,1,1,{tip:'End marker (snaps to a point).'});
@@ -2317,14 +2317,17 @@ function envEditor(idx,W,H,big,kind){kind=kind||'e';const KEY=kind+idx,LF=kind==
   const mid=(a,b)=>({x:(a.x+b.x)/2,y:epSeg(a,b,.5)});
   const lm=()=>LF?0:(S.p[pre+'loop']|0),mk=()=>({ls:S.p[pre+'ls'],le:S.p[pre+'le']});
   const lenMs=()=>LF?0:(S.p[pre+'sync']?60000/(S.p.bpm||120)*[0,.25,.5,1,2,4,8,16,32][S.p[pre+'sync']]:S.p[pre+'len']);
-  const rd=(x,y)=>LF?Math.round(x*100)+'%   '+(y*2-1).toFixed(2):(x*lenMs()/1000).toFixed(3)+' s   '+Math.round(y*100)+'%';
+  const beats=()=>LF?0:[0,.25,.5,1,2,4,8,16,32][S.p[pre+'sync']|0];
+  const bbs=b=>{const q=Math.round(b*4)/4,bar=Math.floor(q/4)+1,bt=Math.floor(q%4)+1,st=Math.round((q%1)*4)+1;return bar+'.'+bt+(st>1?'.'+st:'');};
+  const tl=x=>beats()?bbs(x*beats()):(x*lenMs()/1000).toFixed(3)+' s';
+  const rd=(x,y)=>LF?Math.round(x*100)+'%   '+(y*2-1).toFixed(2):tl(x)+'   '+Math.round(y*100)+'%';
   c.draw=()=>{const g=c.g,p=epGet(KEY),NX=ENVGX,NY=ENVGY;g.clearRect(0,0,W,H);g.fillStyle=cssv('--disp');g.fillRect(0,0,W,H);
     g.lineWidth=1;g.strokeStyle=cssv('--grid');const bx=NX%3===0?3:4;for(let k=0;k<=NX;k++){g.globalAlpha=k%bx===0?.9:.35;const x=Math.round(X(k/NX))+.5;g.beginPath();g.moveTo(x,TOP);g.lineTo(x,H-PAD);g.stroke();}
     for(let k=0;k<=NY;k++){g.globalAlpha=k===0||k===NY||k*2===NY?.9:.3;const y=Math.round(Y(k/NY))+.5;g.beginPath();g.moveTo(PAD,y);g.lineTo(W-PAD,y);g.stroke();}g.globalAlpha=1;
     const L=lm();if(L>=2){const m=mk();g.fillStyle=cssv('--acc2');g.globalAlpha=.10;if(L===3)g.fillRect(X(Math.min(m.ls,m.le)),TOP,X(Math.max(m.ls,m.le))-X(Math.min(m.ls,m.le)),H-PAD-TOP);g.globalAlpha=1;
       const mark=(v,col,lab)=>{const x=Math.round(X(v))+.5;g.strokeStyle=col;g.setLineDash([3,3]);g.beginPath();g.moveTo(x,TOP);g.lineTo(x,H-PAD);g.stroke();g.setLineDash([]);g.fillStyle=col;g.beginPath();g.moveTo(x-5,0);g.lineTo(x+5,0);g.lineTo(x,TOP-2);g.closePath();g.fill();if(big){g.font='10px JetBrains Mono,monospace';g.fillText(lab,x+6,10);}};
       if(L===3)mark(m.ls,cssv('--acc'),'loop start');mark(m.le,cssv('--acc2'),L===2?'hold':'loop end');}
-    if(big&&!LF){g.fillStyle=cssv('--dim');g.font='10px JetBrains Mono,monospace';g.textAlign='center';for(let k=0;k<=4;k++)g.fillText((k/4*lenMs()/1000).toFixed(2)+'s',clamp(X(k/4),22,W-22),H-1);g.textAlign='left';for(const v of [0,.5,1])g.fillText(Math.round(v*100)+'%',1,Y(v)+(v===1?9:v===0?-2:3));}
+    if(big&&!LF){g.fillStyle=cssv('--dim');g.font='10px JetBrains Mono,monospace';g.textAlign='center';for(let k=0;k<=4;k++)g.fillText(beats()?(k<4?bbs(k/4*beats()):'end'):(k/4*lenMs()/1000).toFixed(2)+'s',clamp(X(k/4),22,W-22),H-1);g.textAlign='left';for(const v of [0,.5,1])g.fillText(Math.round(v*100)+'%',1,Y(v)+(v===1?9:v===0?-2:3));}
     const path=()=>{g.beginPath();for(let k=0;k<=W;k++){const x=k/W;const px=X(x),py=Y(epAt(p,x));k?g.lineTo(px,py):g.moveTo(px,py);}};
     path();g.lineTo(X(1),Y(0));g.lineTo(X(0),Y(0));g.closePath();g.globalAlpha=.16;g.fillStyle=cssv('--acc4');g.fill();g.globalAlpha=1;
     path();g.strokeStyle=cssv('--acc4');g.lineWidth=2;g.stroke();
@@ -2340,7 +2343,7 @@ function envEditor(idx,W,H,big,kind){kind=kind||'e';const KEY=kind+idx,LF=kind==
     return {best,x:iX(px),y:iY(py)};};
   const move=e=>{const h0=hit(e),p=epGet(KEY);
     if(!drag){hov=h0.best;const q=hov&&hov.t==='p'?p[hov.k]:{x:h0.x,y:h0.y};info=rd(q.x,q.y);c.style.cursor=hov?(hov.t==='p'?'move':hov.t==='mk'?'ew-resize':'ns-resize'):'crosshair';return;}
-    if(drag.t==='mk'){let best=0,bd=9;for(const q of p){const d=Math.abs(q.x-h0.x);if(d<bd){bd=d;best=q.x;}}setV(pre+drag.n,best);info=(drag.n==='ls'?'loop start ':'end marker ')+(best*lenMs()/1000).toFixed(3)+' s';return;}
+    if(drag.t==='mk'){let best=0,bd=9;for(const q of p){const d=Math.abs(q.x-h0.x);if(d<bd){bd=d;best=q.x;}}setV(pre+drag.n,best);info=(drag.n==='ls'?'loop start ':'end marker ')+tl(best);return;}
     if(drag.t==='p'){const q=p[drag.k];if(drag.k>0&&drag.k<p.length-1){const lo=p[drag.k-1].x+.0005,hi=p[drag.k+1].x-.0005;q.x=clamp(sn(h0.x,ENVGX),lo,hi);}q.y=clamp(sn(h0.y,ENVGY),0,1);info=rd(q.x,q.y);}
     else{const a=p[drag.k],b=p[drag.k+1];if(Math.abs(b.y-a.y)>.02){const m=clamp((h0.y-a.y)/(b.y-a.y),.02,.98);a.c=clamp(m<=.5?(Math.log(m)/Math.log(.5)-1)/3:(1-Math.log(1-m)/Math.log(.5))/3,-1,1);info='curve '+Math.round(a.c*100)+'%';}}
     epBake(KEY,true);};
@@ -3170,7 +3173,7 @@ for(const x of NEWP){const pp={};for(const k in x[4])pp[k]=(typeof x[4][k]==='st
 const MASTERS={"Init":7.8,"Hands Up Hyper Saw":0.3,"Trance Mainliner":3.6,"Rawstyle Screamer":0.3,"Hoover Rave":9.2,"Dream Pluck":3.9,"Glass Pluck":8.8,"Reese Bass":1.5,"Sub Kick Tail":0.6,"Growl Bass":3,"Acid Squelch":4.6,"Wobble Harmonics":10,"FM Electric Piano":5.3,"Glass Bell":3.6,"Drawbar Organ":2.6,"Vowel Choir Pad":6.4,"Brass Swell":-0.9,"Wide Odd Pad":1.9,"Trance Gate Pad":8.3,"Formant Talker":7.4,"Digital Steps":1.8,"Metal Hit":6.4,"Noise Riser":4,"Lo-Fi Keys":10,"Pulse Sweep Arp":7,"Uplifting Lead":1,"Euphoria Lead":-0.5,"Hardstyle Screech":-2.4,"Rawstyle Square Lead":3.7,"Happy Hardcore Lead":0.3,"Eurodance Saw":0.8,"Synthwave Lead":10,"Soft Mono Lead":10,"Hoover Stab":9.9,"Detune Super Lead":-0.6,"Plucked Pentatonic":3.8,"Dream Harp":7.5,"Bell Pluck":4.4,"Pizzicato":7.5,"Acid Bass":4.4,"Reese Bass#2":0.1,"Sub Sine":7.7,"Wobble Bass":-0.5,"Hardstyle Rumble":-0.6,"Growl Bass#2":6.1,"Trance Gate Bass":8,"Warm Pad":-1.2,"Choir Pad":4.3,"Strings Ensemble":-0.8,"Dark Drone":-1.4,"Glass Pad":1.6,"Electric Piano":4,"House Organ":2.1,"Piano House Stab":1.5,"Lo-Fi Chords":4.2,"Trance Arp":2.1,"Rave Arp":10,"Sequence Bass Arp":9.6,"Laser Riser":10,"Alien Sweep":-3.6,"Impact Boom":2.9,"Anthem Stack":-2,"Pluck to Lead":-1.2,"Hands Up Bright":2.1,"Euphoric Lead":4.4,"Screech Lead":0.3,"Neuro Reese":-0.5,"Neuro Growl":-2.4,"Liquid Sub":7.3,"Liquid Bell Lead":2.7,"Liquid Pad":-0.8};
 {const seen={};for(const f of FACT){const n=seen[f.name]=(seen[f.name]||0)+1;const key=n>1?f.name+'#'+n:f.name;if(MASTERS[key]!==undefined&&f.p.master===undefined)f.p.master=MASTERS[key];}}
 const TYPES=['All','Lead','Pluck','Bass','Keys','Pad','Arp','FX'];
-function presetState(){const p={};for(const k in S.p)if(S.p[k]!==PR[k].d)p[k]=S.p[k];return {v:3,p,slots:JSON.parse(JSON.stringify(S.slots)),chains:JSON.parse(JSON.stringify(S.chains)),tabs:Object.assign({},S.tabs),seq:JSON.parse(JSON.stringify(S.seq)),draw:JSON.parse(JSON.stringify(S.draw)),envpts:JSON.parse(JSON.stringify(S.envpts)),custom:JSON.parse(JSON.stringify(S.custom))};}
+function presetState(){const p={};for(const k in S.p)if(S.p[k]!==PR[k].d)p[k]=S.p[k];return {v:4,p,slots:JSON.parse(JSON.stringify(S.slots)),chains:JSON.parse(JSON.stringify(S.chains)),tabs:Object.assign({},S.tabs),seq:JSON.parse(JSON.stringify(S.seq)),draw:JSON.parse(JSON.stringify(S.draw)),envpts:JSON.parse(JSON.stringify(S.envpts)),custom:JSON.parse(JSON.stringify(S.custom))};}
 function loadState(st,name,id){
   for(const k in PR)S.p[k]=PR[k].d;
   if(!st.v)for(const k of ['f1.kt','f2.kt'])S.p[k]=.5; // saves from before v1.7.6 used key track .5 as default
@@ -3178,7 +3181,8 @@ function loadState(st,name,id){
   S.slots=(st.slots||[]).map(x=>Object.assign({},x));
   if(st.chainsSpec){S.chains=D.defaultChains();for(const b in st.chainsSpec)S.chains[b]=st.chainsSpec[b].map(mkNode);}else if(st.chains)S.chains=JSON.parse(JSON.stringify(st.chains));else S.chains=D.defaultChains();
   if(st.chainsSpec&&Object.keys(st.chainsSpec).length===0)S.chains=D.defaultChains();
-  S.tabs=Object.assign({a:'Sine to Saw',b:'Sine to Saw',c:'Sine to Saw',d:'Sine to Saw',e:'Sine to Saw',f:'Sine to Saw'},st.tabs||{});if(!st.fact&&(st.v||0)<3&&st.tabs)for(const o in S.tabs)if(st.tabs[o]==='Sine to Saw')S.tabs[o]='Soft to Buzz'; // saves before v1.7.7: keep their old table sound
+  S.tabs=Object.assign({a:'Sine to Saw',b:'Sine to Saw',c:'Sine to Saw',d:'Sine to Saw',e:'Sine to Saw',f:'Sine to Saw'},st.tabs||{});if(!st.fact&&(st.v||0)<4)for(let i=1;i<=8;i++){const k='e'+i+'.sync';if(!(st.p&&k in st.p))S.p[k]=0;} // saves before v1.9.1 used the Length knob for drawn envelopes
+  if(!st.fact&&(st.v||0)<3&&st.tabs)for(const o in S.tabs)if(st.tabs[o]==='Sine to Saw')S.tabs[o]='Soft to Buzz'; // saves before v1.7.7: keep their old table sound
   S.frames={};tableCache.a=tableCache.b=tableCache.c=tableCache.d=tableCache.e=tableCache.f=null;
   if(st.seq)S.seq=JSON.parse(JSON.stringify(st.seq));S.envpts=st.envpts?JSON.parse(JSON.stringify(st.envpts)):{};if(st.draw)S.draw=JSON.parse(JSON.stringify(st.draw));for(let i=0;i<8;i++){const d=S.draw[i];if(!d||!d.length||!d.some(v=>v)){S.draw[i]=[];for(let k=0;k<32;k++)S.draw[i].push(i===3?k/31:Math.exp(-k/8));}}if(st.custom)S.custom=JSON.parse(JSON.stringify(st.custom));
   reindex();S.sel.node=null;S.name=name;S.pid=id;S.muted={};S.solo={};if(typeof applyMix==='function')setTimeout(applyMix,0);
