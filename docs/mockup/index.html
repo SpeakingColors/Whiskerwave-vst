@@ -3210,6 +3210,9 @@ const DEMOS=(()=>{const D_=[];
   // Emotional chords: IV I vi7 V with two common tones held on top through every chord, 3-3-2 rhythm (inspiration: a shared MIDI idea, voicings written down by ear-free reading; in C major / A minor so it fits the other demos)
   D_.push({n:'Emotional chords',bpm:128,len:128,ev:(()=>{const V=[[43,50,55,57,62],[38,50,57,62],[47,54,57,62],[45,52,57,61,62],[43,57,62,69],[50,57,64,66],[47,54,57,62,69],[45,52,57,61,62,69]].map(c=>c.map(n=>n-2));
     const ev=[];V.forEach((c,b)=>[[0,5,.85],[6,5,.7],[12,3,.75]].forEach(([o,l,v],k)=>{const ch=b===1&&k>0?[...c,64]:c;ev.push([b*16+o,ch,l,v]);}));return ev;})()});
+  // Emotional pop: vi IV I V (Am F C G here; source in A major: F#m D A E) with C and G held on top of every chord; short-long chord lengths (6 and 10 sixteenths) for a pushed feel, eighth-note stabs
+  D_.push({n:'Emotional pop',bpm:120,len:64,ev:(()=>{const V=[[45,52,57,60,69],[41,48,53,60,67,69],[48,55,60,67,72],[43,50,60,67,71]],L=[6,10,6,10];const ev=[];let t=0;
+    for(let pass=0;pass<2;pass++)V.forEach((c,i)=>{for(let k=0;k<L[i];k+=2)ev.push([t+k,c,2,k?.72:.85]);t+=L[i];});return ev;})()});
   D_.push({n:'Pad swell',bpm:128,len:128,ev:AM.map((c,i)=>[i*32,[c[0]-12,...c.slice(1)],30,.6])});
   D_.push({n:'Trance stabs',bpm:138,len:128,ev:(()=>{/* 8 bars: offbeat, 3-3-2 gate, paired hits, roll; second pass denser with lift */
     const B=[[[2,1,.95],[6,1,.8],[10,1,.85],[13,1,.55],[14,1,.95]],
