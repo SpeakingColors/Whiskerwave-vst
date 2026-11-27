@@ -318,9 +318,13 @@ select.sel:focus,select.sel:focus-visible{outline:none;box-shadow:none}
 .plist .prow.on{border-color:var(--acc4);background:var(--selbg)}
 .plist .prow .pn1{font-size:14px}
 
+/* popups live inside the cat-ui window: between the wood cheeks, scaling with the window */
+#stage .dlg{position:absolute;left:34px;right:34px;top:0;bottom:0;inset:auto;left:34px;right:34px;top:0;bottom:0}
+#stage .dlg .pbox{max-width:96%!important}
+
 </style></head><body>
-<div id="viewport"><div id="stage"><div class="cheek"></div><div id="app"></div><div class="cheek"></div></div></div>
-<div id="tip"></div><div id="ghost"></div><div class="toast" id="toast"></div><div class="dlg" id="dlg"></div>
+<div id="viewport"><div id="stage"><div class="cheek"></div><div id="app"></div><div class="cheek"></div><div class="dlg" id="dlg"></div></div></div>
+<div id="tip"></div><div id="ghost"></div><div class="toast" id="toast"></div>
 <script>
 /* Whiskerwave DSP core, part 1: utils, FFT, parameter registry, wavetables.
    Pure JS. Wrapped in WWMAKE(G) so the same source runs in the page, the AudioWorklet and node tests.
@@ -2309,11 +2313,18 @@ function modPop(key,x,y){const sl=slotsFor(key);if(!sl.length){toast('Drag a mod
 const DBMIN=-60,DBMAX=6;
 function dbpos(db){return clamp((db-DBMIN)/(DBMAX-DBMIN),0,1);}
 function toDb(x){return 20*Math.log10(Math.max(x,1e-6));}
+/* meter colours = JPurrr-8000 / cat-ui SodaPop: popOcean 398BC4 at the bottom, popSky 6CC9F5 at -34, periwinkle 774BF9 at -22, orchid A43DFF at -8, hotPink FF1383 from -1 dB up */
+const METER_STOPS=[[-60,'#398BC4'],[-34,'#6CC9F5'],[-22,'#774BF9'],[-8,'#A43DFF'],[-1,'#FF1383'],[6,'#FF1383']];
+function meterGrad(g,x0,y0,x1,y1){const gr=g.createLinearGradient(x0,y0,x1,y1);for(const [db,c] of METER_STOPS)gr.addColorStop(dbpos(db),c);return gr;}
+const peakCol=db=>db>=-1?'#FF1383':db>-12?'#A43DFF':'#6CC9F5';
 function drawMeter(c,l,r,vertical,pk){const g=c.g,W=c.W,H=c.H;g.clearRect(0,0,W,H);g.fillStyle=cssv('--disp');g.fillRect(0,0,W,H);
-  const zones=[[DBMIN,-12,cssv('--m1')],[-12,0,cssv('--m2')],[0,DBMAX,cssv('--m3')]];
-  const bars=[l,r];for(let i=0;i<2;i++){const db=toDb(bars[i]),p=dbpos(db);
-    for(const z of zones){const a=dbpos(z[0]),b=Math.min(p,dbpos(z[1]));if(b<=a)continue;g.fillStyle=z[2];
-      if(vertical){const bw=(W-14)/2-1,bx=14+i*(bw+2);g.fillRect(bx,H-b*H,bw,(b-a)*H);}else{const bh=(H-12)/2-1,by=i*(bh+2);g.fillRect(a*(W-0),by,(b-a)*W,bh);}}}
+  const hold=c._pk||(c._pk=[{v:DBMIN,t:0},{v:DBMIN,t:0}]),now=performance.now(),bars=[l,r];
+  for(let i=0;i<2;i++){const db=toDb(bars[i]),p=dbpos(db),pkk=hold[i];if(db>=pkk.v||now-pkk.t>1500){if(db>=pkk.v)pkk.t=now;pkk.v=db>=pkk.v?db:Math.max(db,pkk.v-.6);}
+    const pp=dbpos(pkk.v);
+    if(vertical){const bw=(W-14)/2-1,bx=14+i*(bw+2);g.fillStyle='rgba(255,255,255,.05)';g.fillRect(bx,0,bw,H);g.save();g.beginPath();g.rect(bx,H-p*H,bw,p*H);g.clip();g.fillStyle=meterGrad(g,0,H,0,0);g.fillRect(bx,0,bw,H);g.restore();
+      if(pkk.v>DBMIN+1){g.fillStyle=peakCol(pkk.v);g.fillRect(bx,Math.min(H-2,H-pp*H),bw,2);}}
+    else{const bh=(H-12)/2-1,by=i*(bh+2);g.fillStyle='rgba(255,255,255,.05)';g.fillRect(0,by,W,bh);g.save();g.beginPath();g.rect(0,by,p*W,bh);g.clip();g.fillStyle=meterGrad(g,0,0,W,0);g.fillRect(0,by,W,bh);g.restore();
+      if(pkk.v>DBMIN+1){g.fillStyle=peakCol(pkk.v);g.fillRect(Math.min(W-2,pp*W),by,2,bh);}}}
   g.fillStyle=cssv('--dim');g.font='8px JetBrains Mono,monospace';g.textAlign='left';
   for(const t of [-48,-36,-24,-12,-6,0]){const p=dbpos(t);if(vertical){g.fillRect(10,H-p*H,3,1);g.fillText(t,0,H-p*H+3);}else{g.fillRect(p*W,H-5,1,3);g.fillText(t,p*W-6,H-1);}}}
 /* ---------- view scale and handles ---------- */
@@ -2956,7 +2967,7 @@ function mixerPage(){const pg=h('div',{class:'page','data-page':'mixer'});
     pg.append(strip);bind('bus.'+b+'.vol',()=>{const e=document.getElementById('vol_'+b);if(!e)return false;e.textContent=S.p['bus.'+b+'.vol'].toFixed(1)+' dB';if(b!=='mst'&&busSilent(b))send({t:'set',k:'bus.'+b+'.vol',v:-60});});refresh('bus.'+b+'.vol');}
   const info=panel('ROUTING',[h('span',{class:'cap',style:'white-space:normal;text-transform:none',text:'Each track can go to Master, to an FX bus, or into a later track (B, C or Sub+Noise), so you can build chains of tracks. Sends feed FX 1 and FX 2, which each have their own effect chain on the FX page. FX 1 can also feed FX 2. FX Out is one fader for all effect returns together, then it goes to Master. Send levels are post-fader.'}),
     h('span',{class:'cap',style:'white-space:normal;text-transform:none',text:'Oscillators go to a track with the To menu on the Sound page, and to filters with Route.'}),
-    h('span',{class:'cap',style:'white-space:normal;text-transform:none',text:'Meters show peak in dB: blue up to -12, purple up to 0, pink above 0 (clipping).'})],'width:200px');pg.append(info);
+    h('span',{class:'cap',style:'white-space:normal;text-transform:none',text:'Meters show level in dB with a peak marker: blue is low, purple is hot, pink from -1 dB up is close to clipping.'})],'width:200px');pg.append(info);
   animators.push({draw:()=>{if(S.page!=='mixer'||!S.V)return;for(const b in meterEls){const m=S.V.meter[b]||{l:0,r:0};drawMeter(meterEls[b],m.l,m.r,true);}}});return pg;}
 function sp0(key){return specOf(key);}
 /* ---------- arp ---------- */
@@ -3577,7 +3588,7 @@ function setTheme(t){S.theme=t;document.body.className='look-'+t;store.set('ww_t
 function buildApp(){const app=$('#app');
   const hdr=h('div',{id:'hdr'});hdr.innerHTML=LOGO;
   const limEl=h('div',{class:'limgr','data-tip':'Master limiter gain reduction in dB. Above about 3 dB the limiter is squashing hard, which can make bass sound gritty: turn Master down until this stays low.',text:'LIM 0.0 dB'});let limHold=0,limT=0;
-  const mm=cv(150,34);mm.dataset.tip='Master output level in dB. Blue is safe, purple is hot, pink is clipping.';
+  const mm=cv(150,34);mm.dataset.tip='Master output level in dB. Blue is low, purple is hot, pink from -1 dB up is close to clipping. The thin marker holds the recent peak.';
   hdr.append(h('div',null,[h('h1',{text:'WhiskerWave'}),h('small',{text:'STUDIO 87'})]),h('span',{class:'sp'}),
     h('div',{id:'presetbar'},[h('button',{class:'btn',text:'<','data-tip':'Previous preset.',onclick:()=>stepPreset(-1)}),h('div',{id:'pname','data-tip':'Click to open the preset browser.',text:S.name,onclick:()=>presetBrowser()}),h('button',{class:'btn',text:'>','data-tip':'Next preset.',onclick:()=>stepPreset(1)}),h('button',{class:'btn',id:'favbtn',text:'\u2661','data-tip':'Favorite this preset.',onclick:()=>toggleFav()}),h('button',{class:'btn on',text:'Save','data-tip':'Save the current sound as your own preset.',onclick:savePresetDialog}),h('button',{class:'btn',id:'undobtn','data-tip':'Undo the last change (Ctrl+Z).',text:'\u21B6',onclick:undo}),h('button',{class:'btn',id:'redobtn','data-tip':'Redo (Ctrl+Shift+Z or Ctrl+Y).',text:'\u21B7',onclick:redo}),h('button',{class:'btn',text:'History','data-tip':'List of your last steps. Click one to jump back to it.',onclick:histDialog})]),h('span',{class:'sp'}),
     h('div',{class:'col',style:'gap:1px;align-items:stretch'},[mm,limEl]),h('div',{style:'transform:scale(.72);margin:-10px -6px;transform-origin:center'},[knob('master',{sm:true,label:'Master'})]),h('button',{class:'btn pulse',id:'audiobtn',text:'Start audio','data-tip':'Browsers only allow sound after a click. Press to start the engine.',onclick:()=>startAudio()}),
