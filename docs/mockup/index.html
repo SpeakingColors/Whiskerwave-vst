@@ -3114,7 +3114,7 @@ function browserPopup(c){
     if(st.q){const t=(it.name+' '+(it.sub||'')+' '+Object.values(it.cats||{}).join(' ')+' '+(it.tags||[]).join(' ')).toLowerCase();for(const w of st.q.toLowerCase().split(/\s+/).filter(Boolean))if(!t.includes(w))return false;}
     for(const k in st.f)if(st.f[k]!=null&&![].concat((it.cats||{})[k]||[]).includes(st.f[k]))return false;
     if(st.fav&&!it.fav)return false;return true;};
-  const row=it=>{const r=h('div',{class:'pbr'+(it.sel&&it.sel()?' on':''),'data-tip':it.tip||'',onclick:()=>{c.pick(it);redraw();}},[]);
+  const row=it=>{const r=h('div',{class:'pbr'+(it.sel&&it.sel()?' on':''),onclick:()=>{c.pick(it);redraw();}},[]);if(it.tip)r.setAttribute('data-tip',it.tip);
     if(c.setFav)r.appendChild(h('span',{class:'hrt'+(it.fav?' on':''),text:it.fav?'♥':'♡','data-tip':'Favorite',onclick:e=>{e.stopPropagation();c.setFav(it,!it.fav);redraw();}}));
     r.appendChild(h('span',{class:'pbn'},[h('b',{text:it.name}),it.sub?h('i',{text:it.sub}):null].filter(Boolean)));
     if(it.tag)r.appendChild(h('span',{class:'pbt',text:it.tag}));
