@@ -16,7 +16,7 @@
 -- Exporting juceaide
 -- Testing juceaide
 -- Finished setting up juceaide
--- Configuring done (94.9s)
+-- Configuring done (149.6s)
 -- Generating done (0.1s)
 CMake Warning (unused-cli):
   Manually-specified variables were not used by the project:
@@ -39,7 +39,7 @@ MSBuild version 18.12.2-1.26514.2+04f6ca984 for .NET Framework
   -- Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/18/Enterprise/VC/Tools/MSVC/14.52.37025/bin/Hostx64/x64/cl.exe - skipped
   -- Detecting CXX compile features
   -- Detecting CXX compile features - done
-  -- Configuring done (1.2s)
+  -- Configuring done (1.8s)
   -- Generating done (0.0s)
   -- Build files have been written to: D:/a/Whiskerwave-vst/Whiskerwave-vst/build/vst3_helpers/Whiskerwave
   MSBuild version 18.12.2-1.26514.2+04f6ca984 for .NET Framework
@@ -98,8 +98,8 @@ MSBuild version 18.12.2-1.26514.2+04f6ca984 for .NET Framework
   juce_audio_plugin_client_ARA.cpp
   juce_audio_plugin_client_LV2.cpp
   juce_audio_plugin_client_Standalone.cpp
-  juce_audio_plugin_client_Unity.cpp
   juce_audio_plugin_client_VST2.cpp
+  juce_audio_plugin_client_Unity.cpp
   juce_audio_plugin_client_VST3.cpp
      Creating library D:/a/Whiskerwave-vst/Whiskerwave-vst/build/Whiskerwave_artefacts/Release/VST3/Whiskerwave.lib and object D:/a/Whiskerwave-vst/Whiskerwave-vst/build/Whiskerwave_artefacts/Release/VST3/Whiskerwave.exp
   Whiskerwave_VST3.vcxproj -> D:\a\Whiskerwave-vst\Whiskerwave-vst\build\Whiskerwave_artefacts\Release\VST3\Whiskerwave.vst3\Contents\x86_64-win\Whiskerwave.vst3
