@@ -16,8 +16,8 @@
 -- Exporting juceaide
 -- Testing juceaide
 -- Finished setting up juceaide
--- Configuring done (145.5s)
--- Generating done (0.2s)
+-- Configuring done (94.9s)
+-- Generating done (0.1s)
 CMake Warning (unused-cli):
   Manually-specified variables were not used by the project:
 
@@ -25,7 +25,7 @@ CMake Warning (unused-cli):
 
 
 -- Build files have been written to: D:/a/Whiskerwave-vst/Whiskerwave-vst/build
-MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
+MSBuild version 18.12.2-1.26514.2+04f6ca984 for .NET Framework
 
   Checking File Globs
   1>Checking Build System
@@ -39,10 +39,10 @@ MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
   -- Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/18/Enterprise/VC/Tools/MSVC/14.52.37025/bin/Hostx64/x64/cl.exe - skipped
   -- Detecting CXX compile features
   -- Detecting CXX compile features - done
-  -- Configuring done (2.0s)
+  -- Configuring done (1.2s)
   -- Generating done (0.0s)
   -- Build files have been written to: D:/a/Whiskerwave-vst/Whiskerwave-vst/build/vst3_helpers/Whiskerwave
-  MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
+  MSBuild version 18.12.2-1.26514.2+04f6ca984 for .NET Framework
   
     1>Checking Build System
     Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/extras/Build/CMake/juce_vst3_helper/CMakeLists.txt
