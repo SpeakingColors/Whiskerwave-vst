@@ -282,6 +282,42 @@ textarea.txt{background:var(--disp);border:1px solid var(--line);color:var(--tex
 
 select.sel:focus,select.sel:focus-visible{outline:none;box-shadow:none}
 
+/* popup browser */
+.pbox{width:900px;max-width:96vw!important;height:580px;max-height:94%!important;padding:0!important;gap:0!important}
+.pbh{padding:16px 24px 12px;border-bottom:1px solid var(--line)}
+.pbh h2{font-size:26px!important;letter-spacing:.1em;text-transform:uppercase;color:var(--acc4)!important}
+.pbbody{display:flex;gap:22px;padding:16px 24px;flex:1;min-height:0}
+.pbl{width:340px;flex:none;overflow-y:auto;scrollbar-width:none;background:var(--disp);border-radius:9px;padding:8px 8px 12px}
+.pbl::-webkit-scrollbar,.pbrt::-webkit-scrollbar{display:none}
+.pbg{font-size:11px;letter-spacing:.16em;color:var(--acc);margin:12px 4px 5px;font-weight:700}
+.pbg:first-child{margin-top:4px}
+.pbr{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:var(--panel2);margin-bottom:4px;cursor:pointer;border:1px solid transparent}
+.pbr:hover{border-color:var(--line);background:var(--panel)}
+.pbr.on{border-color:var(--acc4);background:var(--selbg)}
+.pbr.on b{color:var(--acc4)}
+.pbn{display:flex;flex-direction:column;min-width:0;flex:1}
+.pbn b{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbn i{font-style:normal;font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbt{font-size:10.5px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.pbx{color:var(--dim);padding:0 4px}.pbx:hover{color:var(--acc2)}
+.pbrt{flex:1;min-width:0;display:flex;flex-direction:column;gap:16px;overflow-y:auto;scrollbar-width:none}
+.pbcap{font-size:11px;letter-spacing:.16em;color:var(--acc);font-weight:700;margin-bottom:7px}
+.pbq{width:100%;box-sizing:border-box;height:42px;font-size:16px!important;padding:0 14px!important;border:2px solid var(--selbd)!important;border-radius:9px!important;background:var(--disp)!important;color:var(--text)}
+.pbq:focus{outline:none;border-color:var(--acc4)!important}
+.pbchips{display:flex;flex-wrap:wrap}
+.pbchip{padding:5px 14px;border-radius:16px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:12px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;margin:0 7px 7px 0}
+.pbchip:hover{border-color:var(--selbd)}
+.pbchip.on{background:var(--selbg);border-color:var(--acc4);color:var(--acc4)}
+.pbhint{font-size:12px;color:var(--dim);line-height:1.5}
+.pbf{display:flex;align-items:center;gap:8px;padding:12px 24px;border-top:1px solid var(--line)}
+
+.pside .pbchip{padding:3px 10px;font-size:11px;margin:0 4px 4px 0}
+.pside .pbchip.on{color:var(--acc4)}
+.plist .prow{padding:8px 10px;border-radius:8px;background:var(--panel2);margin-bottom:4px;border:1px solid transparent}
+.plist .prow:hover{border-color:var(--line)}
+.plist .prow.on{border-color:var(--acc4);background:var(--selbg)}
+.plist .prow .pn1{font-size:14px}
+
 </style></head><body>
 <div id="viewport"><div id="stage"><div class="cheek"></div><div id="app"></div><div class="cheek"></div></div></div>
 <div id="tip"></div><div id="ghost"></div><div class="toast" id="toast"></div><div class="dlg" id="dlg"></div>
@@ -3064,24 +3100,102 @@ function applyFxChain(name,spec){S.chains=D.defaultChains();if(spec.clear){S.cha
   for(const b of ['mst','x1','x2','t0','t1','t2','t3'])if(spec[b])S.chains[b]=spec[b].map(n=>n&&n.id?JSON.parse(JSON.stringify(n)):mkNode(n));
   if(spec.p)for(const k in spec.p)if(PR[k])setV(k,spec.p[k]);
   S.sel.node=null;S.slots=S.slots.filter(s=>!s.d.startsWith('fx:'));sendSlots();chainChanged();rebuildMatrix&&rebuildMatrix();toast('FX chain: '+name);}
-let fxBrowseTab='Leads';
-function fxBrowser(){const cats=Object.keys(FXCHAINS).concat(['My chains']);const tabs=h('div',{class:'seg tight'});const grid=h('div',{class:'fxpgrid'});
-  const mx=Math.max(...Object.values(FXCHAINS).map(o=>Object.keys(o).length),Object.keys(fxUserGet(FXU_CH)).length+1,6),rows=Math.ceil(mx/3);grid.style.minHeight=(rows*34+(rows-1)*6)+'px';
-  const draw=()=>{$$('b',tabs).forEach(b=>b.classList.toggle('on',b.textContent===fxBrowseTab));grid.innerHTML='';
-    const set=fxBrowseTab==='My chains'?fxUserGet(FXU_CH):FXCHAINS[fxBrowseTab];
-    for(const nm in set){const sp=set[nm];const b=h('button',{class:'btn fxpb','data-tip':(sp.d||'Your saved chain.')+' Replaces every effect chain.',onclick:()=>{applyFxChain(nm,sp);closeDlg();}},[h('span',{text:nm})]);
-      if(fxBrowseTab==='My chains')b.appendChild(h('i',{class:'fxpx',text:'x','data-tip':'Delete this saved chain.',onclick:e=>{e.stopPropagation();const u=fxUserGet(FXU_CH);delete u[nm];fxUserSet(FXU_CH,u);draw();}}));grid.appendChild(b);}
-    if(fxBrowseTab==='My chains')grid.appendChild(h('button',{class:'btn fxpb on','data-tip':'Save every chain and the mixer sends as a new preset in this browser.',text:'+ Save current',onclick:()=>askName('Name for this FX chain','My chain',nm=>{const u=fxUserGet(FXU_CH);const p={};for(const b of ['t0','t1','t2','t3'])for(const s of ['s1','s2'])p['bus.'+b+'.'+s]=S.p['bus.'+b+'.'+s];u[nm]=Object.assign(JSON.parse(JSON.stringify(S.chains)),{p,d:'Saved '+new Date().toLocaleDateString()});fxUserSet(FXU_CH,u);fxBrowseTab='My chains';fxBrowser();})}));};
-  cats.forEach(c=>tabs.appendChild(h('b',{text:c,onclick:()=>{fxBrowseTab=c;draw();}})));draw();
-  dialog('FX presets',h('div',{class:'col',style:'gap:8px;width:612px'},[h('span',{class:'cap',style:'text-transform:none;white-space:normal',text:'Whole effect setups. Loading one replaces every chain (you can undo). For one effect only, use the Presets button on that effect.'}),tabs,grid]),[['Done',null,true]]);}
-function fxModBrowser(n){const t=n.type,name=FXDEF[t].name;const grid=h('div',{class:'fxpgrid'});const user=()=>fxUserGet(FXU_MOD)[t]||{};
-  const all=(FXMOD[t]||[]).length+Object.keys(user()).length+1,rows=Math.max(2,Math.ceil(all/3));grid.style.minHeight=(rows*34+(rows-1)*6)+'px';
-  const load=p=>{const d=FXDEF[t];const np={};for(const s of d.order)np[s.key]=s.d;Object.assign(np,p);n.p=np;chainChanged();};
-  const draw=()=>{grid.innerHTML='';for(const e of (FXMOD[t]||[]))grid.appendChild(h('button',{class:'btn fxpb','data-tip':(e[2]||e[0])+' Loads into this '+name+'; modulation routes stay.',onclick:()=>{load(e[1]);toast(name+': '+e[0]);}},[h('span',{text:e[0]})]));
-    const u=user();for(const nm in u){const b=h('button',{class:'btn fxpb','data-tip':'Your saved '+name+' preset.',onclick:()=>{load(u[nm]);toast(name+': '+nm);}},[h('span',{text:nm})]);b.appendChild(h('i',{class:'fxpx',text:'x','data-tip':'Delete this saved preset.',onclick:e=>{e.stopPropagation();const all=fxUserGet(FXU_MOD);delete all[t][nm];fxUserSet(FXU_MOD,all);draw();}}));grid.appendChild(b);}
-    grid.appendChild(h('button',{class:'btn fxpb on','data-tip':'Save the current settings of this effect as your own preset.',text:'+ Save current',onclick:()=>askName('Name for this '+name+' preset','My '+name,nm=>{const all=fxUserGet(FXU_MOD);(all[t]=all[t]||{})[nm]=Object.assign({},n.p);fxUserSet(FXU_MOD,all);fxModBrowser(n);})}));};
-  draw();dialog(name+' presets',h('div',{class:'col',style:'gap:8px;width:612px'},[grid]),[['Done',null,true]]);}
 function askName(title,def,cb){const inp=h('input',{class:'sel',style:'width:300px',value:def});dialog(title,h('div',{class:'col'},[inp]),[['Cancel'],['Save',()=>{const v=inp.value.trim();if(!v)return false;setTimeout(()=>cb(v),0);},1]]);setTimeout(()=>{inp.focus();inp.select();},50);}
+
+/* ---------- shared popup browser (search, chips, favorites, history) used by the preset and FX browsers ---------- */
+function browserPopup(c){
+  const st={q:'',f:{},fav:false,more:{}};const d=$('#dlg');d.innerHTML='';
+  const list=h('div',{class:'pbl'}),right=h('div',{class:'pbrt'}),cnt=h('span',{class:'cap',style:'font-size:12px'});
+  const q=h('input',{type:'text',class:'pbq',placeholder:c.placeholder||'name, type, genre or tag',spellcheck:'false'});
+  let vis=[];
+  const close=()=>{d.classList.remove('on');document.removeEventListener('keydown',esc,true);};
+  const esc=e=>{if(e.key==='Escape'&&d.classList.contains('on')){close();e.stopPropagation();}};
+  const match=it=>{
+    if(st.q){const t=(it.name+' '+(it.sub||'')+' '+Object.values(it.cats||{}).join(' ')+' '+(it.tags||[]).join(' ')).toLowerCase();for(const w of st.q.toLowerCase().split(/\s+/).filter(Boolean))if(!t.includes(w))return false;}
+    for(const k in st.f)if(st.f[k]!=null&&![].concat((it.cats||{})[k]||[]).includes(st.f[k]))return false;
+    if(st.fav&&!it.fav)return false;return true;};
+  const row=it=>{const r=h('div',{class:'pbr'+(it.sel&&it.sel()?' on':''),'data-tip':it.tip||'',onclick:()=>{c.pick(it);redraw();}},[]);
+    if(c.setFav)r.appendChild(h('span',{class:'hrt'+(it.fav?' on':''),text:it.fav?'♥':'♡','data-tip':'Favorite',onclick:e=>{e.stopPropagation();c.setFav(it,!it.fav);redraw();}}));
+    r.appendChild(h('span',{class:'pbn'},[h('b',{text:it.name}),it.sub?h('i',{text:it.sub}):null].filter(Boolean)));
+    if(it.tag)r.appendChild(h('span',{class:'pbt',text:it.tag}));
+    if(it.del)r.appendChild(h('span',{class:'pbx',text:'x','data-tip':'Delete this saved preset.',onclick:e=>{e.stopPropagation();it.del();redraw();}}));
+    return r;};
+  const drawList=()=>{const sc=list.scrollTop;list.innerHTML='';const all=c.items();vis=all.filter(match);cnt.textContent=vis.length+' '+(c.noun||'sounds');
+    let g=null;for(const it of vis){if(it.group!==g){g=it.group;list.appendChild(h('div',{class:'pbg',text:g}));}list.appendChild(row(it));}
+    if(!vis.length)list.appendChild(h('div',{class:'cap',style:'padding:24px;text-align:center;white-space:normal',text:'Nothing matches. Clear the search or a filter.'}));
+    list.scrollTop=sc;return all;};
+  const chip=(label,on,fn)=>h('span',{class:'pbchip'+(on?' on':''),text:label,onclick:fn});
+  const drawRight=all=>{right.innerHTML='';
+    right.append(h('div',{},[h('div',{class:'pbcap',text:'SEARCH'}),q]));
+    for(const r of (c.rows||[])){const m={};for(const it of all)for(const v of [].concat((it.cats||{})[r.key]||[]))m[v]=(m[v]||0)+1;
+      let vals=Object.keys(m).sort((a,b)=>r.order?(r.order.indexOf(a)<0?99:r.order.indexOf(a))-(r.order.indexOf(b)<0?99:r.order.indexOf(b)):m[b]-m[a]||a.localeCompare(b));
+      if(!r.fav&&(!vals.length||(vals.length<2&&!r.always)))continue;const lim=r.max||99,ex=st.more[r.key];const shown=ex?vals:vals.slice(0,lim);
+      const chips=shown.map(v=>chip(v,st.f[r.key]===v,()=>{st.f[r.key]=st.f[r.key]===v?null:v;redraw();}));
+      if(r.fav&&c.setFav)chips.unshift(chip('♥ Favorites',st.fav,()=>{st.fav=!st.fav;redraw();}));
+      if(vals.length>lim)chips.push(chip(ex?'Less':'+'+(vals.length-lim)+' more',false,()=>{st.more[r.key]=!ex;redraw();}));
+      right.append(h('div',{},[h('div',{class:'pbcap',text:r.label}),h('div',{class:'pbchips'},chips)]));}
+    if(!(c.rows||[]).length&&c.setFav)right.append(h('div',{class:'pbchips'},[chip('♥ Favorites',st.fav,()=>{st.fav=!st.fav;redraw();})]));
+    const hs=c.history?c.history():[];if(hs.length)right.append(h('div',{},[h('div',{class:'pbcap',text:'HISTORY (CLICK TO GO BACK)'}),h('div',{class:'pbchips'},hs.map(n=>chip(n,false,()=>{c.histPick(n);redraw();})))]));
+    if(c.hint)right.append(h('div',{class:'pbhint',text:c.hint}));
+    if(c.extra)right.append(c.extra);};
+  const redraw=()=>{const all=drawList();drawRight(all);q.value=st.q;if(document.activeElement!==q&&c.keepFocus!==false)q.focus();};
+  q.oninput=()=>{st.q=q.value;const pos=q.selectionStart;const all=drawList();cnt.textContent=cnt.textContent;};
+  q.onkeydown=e=>{e.stopPropagation();
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(!vis.length)return;let i=vis.findIndex(x=>x.sel&&x.sel());i=e.key==='ArrowDown'?Math.min(vis.length-1,i+1):Math.max(0,i<0?0:i-1);c.pick(vis[i]);drawList();const on=list.querySelector('.pbr.on');if(on)on.scrollIntoView({block:'nearest'});}
+    else if(e.key==='Enter')close();};
+  const foot=h('div',{class:'pbf'},[cnt,h('span',{class:'sp'}),...(c.footer||[]),h('button',{class:'btn on',text:'Close',onclick:close})]);
+  const box=h('div',{class:'pbox'},[h('div',{class:'pbh'},[h('h2',{text:c.title})]),h('div',{class:'pbbody'},[list,right]),foot]);
+  d.appendChild(box);d.classList.add('on');d.onclick=e=>{if(e.target===d)close();};document.addEventListener('keydown',esc,true);
+  c.redraw=redraw;redraw();setTimeout(()=>{q.focus();const on=list.querySelector('.pbr.on');if(on)on.scrollIntoView({block:'center'});},30);return c;}
+
+/* main preset browser */
+let presetPop=null;
+function presetBrowser(){
+  const TS=['Lead','Pluck','Bass','Keys','Pad','Arp','FX'];
+  presetPop=browserPopup({title:'Preset browser',noun:'sounds',placeholder:'name, type, genre or tag',
+    hint:'Click a sound to load it, use the arrow keys to step through the list, Enter to close. ♥ marks your favorites. Save, rate, tag and delete live on the Presets tab.',
+    items:()=>{const all=allPresets();const out=[];const mk=(p,group)=>({id:p.id,name:p.name,tag:p.type,group,fav:p.fav,sel:()=>p.id===S.pid||(!S.pid&&p.name===S.name),tip:p.note||'',cats:{Type:[p.type],Genre:[p.genre],Show:[p.kind==='u'?'My presets':'Factory']},tags:p.tags,p});
+      for(const p of all.filter(x=>x.start).sort((a,b)=>a.name.localeCompare(b.name)))out.push(mk(p,'START HERE'));
+      for(const t of TS)for(const p of all.filter(x=>x.type===t&&!x.start).sort((a,b)=>a.name.localeCompare(b.name)))out.push(mk(p,t==='FX'?'FX':t.toUpperCase()+'S'));
+      for(const p of all.filter(x=>!x.start&&!TS.includes(x.type)))out.push(mk(p,'OTHER'));
+      const mine=all.filter(x=>x.kind==='u').sort((a,b)=>a.name.localeCompare(b.name));for(const p of mine){const i=out.findIndex(o=>o.p===p);if(i>=0)out.splice(i,1);}for(const p of mine)out.unshift(mk(p,'MY PRESETS'));
+      return out;},
+    rows:[{key:'Type',label:'TYPE',order:TS},{key:'Genre',label:'GENRE',max:14,fav:false},{key:'Show',label:'SHOW',fav:true}],
+    pick:it=>loadPreset(it.p),setFav:(it,v)=>{setMeta(it.p,{fav:v});refreshPresetUI();},
+    history:()=>S.hist.slice(0,8),histPick:n=>{const p=allPresets().find(x=>x.name===n);if(p)loadPreset(p);},
+    footer:[h('button',{class:'btn',text:'Save current','data-tip':'Opens the save box for the sound as it is now.',onclick:()=>{closeDlg();savePresetDialog();}}),h('button',{class:'btn',text:'Library tab','data-tip':'Rate, tag, edit, import and export presets.',onclick:()=>{closeDlg();showPage('presets');}})]});}
+
+/* FX browsers */
+const FXU_FAV='whiskerwave.fxfavs.v1',FXU_HIST='whiskerwave.fxhist.v1';
+const fxFavGet=k=>!!fxUserGet(FXU_FAV)[k];
+function fxFavSet(k,v){const f=fxUserGet(FXU_FAV);if(v)f[k]=1;else delete f[k];fxUserSet(FXU_FAV,f);}
+function fxHistGet(s){return (fxUserGet(FXU_HIST)[s]||[]).slice(0,8);}
+function fxHistAdd(s,n){const h2=fxUserGet(FXU_HIST);h2[s]=[n].concat((h2[s]||[]).filter(x=>x!==n)).slice(0,8);fxUserSet(FXU_HIST,h2);}
+let fxLast='';
+function fxBrowser(){
+  const specOf=n=>{for(const c in FXCHAINS)if(FXCHAINS[c][n])return FXCHAINS[c][n];const u=fxUserGet(FXU_CH);return u[n];};
+  browserPopup({title:'FX presets',noun:'chains',placeholder:'name, category or what it does',
+    hint:'Whole effect setups. Loading one replaces every chain (the undo button works). For one effect only, use the Presets button on that effect.',
+    items:()=>{const out=[];const u=fxUserGet(FXU_CH);for(const nm in u)out.push({name:nm,sub:u[nm].d||'Your saved chain.',group:'MY CHAINS',cats:{Category:['My chains']},fav:fxFavGet('c:'+nm),sel:()=>fxLast===nm,del:()=>{const x=fxUserGet(FXU_CH);delete x[nm];fxUserSet(FXU_CH,x);}});
+      for(const cat in FXCHAINS)for(const nm in FXCHAINS[cat])out.push({name:nm,sub:FXCHAINS[cat][nm].d,group:cat.toUpperCase(),cats:{Category:[cat]},fav:fxFavGet('c:'+nm),sel:()=>fxLast===nm,tip:FXCHAINS[cat][nm].d});return out;},
+    rows:[{key:'Category',label:'CATEGORY',fav:true,max:12}],
+    pick:it=>{fxLast=it.name;applyFxChain(it.name,specOf(it.name));fxHistAdd('chains',it.name);},
+    setFav:(it,v)=>fxFavSet('c:'+it.name,v),history:()=>fxHistGet('chains'),histPick:n=>{fxLast=n;applyFxChain(n,specOf(n));},
+    footer:[h('button',{class:'btn','data-tip':'Save every chain and the mixer sends as a new preset in this browser.',text:'+ Save current',onclick:()=>askName('Name for this FX chain','My chain',nm=>{const u=fxUserGet(FXU_CH);const p={};for(const b of ['t0','t1','t2','t3'])for(const s of ['s1','s2'])p['bus.'+b+'.'+s]=S.p['bus.'+b+'.'+s];u[nm]=Object.assign(JSON.parse(JSON.stringify(S.chains)),{p,d:'Saved '+new Date().toLocaleDateString()});fxUserSet(FXU_CH,u);fxBrowser();})})]});}
+function fxModBrowser(n){const t=n.type,name=FXDEF[t].name;
+  const load=p=>{const d=FXDEF[t];const np={};for(const s of d.order)np[s.key]=s.d;Object.assign(np,p);n.p=np;chainChanged();};
+  const user=()=>fxUserGet(FXU_MOD)[t]||{};let last='';
+  const find=nm=>{const f=(FXMOD[t]||[]).find(e=>e[0]===nm);return f?f[1]:user()[nm];};
+  browserPopup({title:name+' presets',noun:'presets',placeholder:'search '+name+' presets',
+    hint:'Loads into this '+name+'; modulation routes stay. Save your own with + Save current.',
+    items:()=>{const out=[];const u=user();for(const nm in u)out.push({name:nm,group:'MY PRESETS',fav:fxFavGet('m:'+t+':'+nm),sel:()=>last===nm,del:()=>{const a=fxUserGet(FXU_MOD);delete a[t][nm];fxUserSet(FXU_MOD,a);}});
+      for(const e of (FXMOD[t]||[]))out.push({name:e[0],sub:e[2]||'',group:'FACTORY',fav:fxFavGet('m:'+t+':'+e[0]),sel:()=>last===e[0],tip:e[2]||e[0]});return out;},
+    rows:[],pick:it=>{last=it.name;load(find(it.name));fxHistAdd('m:'+t,it.name);},setFav:(it,v)=>fxFavSet('m:'+t+':'+it.name,v),
+    history:()=>fxHistGet('m:'+t),histPick:nm=>{last=nm;load(find(nm));},
+    footer:[h('button',{class:'btn','data-tip':'Save the current settings of this effect as your own preset.',text:'+ Save current',onclick:()=>askName('Name for this '+name+' preset','My '+name,nm=>{const all=fxUserGet(FXU_MOD);(all[t]=all[t]||{})[nm]=Object.assign({},n.p);fxUserSet(FXU_MOD,all);fxModBrowser(n);})})]});}
+
+/* demos built from the private notes repo melody grids (original patterns). Octaves checked against the frequency map: bass notes folded up so nothing is below E1 (41 Hz), leads start above about D3 */
+const GRIDDEMOS=[{"n":"Trance anthem","bpm":138,"len":64,"pre":"Trance Mainliner","ev":[[0,[73],3,0.92],[3,[69],2,0.76],[5,[71],2,0.76],[7,[73],3,0.76],[10,[76],2,0.76],[12,[73],2,0.92],[14,[71],1,0.76],[15,[69],1,0.76],[16,[74],3,0.92],[19,[69],2,0.76],[21,[71],2,0.76],[23,[74],3,0.76],[26,[78],2,0.76],[28,[76],2,0.92],[30,[74],2,0.76],[32,[76],3,0.92],[35,[73],2,0.76],[37,[74],2,0.76],[39,[76],3,0.76],[42,[81],2,0.76],[44,[80],2,0.92],[46,[78],1,0.76],[47,[76],1,0.76],[48,[80],3,0.92],[51,[76],2,0.76],[53,[78],2,0.76],[55,[80],3,0.76],[58,[76],2,0.76],[60,[71],2,0.92],[62,[73],1,0.76],[63,[74],1,0.76]]},{"n":"Pedal tone trance","bpm":138,"len":64,"pre":"Anthem Stack","ev":[[0,[69],1,0.92],[2,[76],1,0.76],[4,[69],1,0.92],[6,[76],1,0.76],[7,[71],1,0.76],[9,[76],1,0.76],[11,[72],1,0.76],[13,[76],1,0.76],[14,[71],1,0.76],[16,[71],1,0.92],[18,[76],1,0.76],[20,[71],1,0.92],[22,[76],1,0.76],[23,[72],1,0.76],[25,[76],1,0.76],[27,[74],1,0.76],[29,[76],1,0.76],[30,[72],1,0.76],[32,[72],1,0.92],[34,[81],1,0.76],[36,[72],1,0.92],[38,[81],1,0.76],[39,[74],1,0.76],[41,[81],1,0.76],[43,[76],1,0.76],[45,[81],1,0.76],[46,[79],1,0.76],[48,[67],1,0.92],[49,[79],1,0.76],[51,[64],1,0.76],[52,[76],1,0.92],[54,[60],1,0.76],[55,[72],1,0.76],[57,[62],1,0.76],[58,[74],1,0.76],[60,[64],1,0.92],[61,[76],1,0.76],[62,[79],1,0.76],[63,[81],1,0.76]]},{"n":"Gate arp","bpm":138,"len":64,"pre":"Trance Arp","ev":[[0,[62],1,0.92],[1,[69],1,0.76],[2,[65],1,0.76],[3,[74],1,0.76],[4,[69],1,0.92],[5,[65],1,0.76],[6,[76],1,0.76],[7,[69],1,0.76],[8,[65],1,0.92],[9,[74],1,0.76],[10,[69],1,0.76],[11,[65],1,0.76],[12,[72],1,0.92],[13,[69],1,0.76],[14,[74],1,0.76],[15,[69],1,0.76],[16,[58],1,0.92],[17,[65],1,0.76],[18,[62],1,0.76],[19,[74],1,0.76],[20,[65],1,0.92],[21,[62],1,0.76],[22,[72],1,0.76],[23,[65],1,0.76],[24,[62],1,0.92],[25,[70],1,0.76],[26,[65],1,0.76],[27,[62],1,0.76],[28,[69],1,0.92],[29,[65],1,0.76],[30,[70],1,0.76],[31,[65],1,0.76],[32,[60],1,0.92],[33,[67],1,0.76],[34,[64],1,0.76],[35,[76],1,0.76],[36,[67],1,0.92],[37,[64],1,0.76],[38,[74],1,0.76],[39,[67],1,0.76],[40,[64],1,0.92],[41,[72],1,0.76],[42,[67],1,0.76],[43,[64],1,0.76],[44,[71],1,0.92],[45,[67],1,0.76],[46,[72],1,0.76],[47,[67],1,0.76],[48,[57],1,0.92],[49,[64],1,0.76],[50,[60],1,0.76],[51,[72],1,0.76],[52,[64],1,0.92],[53,[60],1,0.76],[54,[71],1,0.76],[55,[64],1,0.76],[56,[60],1,0.92],[57,[69],1,0.76],[58,[64],1,0.76],[59,[60],1,0.76],[60,[67],1,0.92],[61,[69],1,0.76],[62,[71],1,0.76],[63,[72],1,0.76]]},{"n":"Melodic techno arp","bpm":126,"len":32,"pre":"Pulse Sweep Arp","ev":[[0,[62],1,0.92],[1,[65],1,0.76],[2,[69],1,0.76],[3,[62],1,0.76],[4,[65],1,0.92],[5,[69],1,0.76],[6,[62],1,0.76],[7,[65],1,0.76],[8,[69],1,0.92],[9,[74],1,0.76],[10,[69],1,0.76],[11,[65],1,0.76],[12,[64],1,0.92],[13,[65],1,0.76],[14,[69],1,0.76],[15,[72],1,0.76],[16,[58],1,0.92],[17,[62],1,0.76],[18,[67],1,0.76],[19,[58],1,0.76],[20,[62],1,0.92],[21,[67],1,0.76],[22,[58],1,0.76],[23,[62],1,0.76],[24,[67],1,0.92],[25,[70],1,0.76],[26,[67],1,0.76],[27,[62],1,0.76],[28,[60],1,0.92],[29,[62],1,0.76],[30,[65],1,0.76],[31,[69],1,0.76]]},{"n":"Cinematic breakdown","bpm":138,"len":64,"pre":"Uplifting Lead","ev":[[0,[74],3,0.92],[3,[70],3,0.76],[6,[67],2,0.76],[8,[70],2,0.92],[10,[74],2,0.76],[12,[79],2,0.92],[14,[77],1,0.76],[15,[74],1,0.76],[16,[72],3,0.92],[19,[69],3,0.76],[22,[65],2,0.76],[24,[69],2,0.92],[26,[72],2,0.76],[28,[77],2,0.92],[30,[75],1,0.76],[31,[74],1,0.76],[32,[81],3,0.92],[35,[79],3,0.76],[38,[74],2,0.76],[40,[70],2,0.92],[42,[74],2,0.76],[44,[82],2,0.92],[46,[81],1,0.76],[47,[79],1,0.76],[48,[77],3,0.92],[51,[74],2,0.76],[53,[75],1,0.76],[54,[74],2,0.76],[56,[72],2,0.92],[58,[69],2,0.76],[60,[70],2,0.92],[62,[72],1,0.76],[63,[74],1,0.76]]},{"n":"JP pluck anthem","bpm":138,"len":64,"pre":"Pluck to Lead","ev":[[0,[74],1,0.92],[3,[70],1,0.76],[6,[67],1,0.76],[8,[74],1,0.92],[11,[77],1,0.76],[14,[74],1,0.76],[16,[75],1,0.92],[19,[70],1,0.76],[22,[67],1,0.76],[24,[75],1,0.92],[27,[79],1,0.76],[30,[77],1,0.76],[31,[75],1,0.76],[32,[77],1,0.92],[35,[74],1,0.76],[38,[70],1,0.76],[40,[77],1,0.92],[43,[82],1,0.76],[46,[81],1,0.76],[47,[79],1,0.76],[48,[81],2,0.92],[51,[77],1,0.76],[54,[72],1,0.76],[56,[74],1,0.92],[58,[77],1,0.76],[60,[79],1,0.92],[62,[77],1,0.76],[63,[74],1,0.76]]},{"n":"Future lead","bpm":150,"len":64,"pre":"Detune Super Lead","ev":[[0,[79],3,0.92],[3,[75],3,0.76],[6,[72],2,0.76],[8,[74],2,0.92],[10,[75],2,0.76],[12,[79],2,0.92],[14,[77],1,0.76],[15,[75],1,0.76],[16,[77],3,0.92],[19,[74],3,0.76],[22,[70],2,0.76],[24,[72],2,0.92],[26,[74],2,0.76],[28,[77],2,0.92],[30,[79],1,0.76],[31,[80],1,0.76],[32,[82],3,0.92],[35,[79],3,0.76],[38,[75],2,0.76],[40,[77],2,0.92],[42,[79],2,0.76],[44,[84],2,0.92],[46,[82],1,0.76],[47,[79],1,0.76],[48,[77],3,0.92],[51,[74],2,0.76],[53,[75],1,0.76],[54,[74],2,0.76],[56,[70],2,0.92],[58,[72],2,0.76],[60,[74],2,0.92],[62,[75],1,0.76],[63,[77],1,0.76]]},{"n":"J-pop anthem","bpm":190,"len":64,"pre":"Hands Up Bright","ev":[[0,[76],1,0.92],[2,[79],1,0.76],[3,[81],2,0.76],[5,[79],1,0.76],[7,[76],1,0.76],[9,[72],1,0.76],[10,[74],1,0.76],[12,[76],1,0.92],[14,[79],1,0.76],[15,[81],1,0.76],[16,[83],2,0.92],[19,[81],1,0.76],[21,[79],1,0.76],[23,[76],2,0.76],[25,[74],1,0.76],[26,[72],1,0.76],[28,[74],2,0.92],[30,[76],2,0.76],[32,[79],1,0.92],[34,[81],1,0.76],[35,[83],2,0.76],[37,[86],1,0.76],[39,[84],2,0.76],[41,[83],1,0.76],[42,[81],1,0.76],[44,[79],2,0.92],[46,[76],1,0.76],[47,[79],1,0.76],[48,[81],2,0.92],[50,[79],1,0.76],[51,[76],1,0.76],[53,[72],1,0.76],[54,[74],1,0.76],[55,[76],1,0.76],[56,[79],1,0.92],[57,[81],1,0.76],[58,[83],1,0.76],[59,[84],1,0.76],[60,[83],1,0.92],[61,[81],1,0.76],[62,[79],1,0.76],[63,[76],1,0.76]]},{"n":"Rave piano hook","bpm":170,"len":64,"pre":"Piano House Stab","ev":[[0,[76],1,0.92],[2,[76],1,0.76],[3,[72],1,0.76],[5,[69],1,0.76],[7,[76],1,0.76],[9,[74],1,0.76],[10,[72],1,0.76],[12,[71],1,0.92],[14,[72],1,0.76],[15,[74],1,0.76],[16,[76],1,0.92],[18,[76],1,0.76],[19,[72],1,0.76],[21,[69],1,0.76],[23,[77],1,0.76],[25,[76],1,0.76],[26,[74],1,0.76],[28,[72],1,0.92],[30,[69],1,0.76],[31,[71],1,0.76],[32,[79],1,0.92],[34,[79],1,0.76],[35,[76],1,0.76],[37,[72],1,0.76],[39,[81],1,0.76],[41,[79],1,0.76],[42,[76],1,0.76],[44,[74],1,0.92],[46,[72],1,0.76],[47,[76],1,0.76],[48,[74],1,0.92],[49,[86],1,0.76],[51,[71],1,0.76],[52,[83],1,0.92],[54,[67],1,0.76],[55,[79],1,0.76],[57,[69],1,0.76],[58,[71],1,0.76],[59,[72],1,0.76],[60,[74],1,0.92],[61,[76],1,0.76],[62,[77],1,0.76],[63,[79],1,0.76]]},{"n":"Happy hardcore lead","bpm":170,"len":64,"pre":"Happy Hardcore Lead","ev":[[0,[73],1,0.92],[2,[76],1,0.76],[3,[78],1,0.76],[5,[76],1,0.76],[7,[73],1,0.76],[9,[71],1,0.76],[10,[69],1,0.76],[12,[71],1,0.92],[14,[73],1,0.76],[15,[76],1,0.76],[16,[78],1,0.92],[18,[76],1,0.76],[19,[78],1,0.76],[21,[81],1,0.76],[23,[78],1,0.76],[25,[76],1,0.76],[26,[73],1,0.76],[28,[71],1,0.92],[30,[73],1,0.76],[31,[76],1,0.76],[32,[81],2,0.92],[35,[80],1,0.76],[36,[81],1,0.92],[37,[83],1,0.76],[39,[81],1,0.76],[41,[78],1,0.76],[42,[76],1,0.76],[44,[73],1,0.92],[45,[76],1,0.76],[46,[78],1,0.76],[47,[81],1,0.76],[48,[83],1,0.92],[49,[71],1,0.76],[51,[80],1,0.76],[52,[68],1,0.92],[54,[76],1,0.76],[55,[64],1,0.76],[57,[78],1,0.76],[58,[80],1,0.76],[59,[81],1,0.76],[60,[83],1,0.92],[61,[81],1,0.76],[62,[80],1,0.76],[63,[76],1,0.76]]},{"n":"UK hardcore stadium","bpm":170,"len":64,"pre":"Hoover Rave","ev":[[0,[69],1,0.92],[2,[74],1,0.76],[3,[77],2,0.76],[5,[76],1,0.76],[7,[74],1,0.76],[9,[72],1,0.76],[10,[69],1,0.76],[12,[72],1,0.92],[14,[74],1,0.76],[15,[77],1,0.76],[16,[79],2,0.92],[19,[77],1,0.76],[21,[74],1,0.76],[23,[70],1,0.76],[25,[72],1,0.76],[26,[74],1,0.76],[28,[77],1,0.92],[30,[79],1,0.76],[31,[81],1,0.76],[32,[84],3,0.92],[35,[81],1,0.76],[37,[79],1,0.76],[39,[77],1,0.76],[41,[74],1,0.76],[42,[72],1,0.76],[44,[77],1,0.92],[45,[79],1,0.76],[46,[81],1,0.76],[47,[82],1,0.76],[48,[79],2,0.92],[51,[76],1,0.76],[53,[72],1,0.76],[55,[74],1,0.76],[57,[76],1,0.76],[58,[77],1,0.76],[59,[79],1,0.76],[60,[81],1,0.92],[61,[79],1,0.76],[62,[76],1,0.76],[63,[72],1,0.76]]},{"n":"Euphoric hardstyle","bpm":150,"len":64,"pre":"Euphoric Lead","ev":[[0,[73],2,0.92],[2,[76],1,0.76],[3,[78],2,0.76],[5,[76],1,0.76],[6,[73],2,0.76],[8,[71],2,0.92],[10,[73],2,0.76],[12,[69],2,0.92],[14,[71],1,0.76],[15,[73],1,0.76],[16,[74],2,0.92],[18,[78],1,0.76],[19,[81],2,0.76],[21,[78],1,0.76],[22,[76],2,0.76],[24,[74],2,0.92],[26,[76],2,0.76],[28,[78],2,0.92],[30,[80],1,0.76],[31,[81],1,0.76],[32,[85],2,0.92],[34,[83],1,0.76],[35,[81],2,0.76],[37,[80],1,0.76],[38,[81],2,0.76],[40,[76],2,0.92],[42,[78],2,0.76],[44,[81],2,0.92],[46,[83],1,0.76],[47,[85],1,0.76],[48,[83],3,0.92],[51,[80],2,0.76],[53,[76],2,0.76],[55,[78],2,0.76],[57,[80],1,0.76],[58,[81],1,0.76],[59,[80],1,0.76],[60,[78],1,0.92],[61,[76],1,0.76],[62,[74],1,0.76],[63,[73],1,0.76]]},{"n":"Hardstyle screech","bpm":150,"len":32,"pre":"Hardstyle Screech","ev":[[2,[41],2,0.76],[6,[41],1,0.76],[7,[42],1,0.76],[10,[41],2,0.76],[13,[48],2,0.76],[15,[49],1,0.76],[18,[41],2,0.76],[22,[44],1,0.76],[23,[42],1,0.76],[26,[41],2,0.76],[28,[39],1,0.92],[29,[41],1,0.76],[30,[42],1,0.76],[31,[41],1,0.76]]},{"n":"Hard house hoover","bpm":145,"len":32,"pre":"Hoover Rave","ev":[[0,[55],2,0.92],[3,[58],2,0.76],[5,[60],1,0.76],[6,[62],2,0.76],[9,[65],2,0.76],[11,[62],1,0.76],[12,[60],1,0.92],[13,[58],1,0.76],[14,[55],1,0.76],[15,[53],1,0.76],[16,[55],2,0.92],[19,[58],2,0.76],[21,[60],1,0.76],[22,[62],2,0.76],[25,[67],2,0.76],[27,[65],1,0.76],[28,[62],1,0.92],[29,[60],1,0.76],[30,[58],1,0.76],[31,[55],1,0.76]]},{"n":"Octave bounce bass","bpm":138,"len":64,"pre":"Trance Gate Bass","ev":[[1,[30],1,0.76],[2,[42],1,0.76],[3,[30],1,0.76],[5,[30],1,0.76],[6,[37],1,0.76],[7,[42],1,0.76],[9,[30],1,0.76],[10,[42],1,0.76],[11,[30],1,0.76],[13,[40],1,0.76],[14,[42],1,0.76],[15,[45],1,0.76],[17,[38],1,0.76],[18,[38],1,0.76],[19,[38],1,0.76],[21,[38],1,0.76],[22,[33],1,0.76],[23,[38],1,0.76],[25,[38],1,0.76],[26,[38],1,0.76],[27,[38],1,0.76],[29,[37],1,0.76],[30,[38],1,0.76],[31,[40],1,0.76],[33,[33],1,0.76],[34,[45],1,0.76],[35,[33],1,0.76],[37,[33],1,0.76],[38,[40],1,0.76],[39,[45],1,0.76],[41,[33],1,0.76],[42,[45],1,0.76],[43,[33],1,0.76],[45,[44],1,0.76],[46,[45],1,0.76],[47,[47],1,0.76],[49,[28],1,0.76],[50,[40],1,0.76],[51,[28],1,0.76],[53,[28],1,0.76],[54,[35],1,0.76],[55,[40],1,0.76],[57,[28],1,0.76],[58,[40],1,0.76],[59,[35],1,0.76],[60,[28],1,0.92],[61,[32],1,0.76],[62,[35],1,0.76],[63,[40],1,0.76]]},{"n":"Offbeat bass","bpm":170,"len":64,"pre":"Hardstyle Rumble","ev":[[2,[30],2,0.76],[6,[30],2,0.76],[10,[30],2,0.76],[14,[42],1,0.76],[15,[40],1,0.76],[18,[38],2,0.76],[22,[38],2,0.76],[26,[38],2,0.76],[30,[38],1,0.76],[31,[37],1,0.76],[34,[33],2,0.76],[38,[33],2,0.76],[42,[33],2,0.76],[46,[45],1,0.76],[47,[44],1,0.76],[50,[28],2,0.76],[54,[28],2,0.76],[58,[28],1,0.76],[59,[30],1,0.76],[60,[32],1,0.92],[61,[33],1,0.76],[62,[35],1,0.76],[63,[37],1,0.76]]},{"n":"Psy rolling bass","bpm":145,"len":32,"pre":"Trance Gate Bass","ev":[[1,[30],1,0.76],[2,[30],1,0.76],[3,[30],1,0.76],[5,[30],1,0.76],[6,[30],1,0.76],[7,[30],1,0.76],[9,[30],1,0.76],[10,[30],1,0.76],[11,[30],1,0.76],[13,[31],1,0.76],[14,[30],1,0.76],[15,[28],1,0.76],[17,[30],1,0.76],[18,[30],1,0.76],[19,[30],1,0.76],[21,[30],1,0.76],[22,[30],1,0.76],[23,[30],1,0.76],[25,[34],1,0.76],[26,[34],1,0.76],[27,[35],1,0.76],[29,[37],1,0.76],[30,[31],1,0.76],[31,[30],1,0.76]]},{"n":"DnB reese","bpm":174,"len":16,"pre":"Reese Bass","ev":[[0,[29],3,0.92],[3,[32],3,0.76],[6,[34],2,0.76],[8,[36],2,0.92],[10,[29],2,0.76],[12,[39],2,0.92],[14,[37],2,0.76]]},{"n":"Cyberpunk reese","bpm":100,"len":16,"pre":"Neuro Growl","ev":[[0,[28],3,0.92],[3,[29],1,0.76],[4,[28],3,0.92],[7,[31],1,0.76],[8,[28],3,0.92],[11,[34],1,0.76],[12,[33],2,0.92],[14,[29],1,0.76],[15,[28],1,0.76]]},{"n":"Acid line F","bpm":132,"len":16,"pre":"Acid Squelch","ev":[[0,[41],1,0.92],[1,[53],1,0.76],[2,[41],1,0.76],[3,[42],1,0.76],[4,[48],1,0.92],[6,[41],1,0.76],[7,[44],1,0.76],[8,[53],1,0.92],[9,[51],1,0.76],[10,[48],1,0.76],[11,[42],1,0.76],[12,[41],1,0.92],[13,[53],1,0.76],[14,[51],1,0.76],[15,[48],1,0.76]]},{"n":"Acid trance","bpm":138,"len":32,"pre":"Acid Bass","ev":[[0,[38],1,0.92],[1,[50],1,0.76],[2,[45],1,0.76],[3,[41],1,0.76],[4,[50],1,0.92],[5,[45],1,0.76],[6,[41],1,0.76],[7,[38],1,0.76],[8,[52],1,0.92],[9,[50],1,0.76],[10,[45],1,0.76],[11,[41],1,0.76],[12,[48],1,0.92],[13,[45],1,0.76],[14,[50],1,0.76],[15,[53],1,0.76],[16,[34],1,0.92],[17,[46],1,0.76],[18,[41],1,0.76],[19,[38],1,0.76],[20,[46],1,0.92],[21,[41],1,0.76],[22,[38],1,0.76],[23,[34],1,0.76],[24,[48],1,0.92],[25,[46],1,0.76],[26,[41],1,0.76],[27,[38],1,0.76],[28,[45],1,0.92],[29,[41],1,0.76],[30,[46],1,0.76],[31,[50],1,0.76]]},{"n":"Synthwave bass","bpm":112,"len":16,"pre":"Sequence Bass Arp","ev":[[0,[38],1,0.92],[1,[38],1,0.76],[2,[38],1,0.76],[3,[38],1,0.76],[4,[38],1,0.92],[5,[38],1,0.76],[6,[38],1,0.76],[7,[38],1,0.76],[8,[34],1,0.92],[9,[34],1,0.76],[10,[34],1,0.76],[11,[34],1,0.76],[12,[36],1,0.92],[13,[36],1,0.76],[14,[36],1,0.76],[15,[36],1,0.76]]},{"n":"Synthwave brass","bpm":112,"len":16,"pre":"Synthwave Lead","ev":[[0,[69],6,0.92],[6,[67],1,0.76],[7,[65],1,0.76],[8,[64],4,0.92],[12,[62],2,0.92],[14,[64],1,0.76],[15,[65],1,0.76]]}];
 
 /* ===== preset browser: library, ratings, favorites, tags, editing, saving, random, generate ===== */
 const META_K='ww_meta';
@@ -3193,9 +3307,9 @@ function presetsPage(){const pg=h('div',{class:'page','data-page':'presets',styl
     const lib=[['all','All presets',all.length],['fav','Favorites',all.filter(p=>p.fav).length],['start','Start here',all.filter(p=>p.start).length],['recent','Recent',S.hist.length],['user','My presets',all.filter(p=>p.kind==='u').length]];
     side.append(h('h3',{text:'LIBRARY'}));for(const [id,lb,n] of lib)side.append(h('div',{class:'pli'+(PF.lib===id?' on':''),onclick:()=>{PF.lib=id;refreshPresetUI();}},[h('span',{text:(id==='fav'?'♥ ':'')+lb}),h('b',{text:n})]));
     const cnt=(f)=>{const m={};for(const p of all)for(const v of [].concat(f(p)))m[v]=(m[v]||0)+1;return Object.entries(m).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));};
-    side.append(h('h3',{text:'CATEGORY'}),h('div',{class:'row w',style:'gap:3px'},cnt(p=>p.type).map(([v,n])=>h('span',{class:'chip sm'+(PF.type===v?' on':''),text:v+' '+n,onclick:()=>{PF.type=PF.type===v?null:v;refreshPresetUI();}}))));
-    side.append(h('h3',{text:'GENRE'}),h('div',{class:'row w',style:'gap:3px'},cnt(p=>p.genre).slice(0,14).map(([v,n])=>h('span',{class:'chip sm'+(PF.genre===v?' on':''),text:v+' '+n,onclick:()=>{PF.genre=PF.genre===v?null:v;refreshPresetUI();}}))));
-    side.append(h('h3',{text:'TAGS'}),h('div',{class:'row w',style:'gap:3px'},cnt(p=>p.tags).slice(0,16).map(([v,n])=>h('span',{class:'chip sm'+(PF.tags.includes(v)?' on':''),text:v+' '+n,onclick:()=>{PF.tags=PF.tags.includes(v)?PF.tags.filter(x=>x!==v):PF.tags.concat(v);refreshPresetUI();}}))));
+    side.append(h('h3',{text:'CATEGORY'}),h('div',{class:'row w',style:'gap:3px'},cnt(p=>p.type).map(([v,n])=>h('span',{class:'pbchip'+(PF.type===v?' on':''),text:v+' '+n,onclick:()=>{PF.type=PF.type===v?null:v;refreshPresetUI();}}))));
+    side.append(h('h3',{text:'GENRE'}),h('div',{class:'row w',style:'gap:3px'},cnt(p=>p.genre).slice(0,14).map(([v,n])=>h('span',{class:'pbchip'+(PF.genre===v?' on':''),text:v+' '+n,onclick:()=>{PF.genre=PF.genre===v?null:v;refreshPresetUI();}}))));
+    side.append(h('h3',{text:'TAGS'}),h('div',{class:'row w',style:'gap:3px'},cnt(p=>p.tags).slice(0,16).map(([v,n])=>h('span',{class:'pbchip'+(PF.tags.includes(v)?' on':''),text:v+' '+n,onclick:()=>{PF.tags=PF.tags.includes(v)?PF.tags.filter(x=>x!==v):PF.tags.concat(v);refreshPresetUI();}}))));
     side.append(h('h3',{text:'MIN RATING'}),h('div',{class:'row',style:'align-items:center'},[stars(PF.minr,v=>{PF.minr=v;refreshPresetUI();}),h('span',{class:'cap',text:PF.minr?PF.minr+'+':'any'})]),
       h('span',{class:'chip sm',style:'margin-top:4px',text:'Clear filters',onclick:()=>{Object.assign(PF,{lib:'all',type:null,genre:null,tags:[],minr:0,q:''});q.value='';refreshPresetUI();}}));
     dl.innerHTML='';for(const [v] of cnt(p=>p.genre))dl.appendChild(h('option',{value:v}));};
@@ -3210,7 +3324,7 @@ function presetsPage(){const pg=h('div',{class:'page','data-page':'presets',styl
       h('span',{class:'ptags'},p.tags.slice(0,3).map(t=>h('i',{text:t}))),
       stars(p.rating,v=>{setMeta(p,{rating:v});refreshPresetUI();})]));
     if(!l.length)list.appendChild(h('div',{class:'cap',style:'padding:20px;text-align:center',text:'Nothing matches. Clear a filter or try Generate on the right.'}));};
-  mid.append(h('h3',{text:'PRESETS'}),h('div',{class:'row',style:'align-items:center;gap:8px'},[q,sortS,h('button',{class:'btn sm',text:'Random preset','data-tip':'Loads a random preset from the list as filtered now.',onclick:randomPreset}),count]),list);
+  mid.append(h('h3',{text:'PRESETS'}),h('div',{class:'row',style:'align-items:center;gap:8px'},[q,sortS,h('button',{class:'btn sm on',text:'Popup browser','data-tip':'The big browser with type and genre filters and history.',onclick:()=>presetBrowser()}),h('button',{class:'btn sm',text:'Random preset','data-tip':'Loads a random preset from the list as filtered now.',onclick:randomPreset}),count]),list);
   /* details and edit */
   buildPresetDetail=()=>{if(!alive(right))return false;right.innerHTML='';const p=curPreset();
     right.append(h('h3',{text:'DETAILS'}));
@@ -3272,11 +3386,12 @@ function waveLabPage(){const pg=h('div',{class:'page','data-page':'wave'});let s
     for(let f=0;f<ks[0];f++)a[f]=Float64Array.from(a[ks[0]]);for(let f=ks[ks.length-1]+1;f<a.length;f++)a[f]=Float64Array.from(a[ks[ks.length-1]]);
     pushFrames(wlOsc);toast('Filled '+a.length+' frames between '+ks.length+' keys');};
   /* harmonics */
-  let hd=false;const hedit=e=>{const r=hm.getBoundingClientRect(),i=clamp(Math.floor((e.clientX-r.left)/r.width*NH),0,NH-1),a=clamp(1-(e.clientY-r.top)/r.height,0,1);const f=ensureUser(k())[wlFrame];
-    const re=Float64Array.from(f),im=new Float64Array(2048);D.fft(re,im);const hh=i+1;const cur=Math.hypot(re[hh],im[hh])/1024+1e-9,want=Math.pow(10,(a*60-60)/20);const g=want/cur;
-    for(const b of [hh,2048-hh]){re[b]*=g;im[b]*=g;}D.ifft(re,im);for(let j=0;j<2048;j++)f[j]=re[j];};
-  hm.addEventListener('pointerdown',e=>{hd=true;hm.setPointerCapture(e.pointerId);hedit(e);});hm.addEventListener('pointermove',e=>{if(hd)hedit(e);});hm.addEventListener('pointerup',()=>{if(hd){hd=false;normFrame(S.frames[k()][wlFrame]);keysOf().add(wlFrame);pushFrames(wlOsc);}});
-  hm.dataset.tip='Harmonic bars of this frame in dB (bottom is -60, top is 0). Drag a bar to change that harmonic.';
+  let hd=false,hov=-1;const hedit=e=>{const r=hm.getBoundingClientRect(),i=clamp(Math.floor((e.clientX-r.left)/r.width*NH),0,NH-1),a=clamp(1-(e.clientY-r.top)/r.height,0,1);const f=ensureUser(k())[wlFrame];
+    const re=Float64Array.from(f),im=new Float64Array(2048);D.fft(re,im);const hh=i+1;const cur=Math.hypot(re[hh],im[hh]),want=a<.02?0:Math.pow(10,(a*60-60)/20)*1024; // fixed scale: 0 dB = a full-size sine, bottom = off
+    if(cur>1e-6){const g=want/cur;for(const b of [hh,2048-hh]){re[b]*=g;im[b]*=g;}}else if(want>0){re[hh]=0;im[hh]=-want;re[2048-hh]=0;im[2048-hh]=want;}
+    D.ifft(re,im);for(let j=0;j<2048;j++)f[j]=re[j];};
+  hm.addEventListener('pointerdown',e=>{hd=true;hm.setPointerCapture(e.pointerId);hedit(e);});hm.addEventListener('pointermove',e=>{if(hd)hedit(e);});hm.addEventListener('pointerup',()=>{if(hd){hd=false;const f=S.frames[k()][wlFrame];let m=0;for(const v of f)m=Math.max(m,Math.abs(v));if(m>1)for(let q=0;q<f.length;q++)f[q]/=m;keysOf().add(wlFrame);pushFrames(wlOsc);}});hm.addEventListener('pointermove',e=>{const r=hm.getBoundingClientRect();hov=clamp(Math.floor((e.clientX-r.left)/r.width*NH),0,NH-1);});hm.addEventListener('pointerleave',()=>{hov=-1;});
+  hm.dataset.tip='Harmonic bars of this frame in dB. The scale is fixed: the top line is 0 dB (a full-size sine) and the bottom is off, so bars only move when you move them. Drag a bar to set that harmonic. The frame is only scaled down if an edit would make it clip. Use Normalize to make a frame louder.';
   const exportWav=()=>{const a=framesOf(k()),n=a.length,N=2048,buf=new ArrayBuffer(44+n*N*2),dv=new DataView(buf);const w=(o,t)=>{for(let i=0;i<t.length;i++)dv.setUint8(o+i,t.charCodeAt(i));};
     w(0,'RIFF');dv.setUint32(4,36+n*N*2,true);w(8,'WAVEfmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);dv.setUint32(24,44100,true);dv.setUint32(28,88200,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);w(36,'data');dv.setUint32(40,n*N*2,true);
     let o=44;for(let f=0;f<n;f++)for(let j=0;j<N;j++){dv.setInt16(o,Math.round(clamp(a[f][j],-1,1)*32767),true);o+=2;}
@@ -3336,8 +3451,12 @@ function waveLabPage(){const pg=h('div',{class:'page','data-page':'wave'});let s
   pg.append(h('div',{class:'col',style:'width:100%;gap:8px'},[bar,h('div',{class:'row',style:'gap:8px;align-items:flex-start;width:100%'},[left,mid,right])]));
   animators.push({draw:()=>{if(S.page!=='wave')return;const kk=k();const frs=framesOf(kk);wlFrame=Math.min(wlFrame,frs.length-1);
     drawWaterfall(big,kk);{const g3=strip.g,W3=strip.W,H3=strip.H,n=frs.length,cw=W3/n,K=keysOf();g3.clearRect(0,0,W3,H3);g3.fillStyle=cssv('--disp');g3.fillRect(0,0,W3,H3);for(let q=0;q<n;q++){const x0=q*cw;if(q===wlFrame){g3.fillStyle=cssv('--selbg');g3.fillRect(x0,0,cw,H3);}if(K.has(q)){g3.fillStyle=cssv('--acc2');g3.fillRect(x0,H3-3,cw,3);}g3.strokeStyle=q===wlFrame?cssv('--acc'):cssv('--acc3');g3.lineWidth=1;g3.beginPath();for(let x=0;x<cw-2;x++){const v=frs[q][Math.floor(x/(cw-2)*2047)];const y=H3/2-v*(H3/2-5);x?g3.lineTo(x0+1+x,y):g3.moveTo(x0+1,y);}g3.stroke();}}const g=fr.g,W=fr.W,H=fr.H;g.clearRect(0,0,W,H);g.fillStyle=cssv('--disp');g.fillRect(0,0,W,H);g.strokeStyle=cssv('--grid');g.beginPath();g.moveTo(0,H/2);g.lineTo(W,H/2);g.stroke();g.beginPath();const f=frs[wlFrame];for(let x=0;x<W;x++){const v=f[Math.floor(x/W*2047)];const y=H/2-v*(H/2-6);x?g.lineTo(x,y):g.moveTo(x,y);}g.strokeStyle=cssv('--acc');g.lineWidth=2;g.stroke();
-    const g2=hm.g,W2=hm.W,H2=hm.H;g2.clearRect(0,0,W2,H2);g2.fillStyle=cssv('--disp');g2.fillRect(0,0,W2,H2);const re=Float64Array.from(f),im=new Float64Array(2048);D.fft(re,im);const bw=W2/NH;g2.fillStyle=cssv('--acc3');for(let i=0;i<NH;i++){const m=Math.hypot(re[i+1],im[i+1])/1024,db=20*Math.log10(m+1e-6),p=clamp((db+60)/60,0,1);g2.fillRect(i*bw+1,H2-p*H2,bw-2,p*H2);}
-    g2.fillStyle=cssv('--dim');g2.font='8px JetBrains Mono,monospace';for(const t of [0,-20,-40])g2.fillText(t,2,H2-clamp((t+60)/60,0,1)*H2+8);for(const q of [1,8,16,32,64])g2.fillText(q,Math.min(W2-14,(q-.5)*bw-3),H2-2);upd();}});
+    const g2=hm.g,W2=hm.W,H2=hm.H;g2.clearRect(0,0,W2,H2);g2.fillStyle=cssv('--disp');g2.fillRect(0,0,W2,H2);const re=Float64Array.from(f),im=new Float64Array(2048);D.fft(re,im);const bw=W2/NH;
+    g2.strokeStyle=cssv('--grid');g2.lineWidth=1;for(const t of [0,-12,-24,-36,-48]){const y=Math.round(H2-clamp((t+60)/60,0,1)*H2)+.5;g2.beginPath();g2.moveTo(0,y);g2.lineTo(W2,y);g2.stroke();}
+    g2.fillStyle=cssv('--acc3');let top=-99,topI=0;for(let i=0;i<NH;i++){const m=Math.hypot(re[i+1],im[i+1])/1024,db=20*Math.log10(m+1e-6),p=clamp((db+60)/60,0,1);if(db>top){top=db;topI=i;}g2.fillStyle=i===hov?cssv('--acc4'):cssv('--acc3');g2.fillRect(i*bw+1,H2-p*H2,bw-2,Math.max(0,p*H2));}
+    g2.fillStyle=cssv('--dim');g2.font='8px JetBrains Mono,monospace';g2.textAlign='right';for(const t of [0,-12,-24,-36,-48])g2.fillText(t+' dB',W2-3,H2-clamp((t+60)/60,0,1)*H2+9);g2.textAlign='left';for(const q of [1,8,16,32,64])g2.fillText(q,Math.min(W2-14,(q-.5)*bw-3),H2-2);
+    if(hov>=0){const m=Math.hypot(re[hov+1],im[hov+1])/1024,db=20*Math.log10(m+1e-6);g2.fillStyle=cssv('--text');g2.font='10px JetBrains Mono,monospace';g2.fillText('harmonic '+(hov+1)+':  '+(db<-59?'off':db.toFixed(1)+' dB'),30,12);}
+    upd();}});
   return pg;}
 PAGES.wave=waveLabPage;
 /* ---------- presets ---------- */
@@ -3460,7 +3579,7 @@ function buildApp(){const app=$('#app');
   const limEl=h('div',{class:'limgr','data-tip':'Master limiter gain reduction in dB. Above about 3 dB the limiter is squashing hard, which can make bass sound gritty: turn Master down until this stays low.',text:'LIM 0.0 dB'});let limHold=0,limT=0;
   const mm=cv(150,34);mm.dataset.tip='Master output level in dB. Blue is safe, purple is hot, pink is clipping.';
   hdr.append(h('div',null,[h('h1',{text:'WhiskerWave'}),h('small',{text:'STUDIO 87'})]),h('span',{class:'sp'}),
-    h('div',{id:'presetbar'},[h('button',{class:'btn',text:'<','data-tip':'Previous preset.',onclick:()=>stepPreset(-1)}),h('div',{id:'pname','data-tip':'Click to open the preset browser.',text:S.name,onclick:()=>showPage('presets')}),h('button',{class:'btn',text:'>','data-tip':'Next preset.',onclick:()=>stepPreset(1)}),h('button',{class:'btn',id:'favbtn',text:'\u2661','data-tip':'Favorite this preset.',onclick:()=>toggleFav()}),h('button',{class:'btn on',text:'Save','data-tip':'Save the current sound as your own preset.',onclick:savePresetDialog}),h('button',{class:'btn',id:'undobtn','data-tip':'Undo the last change (Ctrl+Z).',text:'\u21B6',onclick:undo}),h('button',{class:'btn',id:'redobtn','data-tip':'Redo (Ctrl+Shift+Z or Ctrl+Y).',text:'\u21B7',onclick:redo}),h('button',{class:'btn',text:'History','data-tip':'List of your last steps. Click one to jump back to it.',onclick:histDialog})]),h('span',{class:'sp'}),
+    h('div',{id:'presetbar'},[h('button',{class:'btn',text:'<','data-tip':'Previous preset.',onclick:()=>stepPreset(-1)}),h('div',{id:'pname','data-tip':'Click to open the preset browser.',text:S.name,onclick:()=>presetBrowser()}),h('button',{class:'btn',text:'>','data-tip':'Next preset.',onclick:()=>stepPreset(1)}),h('button',{class:'btn',id:'favbtn',text:'\u2661','data-tip':'Favorite this preset.',onclick:()=>toggleFav()}),h('button',{class:'btn on',text:'Save','data-tip':'Save the current sound as your own preset.',onclick:savePresetDialog}),h('button',{class:'btn',id:'undobtn','data-tip':'Undo the last change (Ctrl+Z).',text:'\u21B6',onclick:undo}),h('button',{class:'btn',id:'redobtn','data-tip':'Redo (Ctrl+Shift+Z or Ctrl+Y).',text:'\u21B7',onclick:redo}),h('button',{class:'btn',text:'History','data-tip':'List of your last steps. Click one to jump back to it.',onclick:histDialog})]),h('span',{class:'sp'}),
     h('div',{class:'col',style:'gap:1px;align-items:stretch'},[mm,limEl]),h('div',{style:'transform:scale(.72);margin:-10px -6px;transform-origin:center'},[knob('master',{sm:true,label:'Master'})]),h('button',{class:'btn pulse',id:'audiobtn',text:'Start audio','data-tip':'Browsers only allow sound after a click. Press to start the engine.',onclick:()=>startAudio()}),
     h('button',{class:'btn',text:'Theme','data-tip':'Cycle through the colour schemes. More choices in Settings.',onclick:()=>{const i=THEMES.findIndex(t=>t[0]===S.theme);const n=THEMES[(i+1)%THEMES.length];setTheme(n[0]);toast(n[1]);}}),h('button',{class:'btn',text:'Guide',onclick:guideDialog}),h('button',{class:'btn',text:'Settings',onclick:settingsDialog}),h('button',{class:'btn',text:'About',onclick:aboutDialog}));
   const tabs=h('div',{id:'tabs'},PAGELIST.map(p=>h('b',{'data-page':p[0],text:p[1],onclick:()=>showPage(p[0])})));
@@ -3577,37 +3696,7 @@ const DEMOS=(()=>{const D_=[];
   D_.push({n:'Pluck pattern',bpm:132,len:32,ev:[69,72,76,72,69,76,81,76,67,71,74,71,67,74,79,74,65,69,72,69,65,72,77,72,64,67,71,67,64,71,76,71].map((n,i)=>[i,[n],1,.75+(i%4===0?.15:0)])});
   D_.push({n:'Acid line',bpm:138,len:16,ev:[[0,[45],1,.9],[1,[45],1,.7],[2,[57],1,.8],[3,[45],2,.9],[5,[48],1,.7],[6,[57],1,.8],[7,[52],1,.9],[8,[45],1,.9],[9,[57],2,.8],[11,[45],1,.7],[12,[55],1,.9],[13,[45],1,.7],[14,[48],1,.8],[15,[52],1,.9]]});
   D_.push({n:'Riser',bpm:140,len:64,ev:Array.from({length:32},(_,i)=>[i*2,[57+Math.floor(i/2)],2,.5+i*.015])});
-  /* v1.9.7: melody grids from the Studio 87 music library (AI style studies, not heard by ear yet). 16 steps per bar, '-' holds, '.' rests, scientific pitch (C4 = 60). */
-  const PC_={C:0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,F:5,'F#':6,Gb:6,G:7,'G#':8,Ab:8,A:9,'A#':10,Bb:10,B:11};
-  const GRIDS_=[
-  ['Trance anthem (F# minor)',138,'C#5 - - A4 - B4 - C#5 - - E5 - C#5 - B4 A4 | D5 - - A4 - B4 - D5 - - F#5 - E5 - D5 - | E5 - - C#5 - D5 - E5 - - A5 - G#5 - F#5 E5 | G#5 - - E5 - F#5 - G#5 - - E5 - B4 - C#5 D5'],
-  ['Pedal-tone pluck (A minor)',138,'A4 . E5 . A4 . E5 B4 . E5 . C5 . E5 B4 . | B4 . E5 . B4 . E5 C5 . E5 . D5 . E5 C5 . | C5 . A5 . C5 . A5 D5 . A5 . E5 . A5 G5 . | G4 G5 . E4 E5 . C4 C5 . D4 D5 . E4 E5 G5 A5'],
-  ['Future lead (C minor)',150,'G5 - - Eb5 - - C5 - D5 - Eb5 - G5 - F5 Eb5 | F5 - - D5 - - Bb4 - C5 - D5 - F5 - G5 Ab5 | Bb5 - - G5 - - Eb5 - F5 - G5 - C6 - Bb5 G5 | F5 - - D5 - Eb5 D5 - Bb4 - C5 - D5 - Eb5 F5'],
-  ['Gate arp 16th (D minor)',138,'D4 A4 F4 D5 A4 F4 E5 A4 F4 D5 A4 F4 C5 A4 D5 A4 | Bb3 F4 D4 D5 F4 D4 C5 F4 D4 Bb4 F4 D4 A4 F4 Bb4 F4 | C4 G4 E4 E5 G4 E4 D5 G4 E4 C5 G4 E4 B4 G4 C5 G4 | A3 E4 C4 C5 E4 C4 B4 E4 C4 A4 E4 C4 G4 A4 B4 C5'],
-  ['Rave piano hook (C major)',170,'E5 . E5 C5 . A4 . E5 . D5 C5 . B4 . C5 D5 | E5 . E5 C5 . A4 . F5 . E5 D5 . C5 . A4 B4 | G5 . G5 E5 . C5 . A5 . G5 E5 . D5 . C5 E5 | D5 D6 . B4 B5 . G4 G5 . A4 B4 C5 D5 E5 F5 G5'],
-  ['Happy HC anthem (F# minor)',170,'C#5 . E5 F#5 . E5 . C#5 . B4 A4 . B4 . C#5 E5 | F#5 . E5 F#5 . A5 . F#5 . E5 C#5 . B4 . C#5 E5 | A5 - . G#5 A5 B5 . A5 . F#5 E5 . C#5 E5 F#5 A5 | B5 B4 . G#5 G#4 . E5 E4 . F#5 G#5 A5 B5 A5 G#5 E5'],
-  ['Silky UK HC (D minor)',170,'F5 - . D5 - C5 - D5 - - A5 - G5 - F5 D5 | E5 - . C5 - D5 - E5 - - G5 - F5 - E5 C5 | A5 - . F5 - G5 - A5 - - C6 - Bb5 - A5 G5 | E5 - . C5 - D5 - E5 - - D5 C5 A4 C5 D5 E5'],
-  ['JP pluck anthem (G minor)',138,'D5 . . Bb4 . . G4 . D5 . . F5 . . D5 . | Eb5 . . Bb4 . . G4 . Eb5 . . G5 . . F5 Eb5 | F5 . . D5 . . Bb4 . F5 . . Bb5 . . A5 G5 | A5 - . F5 . . C5 . D5 . F5 . G5 . F5 D5'],
-  ['Stadium HC (F major)',170,'A4 . D5 F5 - E5 . D5 . C5 A4 . C5 . D5 F5 | G5 - . F5 . D5 . Bb4 . C5 D5 . F5 . G5 A5 | C6 - - A5 . G5 . F5 . D5 C5 . F5 G5 A5 Bb5 | G5 - . E5 . C5 . D5 . E5 F5 G5 A5 G5 E5 C5'],
-  ['Glide scream (F# minor)',170,'F#4 F#5 - E5 C#5 . F#4 A5 - G#5 F#5 E5 C#5 . B4 C#5 | D4 D5 - C#5 A4 . D4 F#5 - E5 D5 C#5 A4 . B4 C#5 | A4 A5 - G#5 E5 . A4 C#6 - B5 A5 G#5 E5 . F#5 G#5 | E4 E5 - D5 B4 . G#5 F#5 E5 D5 C#5 B4 A4 G#4 F#4 E4'],
-  ['Euphoric hardstyle (F# minor)',150,'C#5 - E5 F#5 - E5 C#5 - B4 - C#5 - A4 - B4 C#5 | D5 - F#5 A5 - F#5 E5 - D5 - E5 - F#5 - G#5 A5 | C#6 - B5 A5 - G#5 A5 - E5 - F#5 - A5 - B5 C#6 | B5 - - G#5 - E5 - F#5 - G#5 A5 G#5 F#5 E5 D5 C#5'],
-  ['Uplifting climax (G minor)',140,'Bb4 - - G4 - - D5 - Eb5 - F5 - G5 - F5 Eb5 | F5 - - C5 - - A4 - C5 - D5 - F5 - G5 A5 | Bb5 - - A5 - G5 F5 - D5 - G5 - Bb5 - A5 G5 | F5 - - D5 - Eb5 D5 - Bb4 - C5 - D5 - Eb5 F5'],
-  ['Cinematic breakdown (G minor)',138,'D5 - - Bb4 - - G4 - Bb4 - D5 - G5 - F5 D5 | C5 - - A4 - - F4 - A4 - C5 - F5 - Eb5 D5 | A5 - - G5 - - D5 - Bb4 - D5 - Bb5 - A5 G5 | F5 - - D5 - Eb5 D5 - C5 - A4 - Bb4 - C5 D5'],
-  ['Octave bounce bass (F# minor)',138,'. F#1 F#2 F#1 . F#1 C#2 F#2 . F#1 F#2 F#1 . E2 F#2 A2 | . D1 D2 D1 . D1 A1 D2 . D1 D2 D1 . C#2 D2 E2 | . A1 A2 A1 . A1 E2 A2 . A1 A2 A1 . G#2 A2 B2 | . E1 E2 E1 . E1 B1 E2 . E1 E2 B1 E1 G#1 B1 E2'],
-  ['Offbeat HC bass (F# minor)',170,'. . F#1 - . . F#1 - . . F#1 - . . F#2 E2 | . . D1 - . . D1 - . . D1 - . . D2 C#2 | . . A1 - . . A1 - . . A1 - . . A2 G#2 | . . E1 - . . E1 - . . E1 F#1 G#1 A1 B1 C#2'],
-  ['DnB rock lead (E minor)',174,'B4 - E5 G5 - F#5 - E5 - D5 B4 - D5 - E5 F#5 | G5 - E5 C5 - D5 - E5 - G5 A5 - G5 - F#5 E5 | B5 - G5 D5 - E5 - F#5 - G5 A5 - B5 - A5 G5 | A5 - F#5 D5 - E5 - F#5 - G5 F#5 E5 D5 C5 B4 A4'],
-  ['Hard house hoover (G minor)',145,'G3 - . Bb3 - C4 D4 - . F4 - D4 C4 Bb3 G3 F3 | G3 - . Bb3 - C4 D4 - . G4 - F4 D4 C4 Bb3 G3'],
-  ['Chopper hoover (F phrygian)',170,'F3 F3 . Gb3 F3 . C4 - . Bb3 Ab3 . Gb3 F3 F4 - | F3 F3 . Gb3 F3 . Db4 - . C4 Bb3 . Ab3 Gb3 F3 . | F3 F3 . Gb3 F3 . Eb4 - . Db4 C4 . Bb3 Ab3 Gb3 F3 | F4 - Eb4 - Db4 - C4 - Bb3 Ab3 Gb3 F3 Eb3 Db3 C3 F2'],
-  ['Acid warehouse (A minor)',134,'A2 A2 A3 G2 A2 C3 . A2 E3 D3 C3 A2 G2 A2 C3 D3 | E3 A2 A2 G3 E3 D3 C3 A2 Bb2 A2 G2 E2 G2 A2 C3 A2'],
-  ['Melodic techno arp (D minor)',126,'D4 F4 A4 D4 F4 A4 D4 F4 A4 D5 A4 F4 E4 F4 A4 C5 | Bb3 D4 G4 Bb3 D4 G4 Bb3 D4 G4 Bb4 G4 D4 C4 D4 F4 A4'],
-  ['Neoclassical arp (D harmonic minor)',190,'D5 F5 A5 D6 C#6 A5 F5 E5 D5 F5 Bb5 D6 C#6 Bb5 G5 E5 | C#5 E5 G5 Bb5 A5 G5 E5 C#5 D5 F5 A5 C#6 D6 A5 F5 D5'],
-  ['J-pop royal road (C major)',190,'E5 . G5 A5 - G5 . E5 . C5 D5 . E5 . G5 A5 | B5 - . A5 . G5 . E5 - D5 C5 . D5 - E5 - | G5 . A5 B5 - D6 . C6 - B5 A5 . G5 - E5 G5 | A5 - G5 E5 . C5 D5 E5 G5 A5 B5 C6 B5 A5 G5 E5'],
-  ['Stadium house lead (D major)',128,'F#5 - . D5 - . B4 - D5 - . F#5 - . A5 F#5 | E5 - . C#5 - . A4 - C#5 - . E5 - . F#5 E5 | D5 - . B4 - . F#4 - B4 - . D5 - . F#5 A5 | E5 - . C#5 - . A4 - B4 - C#5 - D5 - E5 F#5'],
-  ['Psy laser (F# phrygian dominant)',145,'F#4 . G4 A#4 . C#5 D5 C#5 A#4 . G4 F#4 E4 F#4 G4 A#4'],
-  ['Synthwave brass (D minor)',112,'A4 - - - - - G4 F4 E4 - - - D4 - E4 F4'],
-  ['FM donk (G minor)',170,'. . G2 . . . G2 . . . G2 D2 . G2 Bb2 D3 | . . Eb2 . . . Eb2 . . . Eb2 Bb1 . Eb2 G2 Bb2 | . . Bb1 . . . Bb1 . . . Bb1 F2 . Bb2 A2 G2 | . . F2 . . . F2 . . C2 F2 G2 A2 Bb2 C3 D3']
-  ];
-  GRIDS_.forEach(([n,bpm,s])=>{const ev=[];let cur=null,i=0;s.split(' | ').forEach(bar=>bar.split(' ').forEach(t=>{if(t==='-'){if(cur)cur[2]++;}else if(t==='.'){cur=null;}else{const k=(t[1]==='#'||t[1]==='b')?2:1;cur=[i,[PC_[t.slice(0,k)]+12*(+t.slice(k)+1)],1,i%4===0?.92:.8];ev.push(cur);}i++;}));D_.push({n:'Grid: '+n,bpm,len:i,ev});});
+  GRIDDEMOS.forEach(g=>D_.push(g));
   return D_;})();
 let demoOn=false,demoT=null,demoI=0,demoSel=0,demoHeld=[];
 function demoClear(){demoHeld.forEach(h=>release(h.n));demoHeld=[];}
@@ -3615,7 +3704,7 @@ function demoTick(){const P=DEMOS[demoSel],ms=60000/P.bpm/4;demoHeld=demoHeld.fi
   const st=demoI%P.len;for(const e of P.ev)if(e[0]===st)for(const n of e[1]){press(n,e[3]||.8);demoHeld.push({n,end:demoI+e[2]});}
   demoI++;demoT=setTimeout(demoTick,ms);}
 function toggleDemo(){demoOn=!demoOn;$('#demobtn').classList.toggle('on',demoOn);$('#demobtn').textContent=demoOn?'Stop demo':'Play demo';if(demoOn){startAudio().then(()=>{demoI=0;demoTick();});}else{clearTimeout(demoT);demoClear();}}
-function setDemo(i){demoSel=i;if(demoOn){clearTimeout(demoT);demoClear();demoI=0;demoTick();}}
+function setDemo(i){demoSel=i;const pr=DEMOS[i].pre;if(pr){const q=allPresets().find(x=>x.name===pr);if(q)loadPreset(q);}if(demoOn){clearTimeout(demoT);demoClear();demoI=0;demoTick();}}
 /* ---------- animation loop and boot ---------- */
 let lastVis=0,lastCh=0;
 function frame(ts){requestAnimationFrame(frame);if(document.hidden)return;
