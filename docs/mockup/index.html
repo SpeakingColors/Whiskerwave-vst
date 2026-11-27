@@ -278,6 +278,8 @@ textarea.txt{background:var(--disp);border:1px solid var(--line);color:var(--tex
 .mtabs b:nth-child(-n+2){flex:2}
 .mt2 .src.hd{flex:none}
 
+.lfostrip .lfoprev{display:none!important}
+
 </style></head><body>
 <div id="viewport"><div id="stage"><div class="cheek"></div><div id="app"></div><div class="cheek"></div></div></div>
 <div id="tip"></div><div id="ghost"></div><div class="toast" id="toast"></div><div class="dlg" id="dlg"></div>
@@ -369,7 +371,7 @@ for(const o of ['a','b','c','d','e','f']){
   def(o+'.sw','Spectral',-1,1,0,{tip:'Spectral warp of the whole table: negative stretches harmonics, positive shifts them. Static knob in this mockup.'});
   def(o+'.sk','Smear',0,1,0,{tip:'Spectral smear: blurs the harmonics together for a vocal, metallic or washed sound. Static knob in this mockup.'});
   def(o+'.oct','Octave',-4,4,0,{k:'int',tip:'Octave shift.'});
-  def(o+'.semi','Semi',-12,12,0,{k:'int',tip:'Semitone shift.'});
+  def(o+'.semi','Semi',-48,48,0,{k:'int',tip:'Pitch shift in semitones, 0 in the centre, up to 4 octaves up or down. The < and > buttons next to it move by a whole octave; Ctrl, Cmd or Alt while dragging or scrolling the knob does the same.'});
   def(o+'.fine','Fine',-100,100,0,{u:' ct',vo:true,tip:'Fine tune in cents.'});
   def(o+'.lvl','Level',0,1,o==='a'?.75:.6,{vo:true,tip:'Oscillator level.'});
   def(o+'.pan','Pan',-1,1,0,{vo:true,tip:'Oscillator pan.'});
@@ -938,7 +940,7 @@ const FIR4=(()=>{const k=new Float64Array(31);let sm=0;for(let j=0;j<31;j++){con
   for(let j=0;j<31;j++)k[j]/=sm;return k;})();
 class Voice{
   constructor(E,idx){
-    this.E=E;this.idx=idx;this.active=false;this.gate=false;this.note=60;this.noteCur=60;this.vel=1;this.age=0;this.serial=0;
+    this.E=E;this.idx=idx;this.s1=new Float64Array(8);this.s2=new Float64Array(8);this.ks=1-Math.exp(-1/(E.sr*.00035));this.active=false;this.gate=false;this.note=60;this.noteCur=60;this.vel=1;this.age=0;this.serial=0;
     this.env=[];this.elfo=[];for(let i=0;i<16;i++){this.env.push(new Env());this.elfo.push(new Lfo());}this.lfo=[new Lfo(),new Lfo(),new Lfo(),new Lfo()];
     this.sen=[0,1,2,3,4,5,6,7].map(()=>new Env());this.senV=new Float64Array(8);this.senP=new Float64Array(8);
     this.sv={};for(const s of SRCS)this.sv[s]=0;
@@ -959,6 +961,7 @@ class Voice{
     const E=this.E;this.active=true;this.gate=true;this.note=note;this.vel=vel;this.age=0;this.serial=++E.serial;
     if(retrig){
       this.noteCur=E.glideFrom!==null&&E.pv.glide>0?E.glideFrom:note;
+      if(this.env[0].st===0){this.s1.fill(0);this.s2.fill(0);}
       for(const e of this.env)e.on();for(const e of this.sen)e.on();
       for(let i=0;i<4;i++)this.lfo[i].start(E.pv['l'+(i+1)+'.ph'],0);
       for(let i=0;i<16;i++)this.elfo[i].start(E.pv['e'+(i+1)+'.lph']||0,0);
@@ -969,6 +972,7 @@ class Voice{
         this.diveT[o]=0;this.grains[o].length=0;}
     }else{for(const e of this.env){if(e.st===5)e.on();}}
     this.fade=0;this.pfresh=true;this.kf=1;this.kfd=0;}
+  sg(q,x){const a=this.s1,b=this.s2,k=this.ks;a[q]+=(x-a[q])*k;b[q]+=(a[q]-b[q])*k;return b[q];} // two one-pole stages at about 0.35 ms: the envelopes run at block rate, so this rounds the corners of very short attacks (click)
   fadeKill(ms){if(!this.active)return;this.kfd=1/Math.max(1,this.E.sr*(ms||6)/1000);if(!this.kf)this.kf=1;}
   release(){this.gate=false;for(const e of this.env)e.off();for(const e of this.sen)e.off();}
   kill(){if(this.jps)this.jps.fill(0);this.active=false;this.gate=false;this.kfd=0;this.kf=1;for(const e of this.env){e.st=0;e.v=0;e.rf=0;}for(const e of this.sen){e.st=0;e.v=0;}
@@ -1175,7 +1179,7 @@ class Voice{
           hp=(sumR-(SQ2+g)*S[b+2]-S[b+3])*dn;bp=g*hp+S[b+2];S[b+2]=g*hp+bp;S[b+3]+=2*g*bp;sumR=hp;}
         const lv=c.lvi*.5;let amp=lv;
         const own=sA[sl_]+(sB[sl_]-sA[sl_])*t;
-        amp*=eo[sl_]?own:own*evS[sl_];
+        amp*=this.sg(sl_,eo[sl_]?own:own*evS[sl_]);
         if(eo[sl_])amp*=velg;
         outL[sl_]=sumL*amp;outR[sl_]=sumR*amp;
         this.last[sl_]=(sumL+sumR)*.5;
@@ -1187,13 +1191,13 @@ class Voice{
         if(th>0.001){this.subph2+=pcs.sf2;if(this.subph2>=1)this.subph2-=1;this.subph3+=pcs.sf3;if(this.subph3>=1)this.subph3-=1;
           const g=th*.7,nm=1/(1+g);sL=(s1+g*subWave(w,(this.subph2+pcs.sph+fmv+4)%1,pcs.sf2,pwv))*nm;sR=(s1+g*subWave(w,(this.subph3+pcs.sph+fmv+4)%1,pcs.sf3,pwv))*nm;}
         if(pcs.sdr>0.001){const k=1+pcs.sdr*6,nk=1/Math.tanh(k);sL=Math.tanh(sL*k)*nk;sR=Math.tanh(sR*k)*nk;}
-        const own=sA[3]+(sB[3]-sA[3])*t;let amp=pcs.sl*.7*(eo[3]?own*velg:own*evS[3]);
+        const own=sA[3]+(sB[3]-sA[3])*t;let amp=pcs.sl*.7*(eo[3]?own*velg:this.sg(3,own*evS[3]));
         const pn=pcs.spn,gl=pn>0?1-pn:1,gr=pn<0?1+pn:1;
         outL[3]=sL*amp*gl;outR[3]=sR*amp*gr;this.last[3]=(sL+sR)*.5;}
       if(pv['s.nz']){const nt=pv['s.nt'];let xl=this.nzGen(this.nzS[0],nt,pcs,sr),xr=xl;
         if(pcs.nw>0.001){const x2=this.nzGen(this.nzS[1],nt,pcs,sr);xr=xl*(1-pcs.nw)+x2*pcs.nw;}
         if(this.punch>0){const pk=Math.sin(TAU*this.punch*40)*pv['s.pk']*this.punch*1.5;xl+=pk;xr+=pk;this.punch=Math.max(0,this.punch-1/(sr*.012));}
-        const own=sA[4]+(sB[4]-sA[4])*t;let amp=pcs.nl*.5*(eo[4]?own*velg:own*evS[4]);
+        const own=sA[4]+(sB[4]-sA[4])*t;let amp=pcs.nl*.5*(eo[4]?own*velg:this.sg(4,own*evS[4]));
         const pn=pcs.npn,gl=pn>0?1-pn:1,gr=pn<0?1+pn:1;
         outL[4]=xl*amp*gl;outR[4]=xr*amp*gr;}
       // filters and routing
@@ -2189,11 +2193,11 @@ function knob(key,o){o=o||{};const sp=specOf(key);if(!sp)return h('div');
     val.textContent=o.sm?fmt(sp,v).replace(/ /g,''):fmt(sp,v);};
   let drag=null;
   el.addEventListener('pointerdown',e=>{if(e.button===2)return;el.setPointerCapture(e.pointerId);drag={y:e.clientY,n:toN(sp,getV(key))};e.preventDefault();});
-  const coarse=e=>o.coarse&&(e.ctrlKey||e.metaKey||e.altKey);
-  el.addEventListener('pointermove',e=>{if(!drag)return;if(coarse(e)){const st=Math.round((drag.y-e.clientY)/24);if(st!==drag.cs){const cs=specOf(o.coarse);setV(o.coarse,clamp(getV(o.coarse)+st-(drag.cs||0),cs.min,cs.max));drag.cs=st;}return;}drag.cs=0;const f=e.shiftKey?900:180;let n=drag.n+(drag.y-e.clientY)/f;setV(key,fromN(sp,n));});
+  const coarse=e=>o.coarse&&(e.ctrlKey||e.metaKey||e.altKey),cK=o.coarse===true?key:o.coarse,cS=o.coarse===true?12:1; // coarse:true = the same knob moves by 12 (octaves)
+  el.addEventListener('pointermove',e=>{if(!drag)return;if(coarse(e)){const st=Math.round((drag.y-e.clientY)/24);if(st!==drag.cs){const cs=specOf(cK);setV(cK,clamp(getV(cK)+(st-(drag.cs||0))*cS,cs.min,cs.max));drag.cs=st;}return;}drag.cs=0;const f=e.shiftKey?900:180;let n=drag.n+(drag.y-e.clientY)/f;setV(key,fromN(sp,n));});
   el.addEventListener('pointerup',e=>{drag=null;});
   el.addEventListener('dblclick',()=>setV(key,sp.d));
-  el.addEventListener('wheel',e=>{e.preventDefault();if(coarse(e)){const cs=specOf(o.coarse);setV(o.coarse,clamp(getV(o.coarse)-Math.sign(e.deltaY),cs.min,cs.max));return;}setV(key,fromN(sp,toN(sp,getV(key))-Math.sign(e.deltaY)*(sp.k==='int'?1/(sp.max-sp.min):.02)));},{passive:false});
+  el.addEventListener('wheel',e=>{e.preventDefault();if(coarse(e)){const cs=specOf(cK);setV(cK,clamp(getV(cK)-Math.sign(e.deltaY)*cS,cs.min,cs.max));return;}setV(key,fromN(sp,toN(sp,getV(key))-Math.sign(e.deltaY)*(sp.k==='int'?1/(sp.max-sp.min):.02)));},{passive:false});
   el.addEventListener('contextmenu',e=>{e.preventDefault();knobMenu(key,e.clientX,e.clientY,el);});
   S.knobs.add(el);el.draw();return el;}
 function alive(el){if(el.isConnected){el.__seen=1;return true;}return !el.__seen;}
@@ -2543,9 +2547,8 @@ function oscPanel(o){const k='abcdef'[o],p=k+'.';
   const wtRow=h('div',{class:'sgrow'},[SG([tbar],[['pos','Wave Pos'],['sw','Spec'],['sk','Smear']],3),C1(p+'w1',58,'w1a','Warp 1'),C1(p+'w2',58,'w2a','Warp 2')]);
   const smpRow=h('div',{class:'sgrow',style:'display:none'},[SG(['Sample',h('span',{class:'sp'}),tog(p+'sloop','Loop')],[['sroot','Root'],['gp','G.pos'],['gs','G.size'],['gd','Dens.'],['gj','Jitter']],5)]);
   const engUpd=()=>{if(!alive(wtRow))return false;const e=S.p[p+'eng'];wtRow.style.display=e===0?'':'none';smpRow.style.display=e===0?'none':'';};bind(p+'eng',engUpd);engUpd();
-  const octBox=h('span',{class:'mono octv'});const octUpd=()=>{if(!alive(octBox))return false;const v=S.p[p+'oct'];octBox.textContent=(v>0?'+':'')+v;};bind(p+'oct',octUpd);octUpd();
-  const octB=(t,d)=>h('button',{class:'btn sm stp',text:t,'data-tip':(d<0?'Down':'Up')+' one octave. Tip: hold Ctrl, Cmd or Alt while dragging or scrolling the Semi knob to move by octaves.',onclick:()=>{const sp=specOf(p+'oct');setV(p+'oct',clamp(S.p[p+'oct']+d,sp.min,sp.max));}});
-  const pitchSG=h('div',{class:'sg',style:'width:184px'},[h('div',{class:'sgh'},[h('span',{class:'cap gc',text:'Pitch'}),h('span',{class:'sp'}),h('span',{class:'cap',text:'Oct'}),octB('<',-1),octBox,octB('>',1)]),h('div',{class:'row',style:'gap:0'},[knob(p+'semi',{sm:true,label:'Semi',coarse:p+'oct'}),kn(['fine','Fine']),kn(['pit','Pitch']),kn(['anl','Analog'])])]);
+  const semiStep=d=>h('button',{class:'btn sm stp',text:d<0?'<':'>','data-tip':(d<0?'Down':'Up')+' one octave (12 semitones). Tip: hold Ctrl, Cmd or Alt while dragging or scrolling the Semi knob to do the same.',onclick:()=>{const sp=specOf(p+'semi');setV(p+'semi',clamp(S.p[p+'semi']+12*d,sp.min,sp.max));}});
+  const pitchSG=h('div',{class:'sg',style:'width:184px'},[h('div',{class:'sgh'},[h('span',{class:'cap gc',text:'Pitch'}),semiStep(-1),semiStep(1)]),h('div',{class:'row',style:'gap:0'},[knob(p+'semi',{sm:true,label:'Semi',coarse:true}),kn(['fine','Fine']),kn(['pit','Pitch']),kn(['anl','Analog'])])]);
   const pn=panel(null,[
     h('div',{class:'row',style:'align-items:center'},[oscPower(p+'on'),h('h3',{text:'OSC',style:'margin:0;font-size:14px'}),oscSwitch(o%3),engSel,h('span',{class:'sp'}),h('span',{class:'cap',text:'To'}),sel(p+'rt')]),
     disp,
@@ -2658,25 +2661,21 @@ function envBody(i,bank){const pre='e'+i+'.',c=cv(274,bank?46:48);let draw=true;
   animators.push({draw:()=>{if(S.page!==(bank?'sound':'mod')||!c.offsetParent&&!dcv.offsetParent)return;c.draw();dcv.draw();}});upd();
   const out=[header,c,dcv,lc,row1,row2,row3,row4].filter(Boolean);out.modeSeg=modeSeg;out.role=ROLE;return out;}
 function envPanel(i){return panel('ENVELOPE '+i,envBody(i),'width:292px');}
-const MODTYPE=['ADSR','Draw','LFO','Random'];
+const MODTYPE=['ADSR','Draw','LFO','LFO'];
 function envBank(){let cur=1;const N=16;const parts=[];for(let i=1;i<=N;i++)parts.push(envBody(i,true));const bodies=parts.map((p,i)=>h('div',{class:'col',style:'gap:2px;display:'+(i===0?'':'none')},p));
   const names=['AMP','FLT'];for(let i=3;i<=N;i++)names.push(String(i));
   const tabs=h('div',{class:'seg tight mtabs'},names.map((n,j)=>h('b',{text:n,'data-tip':'Modulator '+(j+1)+': '+parts[j].role,onclick:()=>{cur=j+1;upd();}})));
   const asel=h('select',{class:'sel',style:'width:104px','data-tip':'Assign this modulator to any parameter. It is added to the modulation matrix, where you can set the amount.'});
   asel.appendChild(h('option',{value:'',text:'Assign to...'}));for(const [g,list] of destOptions()){const og=h('optgroup',{label:g});list.forEach(([k,l])=>og.appendChild(h('option',{value:k,text:l.replace(/ \(.*\)$/,'')})));asel.appendChild(og);}
   asel.onchange=()=>{if(asel.value){addSlot('e'+cur,asel.value);asel.value='';upd();}};
-  const tbtn=h('button',{class:'btn sm on mtype','data-tip':'Type of this slot. Click to cycle: ADSR envelope, Draw (your own shape), LFO, Random. Slot 1 (amp) can be ADSR or Draw.',onclick:()=>{const k='e'+cur+'.mode',n=cur===1?2:4;setV(k,((S.p[k]|0)+1)%n);upd();}});
+  const tbtn=h('button',{class:'btn sm on mtype','data-tip':'Type of this slot. Click to cycle: ADSR, Draw (your own shape), LFO. An LFO slot has every wave and random shape in its Shape menu. Slot 1 (amp) can be ADSR or Draw.',onclick:()=>{const k='e'+cur+'.mode',n=cur===1?2:3;setV(k,((S.p[k]|0)+1)%n);upd();}});
   const holder=h('span',{});
-  const tray=h('div',{class:'srctray'},[h('div',{class:'cap',style:'text-transform:none;white-space:normal;margin-bottom:4px',text:'Drag any circle onto a knob. A small box opens to set the amount.'}),
-    h('div',{class:'row w',style:'gap:4px'},['l1','l2','l3','l4','m1','m2','m3','m4','m5','m6','m7','m8','vel','key','wheel','bend','at','rnd'].map(id=>src(id)))]);tray.style.display='none';
-  const plus=h('button',{class:'btn sm','data-tip':'More sources: global LFOs, fast controls (macros), velocity, key, mod wheel, pitch bend, aftertouch and random. Drag them onto any knob.',text:'+',onclick:e=>{e.stopPropagation();tray.style.display=tray.style.display==='none'?'':'none';updHandles();}});
-  document.addEventListener('pointerdown',e=>{if(tray.style.display!=='none'&&!tray.contains(e.target)&&e.target!==plus&&!(drag))tray.style.display='none';},true);
   const upd=()=>{$$('b',tabs).forEach((b,j)=>{b.classList.toggle('on',j+1===cur);b.classList.toggle('lfo',(S.p['e'+(j+1)+'.mode']|0)>=2);});bodies.forEach((b,j)=>b.style.display=j+1===cur?'':'none');holder.innerHTML='';holder.appendChild(src('e'+cur,(cur===1?'AMP':cur===2?'FILT':'ENV '+cur)));tbtn.textContent=MODTYPE[S.p['e'+cur+'.mode']|0];updHandles();};
   for(let i=1;i<=N;i++)bind('e'+i+'.mode',()=>{if(!alive(tbtn))return false;upd();});
   upd();bank_upd=upd;bank_set=n=>{cur=n;upd();};
-  const pn=panel('MODULATORS',[tabs,...bodies,h('div',{class:'row',style:'align-items:center;gap:4px'},[tbtn,holder,h('span',{class:'sp'}),asel,plus]),tray],'width:296px;position:relative');return pn;}
+  const pn=panel('MODULATORS',[tabs,...bodies,h('div',{class:'row',style:'align-items:center;gap:4px'},[holder,h('span',{class:'sp'}),asel,tbtn])],'width:296px;position:relative');return pn;}
 let bank_upd=null,bank_set=null;
-function lfoPanel(i){const k='l'+i+'.',c=cv(274,48);
+function lfoPanel(i){const k='l'+i+'.',c=cv(274,48);c.classList.add('lfoprev');
   c.draw=()=>{const g=c.g,W=c.W,H=c.H;g.clearRect(0,0,W,H);g.fillStyle=cssv('--disp');g.fillRect(0,0,W,H);g.strokeStyle=cssv('--grid');g.beginPath();g.moveTo(0,H/2);g.lineTo(W,H/2);g.stroke();
     g.beginPath();for(let x=0;x<W;x++){const p=(x/W*2+S.p[k+'ph'])%1;const v=D.lfoShape(S.p[k+'shape'],p,S.custom[i-1]);const y=H/2-v*(H/2-5);x?g.lineTo(x,y):g.moveTo(x,y);}g.strokeStyle=cssv('--m1');g.lineWidth=2;g.stroke();
     const lv=S.V&&S.V.lfo?S.V.lfo[i-1]:0;g.fillStyle=cssv('--acc2');g.beginPath();g.arc(W-8,H/2-lv*(H/2-5),4,0,7);g.fill();};
@@ -2706,7 +2705,7 @@ function buildMatrix(){if(!matrixEl)return;matrixEl.innerHTML='';const a=h('div'
   matrixEl.append(a,b);const cnt=$('#slotcount');if(cnt)cnt.textContent=S.slots.length+' / 64';buildGrid();}
 setRebuildMatrix(buildMatrix);
 function modPage(){const pg=h('div',{class:'page','data-page':'mod',style:'flex-direction:column'});
-  const lfos=h('div',{class:'row',style:'gap:8px'},[lfoPanel(1),lfoPanel(2),lfoPanel(3),lfoPanel(4)]);
+  const lfos=h('div',{class:'row lfostrip',style:'gap:8px'},[lfoPanel(1),lfoPanel(2),lfoPanel(3),lfoPanel(4)]);
   const grp=(t,ids)=>h('div',{class:'col',style:'gap:3px'},[h('span',{class:'cap gc',text:t}),h('div',{class:'row w',style:'gap:4px'},ids.map(id=>src(id)))]);
   const envs=[];for(let i=1;i<=16;i++)envs.push('e'+i);
   const srcs=panel('SOURCES',[grp('Modulators (Sound page)',envs),grp('Global LFOs',['l1','l2','l3','l4']),grp('Fast controls',['m1','m2','m3','m4','m5','m6','m7','m8']),grp('Playing',['vel','key','wheel','bend','at','rnd']),
@@ -3419,7 +3418,7 @@ const NEWP=[
 ['Liquid Pad','Pad','Liquid DnB',{a:'Wide Saw Stack',b:'Wide Saw Stack'},{'a.uv':6,'a.ud':.3,'a.us':1,'b.on':1,'b.uv':6,'b.ud':.25,'b.us':1,'b.oct':1,'b.lvl':.4,'f1.type':'LP 24','f1.cut':2600,'f1.res':.1,'f1.es':0,'e1.a':900,'e1.s':1,'e1.r':1800,'l1.rate':.12,'bus.t0.s1':.35},[['l1','f1.cut',.25]],{x1:[['verb',{type:2,decay:5,mix:1}]]}],
 ];
 for(const x of NEWP){const pp={};for(const k in x[4])pp[k]=(typeof x[4][k]==='string')?FT_(x[4][k]):x[4][k];PS(x[0],x[1],x[2],{tabs:x[3],p:pp,slots:x[5].map(a=>sl(a[0],a[1],a[2])),chains:x[6]});}
-const MASTERS={"Init":7.8,"Hands Up Hyper Saw":0.3,"Trance Mainliner":3.6,"Rawstyle Screamer":0.3,"Hoover Rave":9.2,"Dream Pluck":3.9,"Glass Pluck":8.8,"Reese Bass":2.8,"Sub Kick Tail":0.7,"Growl Bass":3.6,"Acid Squelch":4.6,"Wobble Harmonics":10,"FM Electric Piano":5.3,"Glass Bell":3.6,"Drawbar Organ":2.6,"Vowel Choir Pad":6.4,"Brass Swell":-0.9,"Wide Odd Pad":1.9,"Trance Gate Pad":8.3,"Formant Talker":7.4,"Digital Steps":1.8,"Metal Hit":6.4,"Noise Riser":4,"Lo-Fi Keys":10,"Pulse Sweep Arp":7,"Uplifting Lead":1,"Euphoria Lead":-0.5,"Hardstyle Screech":-2.4,"Rawstyle Square Lead":3.7,"Happy Hardcore Lead":0.3,"Eurodance Saw":0.8,"Synthwave Lead":10,"Soft Mono Lead":10,"Hoover Stab":9.9,"Detune Super Lead":-0.6,"Plucked Pentatonic":3.8,"Dream Harp":7.5,"Bell Pluck":4.4,"Pizzicato":7.5,"Acid Bass":4.4,"Reese Bass#2":-2,"Sub Sine":8.4,"Wobble Bass":-1.8,"Hardstyle Rumble":-1.7,"Growl Bass#2":4.7,"Trance Gate Bass":8.6,"Warm Pad":-1.2,"Choir Pad":4.3,"Strings Ensemble":-0.8,"Dark Drone":-1.4,"Glass Pad":1.6,"Electric Piano":4,"House Organ":2.1,"Piano House Stab":1.5,"Lo-Fi Chords":4.2,"Trance Arp":2.1,"Rave Arp":10,"Sequence Bass Arp":9.6,"Laser Riser":10,"Alien Sweep":-3.6,"Impact Boom":2.9,"Anthem Stack":-2,"Pluck to Lead":-1.2,"Hands Up Bright":2.1,"Euphoric Lead":4.4,"Screech Lead":0.3,"Neuro Reese":0.3,"Neuro Growl":-3.4,"Liquid Sub":7.5,"Liquid Bell Lead":2.7,"Liquid Pad":-0.8};
+const MASTERS={"Init":3,"Hands Up Hyper Saw":0.3,"Trance Mainliner":3.6,"Rawstyle Screamer":0.3,"Hoover Rave":9.2,"Dream Pluck":3.9,"Glass Pluck":8.8,"Reese Bass":2.8,"Sub Kick Tail":0.7,"Growl Bass":3.6,"Acid Squelch":4.6,"Wobble Harmonics":10,"FM Electric Piano":5.3,"Glass Bell":3.6,"Drawbar Organ":2.6,"Vowel Choir Pad":6.4,"Brass Swell":-0.9,"Wide Odd Pad":1.9,"Trance Gate Pad":8.3,"Formant Talker":7.4,"Digital Steps":1.8,"Metal Hit":6.4,"Noise Riser":4,"Lo-Fi Keys":10,"Pulse Sweep Arp":7,"Uplifting Lead":1,"Euphoria Lead":-0.5,"Hardstyle Screech":-2.4,"Rawstyle Square Lead":3.7,"Happy Hardcore Lead":0.3,"Eurodance Saw":0.8,"Synthwave Lead":10,"Soft Mono Lead":10,"Hoover Stab":9.9,"Detune Super Lead":-0.6,"Plucked Pentatonic":3.8,"Dream Harp":7.5,"Bell Pluck":4.4,"Pizzicato":7.5,"Acid Bass":4.4,"Reese Bass#2":-2,"Sub Sine":8.4,"Wobble Bass":-1.8,"Hardstyle Rumble":-1.7,"Growl Bass#2":4.7,"Trance Gate Bass":8.6,"Warm Pad":-1.2,"Choir Pad":4.3,"Strings Ensemble":-0.8,"Dark Drone":-1.4,"Glass Pad":1.6,"Electric Piano":4,"House Organ":2.1,"Piano House Stab":1.5,"Lo-Fi Chords":4.2,"Trance Arp":2.1,"Rave Arp":10,"Sequence Bass Arp":9.6,"Laser Riser":10,"Alien Sweep":-3.6,"Impact Boom":2.9,"Anthem Stack":-2,"Pluck to Lead":-1.2,"Hands Up Bright":2.1,"Euphoric Lead":4.4,"Screech Lead":0.3,"Neuro Reese":0.3,"Neuro Growl":-3.4,"Liquid Sub":7.5,"Liquid Bell Lead":2.7,"Liquid Pad":-0.8};
 {const seen={};for(const f of FACT){const n=seen[f.name]=(seen[f.name]||0)+1;const key=n>1?f.name+'#'+n:f.name;if(MASTERS[key]!==undefined&&f.p.master===undefined)f.p.master=MASTERS[key];}}
 const TYPES=['All','Lead','Pluck','Bass','Keys','Pad','Arp','FX'];
 function presetState(){const p={};for(const k in S.p)if(S.p[k]!==PR[k].d)p[k]=S.p[k];return {v:5,mnames:S.mnames.slice(),p,slots:JSON.parse(JSON.stringify(S.slots)),chains:JSON.parse(JSON.stringify(S.chains)),tabs:Object.assign({},S.tabs),seq:JSON.parse(JSON.stringify(S.seq)),draw:JSON.parse(JSON.stringify(S.draw)),envpts:JSON.parse(JSON.stringify(S.envpts)),custom:JSON.parse(JSON.stringify(S.custom))};}
@@ -3427,9 +3426,11 @@ function loadState(st,name,id){
   for(const k in PR)S.p[k]=PR[k].d;
   if(!st.v)for(const k of ['f1.kt','f2.kt'])S.p[k]=.5; // saves from before v1.7.6 used key track .5 as default
   for(const k in st.p)if(PR[k])S.p[k]=st.p[k];else console.warn('preset key missing',k);
+  for(const o of 'abcdef'){const ko=o+'.oct';if(S.p[ko]){S.p[o+'.semi']=clamp(S.p[o+'.semi']+12*S.p[ko],-48,48);S.p[ko]=0;}} // v1.9.5: Octave is folded into Semi (range +-48)
   S.slots=(st.slots||[]).map(x=>Object.assign({},x));
   if(st.chainsSpec){S.chains=D.defaultChains();for(const b in st.chainsSpec)S.chains[b]=st.chainsSpec[b].map(mkNode);}else if(st.chains)S.chains=JSON.parse(JSON.stringify(st.chains));else S.chains=D.defaultChains();
   if(st.chainsSpec&&Object.keys(st.chainsSpec).length===0)S.chains=D.defaultChains();
+  for(let i=2;i<=16;i++){const k='e'+i+'.';if(S.p[k+'mode']===3){S.p[k+'mode']=2;S.p[k+'lsh']=D.RSHAPE[S.p[k+'rsh']|0];}} // v1.9.5: Random type is now an LFO shape
   S.tabs=Object.assign({a:'Sine to Saw',b:'Sine to Saw',c:'Sine to Saw',d:'Sine to Saw',e:'Sine to Saw',f:'Sine to Saw'},st.tabs||{});if(!st.fact&&(st.v||0)<4)for(let i=1;i<=16;i++){const k='e'+i+'.sync';if(!(st.p&&k in st.p))S.p[k]=0;} // saves before v1.9.1 used the Length knob for drawn envelopes
   if(!st.fact&&(st.v||0)<5)for(const o of 'abcdef'){const k=o+'.us',v=S.p[k];if(v>=2&&v<=5)S.p[k]=v===5?2:v+1;} // v1.9.3 put JP Super right after Supersaw in the list
   if(!st.fact&&(st.v||0)<3&&st.tabs)for(const o in S.tabs)if(st.tabs[o]==='Sine to Saw')S.tabs[o]='Soft to Buzz'; // saves before v1.7.7: keep their old table sound
