@@ -15,7 +15,7 @@
 -- Exporting juceaide
 -- Testing juceaide
 -- Finished setting up juceaide
--- Configuring done (72.8s)
+-- Configuring done (76.3s)
 -- Generating done (0.1s)
 -- Build files have been written to: /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/build
 [  1%] Building VST3 manifest helper for Whiskerwave
@@ -28,13 +28,13 @@
 -- Check for working CXX compiler: /usr/bin/c++ - skipped
 -- Detecting CXX compile features
 -- Detecting CXX compile features - done
--- Configuring done (1.8s)
+-- Configuring done (1.0s)
 -- Generating done (0.0s)
 -- Build files have been written to: /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/vst3_helpers/Whiskerwave
 make[3]: warning: jobserver unavailable: using -j1.  Add `+' to parent make rule.
 [ 50%] Building CXX object CMakeFiles/vst3_helper.dir/Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_plugin_client/VST3/juce_VST3ManifestHelper.cpp.o
-[  7%] Building CXX object _deps/cat_ui-build/CMakeFiles/cat_ui.dir/__/juce-src/modules/juce_gui_basics/juce_gui_basics_3.cpp.o
 [100%] Linking CXX executable vst3_helper
+[  7%] Building CXX object _deps/cat_ui-build/CMakeFiles/cat_ui.dir/__/juce-src/modules/juce_gui_basics/juce_gui_basics_3.cpp.o
 [100%] Built target vst3_helper
 [  7%] Built target Whiskerwave_vst3_helper
 [  8%] Building CXX object _deps/cat_ui-build/CMakeFiles/cat_ui.dir/__/juce-src/modules/juce_gui_basics/juce_gui_basics_4.cpp.o
@@ -49,9 +49,9 @@ make[3]: warning: jobserver unavailable: using -j1.  Add `+' to parent make rule
 [ 22%] Building CXX object _deps/cat_ui-build/CMakeFiles/cat_ui.dir/__/juce-src/modules/juce_data_structures/juce_data_structures.mm.o
 [ 23%] Linking CXX static library libcat_ui.a
 [ 23%] Built target cat_ui
-[ 25%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_processors/juce_audio_processors.mm.o
-[ 26%] Building CXX object CMakeFiles/Whiskerwave.dir/src/PluginProcessor.cpp.o
-[ 28%] Building CXX object CMakeFiles/Whiskerwave.dir/src/PluginEditor.cpp.o
+[ 25%] Building CXX object CMakeFiles/Whiskerwave.dir/src/PluginEditor.cpp.o
+[ 26%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_processors/juce_audio_processors.mm.o
+[ 28%] Building CXX object CMakeFiles/Whiskerwave.dir/src/PluginProcessor.cpp.o
 [ 29%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_gui_extra/juce_gui_extra.mm.o
 In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp:1:
 /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.h:36:27: warning: private field 'proc' is not used [-Wunused-private-field]
@@ -80,31 +80,31 @@ In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Plu
 [ 59%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_dsp/juce_dsp.mm.o
 [ 61%] Linking CXX static library Whiskerwave_artefacts/Release/libWhiskerwave_SharedCode.a
 [ 61%] Built target Whiskerwave
-[ 64%] Generating Whiskerwave_artefacts/JuceLibraryCode/Whiskerwave_VST3/PkgInfo
 [ 64%] Generating Whiskerwave_artefacts/JuceLibraryCode/Whiskerwave_Standalone/PkgInfo
-[ 67%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
-[ 67%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
-[ 68%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
-[ 70%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
-[ 73%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
+[ 64%] Generating Whiskerwave_artefacts/JuceLibraryCode/Whiskerwave_VST3/PkgInfo
+[ 67%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
+[ 67%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
+[ 68%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
+[ 70%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
+[ 71%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
 [ 73%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
-[ 76%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
-[ 76%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
-[ 77%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.mm.o
-[ 79%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.mm.o
-[ 80%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AU_1.mm.o
-[ 82%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AU_2.mm.o
-[ 83%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AU_1.mm.o
-[ 85%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AUv3.mm.o
-[ 86%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.mm.o
-[ 88%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AU_2.mm.o
-[ 89%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.mm.o
-[ 91%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.mm.o
+[ 74%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
+[ 76%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.mm.o
+[ 77%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AU_1.mm.o
+[ 79%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
+[ 80%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AU_2.mm.o
+[ 82%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.mm.o
+[ 83%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AUv3.mm.o
+[ 85%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.mm.o
+[ 86%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AU_1.mm.o
+[ 88%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.mm.o
+[ 89%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.mm.o
+[ 91%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AU_2.mm.o
 [ 92%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AUv3.mm.o
 [ 94%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.mm.o
 [ 95%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.mm.o
-[ 97%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.mm.o
 Copying OS X content Whiskerwave_artefacts/Release/Standalone/Whiskerwave.app/Contents/Resources/RecentFilesMenuTemplate.nib
+[ 97%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.mm.o
 [ 98%] Linking CXX executable Whiskerwave_artefacts/Release/Standalone/Whiskerwave.app/Contents/MacOS/Whiskerwave
 [ 98%] Built target Whiskerwave_Standalone
 [100%] Linking CXX CFBundle shared module Whiskerwave_artefacts/Release/VST3/Whiskerwave.vst3/Contents/MacOS/Whiskerwave
