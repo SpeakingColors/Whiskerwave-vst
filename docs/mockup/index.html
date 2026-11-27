@@ -2361,7 +2361,7 @@ function drawWaterfall(c,k){const g=c.g,W=c.W,H=c.H,fr=framesOf(k),nf=fr.length;
   g.fillText('frame '+(fp+1).toFixed(1)+'/'+nf,W-76,10);}
 function drawSmallFrame(c,k){/* live single frame */}
 function oscPanel(o){const k='abcdef'[o],p=k+'.';
-  const disp=cv(365,68);disp.dataset.osc=k;
+  const disp=cv(365,96);disp.dataset.osc=k;
   const L=(arr)=>h('div',{class:'row',style:'gap:2px'},arr.map(x=>knob(p+x[0],{sm:true,label:x[1]})));
   const kn=(x)=>knob(p+x[0],{sm:true,label:x[1]});
   const stepSel=(key)=>{const e=sel(key);e.style.width='70px';const mk=(t,d,tip)=>h('button',{class:'btn sm stp',text:t,'data-tip':tip,onclick:()=>{const n=listOf(specOf(key)).length;setV(key,(getV(key)+d+n)%n);}});return h('div',{class:'row',style:'gap:1px;align-items:center;flex:none'},[mk('<',-1,'Previous warp mode.'),e,mk('>',1,'Next warp mode.')]);};
@@ -2463,8 +2463,8 @@ function filterPage(){const pg=h('div',{class:'page','data-page':'filter'});
   pg.append(filterPanel(1),mid,filterPanel(2));
   animators.push({draw:()=>{if(S.page!=='filter')return;$$('canvas[data-f]',pg).forEach(c=>drawFilter(c,+c.dataset.f));}});return pg;}
 /* ---------- mod page ---------- */
-function envBody(i,bank){const pre='e'+i+'.',c=cv(274,bank?32:48);let draw=i>=3&&i<=4;const CH=bank?30:48;
-  const dcv=draw?envEditor(i-1,274,bank?64:80,false):cv(274,32);dcv.style.display='none';if(!dcv.draw)dcv.draw=()=>{};
+function envBody(i,bank){const pre='e'+i+'.',c=cv(274,bank?46:48);let draw=i>=3&&i<=4;const CH=bank?44:48;
+  const dcv=draw?envEditor(i-1,274,bank?78:80,false):cv(274,46);dcv.style.display='none';if(!dcv.draw)dcv.draw=()=>{};
   const getMode=()=>draw?S.p[pre+'mode']:0;
   const row1=h('div',{class:'row envk',style:'gap:0'},[pre+'a',pre+'h',pre+'d',pre+'s',pre+'r',pre+'ca',pre+'c'].map((k,j)=>knob(k,{sm:true,label:['Att','Hold','Dec','Sus','Rel','A.crv','Curve'][j]}))),row2=draw?h('div',{class:'row',style:'flex-wrap:wrap;align-items:center;gap:4px'},[knob(pre+'len',{sm:true}),tog(pre+'loop','Loop'),knob(pre+'r',{sm:true,label:'Release'}),h('div',{class:'col',style:'gap:3px'},envTools(i-1,false))]):h('div');
   const upd=()=>{if(!alive(row1))return false;const m=draw&&S.p[pre+'mode']===1;c.style.display=m?'none':'';dcv.style.display=m?'':'none';row1.style.display=m?'none':'';row2.style.display=m?'':'none';};
@@ -3207,6 +3207,9 @@ addEventListener('keyup',e=>{const k=e.code;if(qDown[k]!==undefined){release(qDo
 const AM=[[57,60,64,69],[53,57,60,65],[48,55,60,64],[55,59,62,67]];
 const DEMOS=(()=>{const D_=[];
   D_.push({n:'Chords',bpm:141,len:64,ev:AM.map((c,i)=>[i*16,c,15,.7])});
+  // Emotional chords: IV I vi7 V with two common tones held on top through every chord, 3-3-2 rhythm (inspiration: a shared MIDI idea, voicings written down by ear-free reading; in C major / A minor so it fits the other demos)
+  D_.push({n:'Emotional chords',bpm:128,len:128,ev:(()=>{const V=[[43,50,55,57,62],[38,50,57,62],[47,54,57,62],[45,52,57,61,62],[43,57,62,69],[50,57,64,66],[47,54,57,62,69],[45,52,57,61,62,69]].map(c=>c.map(n=>n-2));
+    const ev=[];V.forEach((c,b)=>[[0,5,.85],[6,5,.7],[12,3,.75]].forEach(([o,l,v],k)=>{const ch=b===1&&k>0?[...c,64]:c;ev.push([b*16+o,ch,l,v]);}));return ev;})()});
   D_.push({n:'Pad swell',bpm:128,len:128,ev:AM.map((c,i)=>[i*32,[c[0]-12,...c.slice(1)],30,.6])});
   D_.push({n:'Trance stabs',bpm:138,len:128,ev:(()=>{/* 8 bars: offbeat, 3-3-2 gate, paired hits, roll; second pass denser with lift */
     const B=[[[2,1,.95],[6,1,.8],[10,1,.85],[13,1,.55],[14,1,.95]],
