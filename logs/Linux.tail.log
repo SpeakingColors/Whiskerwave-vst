@@ -1,63 +1,3 @@
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Filters.h:39:26: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
-   39 |     if (nb < 1) nb = 32; const double inv = 1.0 / nb;
-      |                          ^~~~~
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Filters.h: In member function ‘void whisker::VFilt::ramp()’:
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Filters.h:50:5: warning: this ‘for’ clause does not guard... [-Wmisleading-indentation]
-   50 |     for (int i = 0; i < nc; i++) c[i] += dc[i]; for (int i = 0; i < kNS; i++) *scp[i] += ds[i];
-      |     ^~~
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Filters.h:50:49: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘for’
-   50 |     for (int i = 0; i < nc; i++) c[i] += dc[i]; for (int i = 0; i < kNS; i++) *scp[i] += ds[i];
-      |                                                 ^~~
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Filters.h:51:5: warning: this ‘for’ clause does not guard... [-Wmisleading-indentation]
-   51 |     for (int i = 0; i < nap; i++) ap[i] += dap[i]; for (int i = 0; i < nw; i++) w[i] += dw[i];
-      |     ^~~
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Filters.h:51:52: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘for’
-   51 |     for (int i = 0; i < nap; i++) ap[i] += dap[i]; for (int i = 0; i < nw; i++) w[i] += dw[i];
-      |                                                    ^~~
-In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.h:4:
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Params.h: In function ‘juce::AudioProcessorValueTreeState::ParameterLayout whisker::makeLayout()’:
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Params.h:41:22: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
-   41 |             if (p.mn == 0.f && p.mx == 1.f) L.add(std::make_unique<juce::AudioParameterBool>(pid, nm, p.def > .5f));
-      |                 ~~~~~^~~~~~
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Params.h:41:37: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
-   41 |             if (p.mn == 0.f && p.mx == 1.f) L.add(std::make_unique<juce::AudioParameterBool>(pid, nm, p.def > .5f));
-      |                                ~~~~~^~~~~~
-In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless.h:145,
-                 from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_processors/juce_audio_processors.h:64,
-                 from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.h:2:
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_processors_headless/processors/juce_AudioProcessor.h: At global scope:
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_processors_headless/processors/juce_AudioProcessor.h:292:18: warning: ‘virtual void juce::AudioProcessor::processBlock(juce::AudioBuffer<double>&, juce::MidiBuffer&)’ was hidden [-Woverloaded-virtual=]
-  292 |     virtual void processBlock (AudioBuffer<double>& buffer,
-      |                  ^~~~~~~~~~~~
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.h:17:10: note:   by ‘virtual void WhiskerwaveProcessor::processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&)’
-   17 |     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
-      |          ^~~~~~~~~~~~
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Voice.h: In function ‘double whisker::toNorm(int, double)’:
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Voice.h:18:64: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
-   18 |   const double d = (double)p.mx - p.mn; return (v - p.mn) / (d == 0 ? 1 : d);
-      |                                                              ~~^~~~
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Voice.h: In lambda function:
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Voice.h:66:154: warning: conversion to ‘std::array<double, 31>::size_type’ {aka ‘long unsigned int’} from ‘int’ may change the sign of the result [-Wsign-conversion]
-   66 |     for (int j = 0; j < 31; j++) { const double x = j - 15; const double w = .42 - .5 * std::cos(2 * kPi * j / 30) + .08 * std::cos(4 * kPi * j / 30); a[j] = (x == 0 ? .25 : std::sin(kPi * x * .25) / (kPi * x)) * w; sm += a[j]; }
-      |                                                                                                                                                          ^
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Voice.h:66:162: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
-   66 |     for (int j = 0; j < 31; j++) { const double x = j - 15; const double w = .42 - .5 * std::cos(2 * kPi * j / 30) + .08 * std::cos(4 * kPi * j / 30); a[j] = (x == 0 ? .25 : std::sin(kPi * x * .25) / (kPi * x)) * w; sm += a[j]; }
-      |                                                                                                                                                                ~~^~~~
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Voice.h:66:225: warning: conversion to ‘std::array<double, 31>::size_type’ {aka ‘long unsigned int’} from ‘int’ may change the sign of the result [-Wsign-conversion]
-   66 |     for (int j = 0; j < 31; j++) { const double x = j - 15; const double w = .42 - .5 * std::cos(2 * kPi * j / 30) + .08 * std::cos(4 * kPi * j / 30); a[j] = (x == 0 ? .25 : std::sin(kPi * x * .25) / (kPi * x)) * w; sm += a[j]; }
-      |                                                                                                                                                                                                                                 ^
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Voice.h:67:5: warning: this ‘for’ clause does not guard... [-Wmisleading-indentation]
-   67 |     for (auto& v : a) v /= sm; return a; }();
-      |     ^~~
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Voice.h:67:32: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘for’
-   67 |     for (auto& v : a) v /= sm; return a; }();
-      |                                ^~~~~~
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Voice.h: In member function ‘void whisker::Voice::start(int, double, bool)’:
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Voice.h:108:7: warning: this ‘for’ clause does not guard... [-Wmisleading-indentation]
-  108 |       for (auto& e : env) e.on(); for (auto& e : sen) e.on();
-      |       ^~~
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Voice.h:108:35: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘for’
-  108 |       for (auto& e : env) e.on(); for (auto& e : sen) e.on();
       |                                   ^~~
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Voice.h:111:7: warning: this ‘for’ clause does not guard... [-Wmisleading-indentation]
   111 |       for (int j = 0; j < 48; j++) an.p[j] = gRng.bi(); an.c[0] = gRng.bi(); an.c[1] = gRng.bi(); an.e = gRng.bi(); for (int j = 0; j < 6; j++) { an.dt[j] = gRng.bi(); an.dr[j] = an.dt[j]; } hasAn = true;
@@ -76,6 +16,13 @@ In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_d
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Voice.h:181:85: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
   181 |     double v = (s.src >= S_L1 && s.src < S_L1 + 4 && E.pv[I.lfo[s.src - S_L1].mode] == 1) ? E.gl[s.src - S_L1] : sv[s.src];
       |                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Ui.h: In function ‘juce::Colour wwui::meterColour(double)’:
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Ui.h:77:5: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+   77 |     if (db <= st[0]) return juce::Colour(cs[0]); for (int i = 1; i < 6; ++i) if (db <= st[i]) return juce::Colour(cs[i - 1]).interpolatedWith(juce::Colour(cs[i]), (float) ((db - st[i - 1]) / (st[i] - st[i - 1]))); return juce::Colour(cs[5]);
+      |     ^~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Ui.h:77:50: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+   77 |     if (db <= st[0]) return juce::Colour(cs[0]); for (int i = 1; i < 6; ++i) if (db <= st[i]) return juce::Colour(cs[i - 1]).interpolatedWith(juce::Colour(cs[i]), (float) ((db - st[i - 1]) / (st[i] - st[i - 1]))); return juce::Colour(cs[5]);
+      |                                                  ^~~
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Voice.h:190:65: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
   190 |   double anl = 0; for (int j = 0; j < 6; j++) if (pv[I.osc[j].on] && pv[I.osc[j].anl] > anl) anl = pv[I.osc[j].anl];
       |                                                   ~~~~~~~~~~~~~~^
@@ -212,6 +159,9 @@ In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Engi
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Engine.h:47:63: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
    47 |     int live = 0; for (auto& v : voices) if (v->active && !v->kfd) live++;
       |                                                            ~~~^~~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.cpp: In member function ‘void WhiskerwaveProcessor::syncParams(bool)’:
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.cpp:58:20: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
+   58 |         else if (v != lastP[(size_t) i]) { engine->setSmooth(i, v); lastP[(size_t) i] = v; }
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Engine.h:51:51: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
    51 |     for (auto& v : voices) { if (!v->active || v->kfd) continue; if (!v->gate && (!best || v->serial < best->serial)) best = v.get(); }
       |                                                ~~~^~~
@@ -221,6 +171,10 @@ In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Engi
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Engine.h:55:55: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
    55 |     Voice* o = nullptr; for (auto& v : voices) if (v->kfd && (!o || v->kf < o->kf)) o = v.get();
       |                                                    ~~~^~~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.cpp: In member function ‘virtual void WhiskerwaveProcessor::processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&)’:
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.cpp:73:43: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
+   73 |     if (const int lat = engine->pv(I.lim) != 0 ? engine->mlim->latency() : 0; lat != lastLatency) { lastLatency = lat; setLatencySamples(lat); }
+      |                         ~~~~~~~~~~~~~~~~~~^~~~
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Engine.h: In member function ‘void whisker::Engine::noteOn(int, double)’:
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Engine.h:82:22: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
    82 |     if (pv(ix.arpOn) != 0) {
@@ -275,6 +229,10 @@ In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Engi
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Engine.h:175:54: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
   175 |       if (lim) mlim->proc(mst.l, mst.r, m, ce, 140); limGR = mlim->gr;
       |                                                      ^~~~~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.cpp: In member function ‘void WhiskerwaveProcessor::applyPatch(const juce::var&, const juce::String&)’:
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.cpp:172:182: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
+  172 |     if (auto* a = st["draw"].getArray()) for (int j = 0; j < juce::jmin(16, a->size()); ++j) if (auto* r = (*a)[j].getArray()) { bool any = false; for (auto& x : *r) if ((double) x != 0) any = true; if (r->size() > 0 && any) { draw[j].clear(); for (int i = 0; i < juce::jmin(128, r->size()); ++i) draw[j].push_back((float) (double) (*r)[i]); } }
+      |                                                                                                                                                                           ~~~~~~~~~~~^~~~
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Fx.h: In function ‘double whisker::fxN(const FxParamSpec&, double)’:
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Fx.h:12:185: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
    12 | inline double fxN(const FxParamSpec& s, double v) { return s.kind == PK::Exp ? std::log(std::max(v, (double)s.mn) / s.mn) / std::log((double)s.mx / s.mn) : (v - s.mn) / ((s.mx - s.mn) != 0 ? (s.mx - s.mn) : 1.0); }
@@ -301,13 +259,6 @@ In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Engi
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxDyn.h:86:22: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
    86 |     if (!ll) return; const int M = ll->M;
       |                      ^~~~~
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.cpp: In member function ‘void WhiskerwaveProcessor::syncParams(bool)’:
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.cpp:58:20: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
-   58 |         else if (v != lastP[(size_t) i]) { engine->setSmooth(i, v); lastP[(size_t) i] = v; }
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.cpp: In member function ‘virtual void WhiskerwaveProcessor::processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&)’:
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.cpp:73:43: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
-   73 |     if (const int lat = engine->pv(I.lim) != 0 ? engine->mlim->latency() : 0; lat != lastLatency) { lastLatency = lat; setLatencySamples(lat); }
-      |                         ~~~~~~~~~~~~~~~~~~^~~~
 In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxFactory.h:5:
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxTime.h: In member function ‘virtual void whisker::FxUtilI::proc(float*, float*, int, const whisker::FxPar&, const whisker::FxNode&, int)’:
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxTime.h:171:7: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
@@ -316,10 +267,6 @@ In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxFa
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxTime.h:171:32: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
   171 |       if (sw) std::swap(l, r); if (inv == 1 || inv == 3) l = -l; if (inv == 2 || inv == 3) r = -r;
       |                                ^~
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.cpp: In member function ‘void WhiskerwaveProcessor::applyPatch(const juce::var&, const juce::String&)’:
-/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.cpp:172:182: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
-  172 |     if (auto* a = st["draw"].getArray()) for (int j = 0; j < juce::jmin(16, a->size()); ++j) if (auto* r = (*a)[j].getArray()) { bool any = false; for (auto& x : *r) if ((double) x != 0) any = true; if (r->size() > 0 && any) { draw[j].clear(); for (int i = 0; i < juce::jmin(128, r->size()); ++i) draw[j].push_back((float) (double) (*r)[i]); } }
-      |                                                                                                                                                                           ~~~~~~~~~~~^~~~
 In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxFactory.h:6:
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxNew.h: In member function ‘virtual void whisker::FxVocI::proc(float*, float*, int, const whisker::FxPar&, const whisker::FxNode&, int)’:
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxNew.h:128:61: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
@@ -346,7 +293,7 @@ In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Plug
 In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless.h:145,
                  from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_processors/juce_audio_processors.h:64,
                  from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_utils/juce_audio_utils.h:69,
-                 from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.h:2:
+                 from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Ui.h:3:
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_processors_headless/processors/juce_AudioProcessor.h: At global scope:
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/modules/juce_audio_processors_headless/processors/juce_AudioProcessor.h:292:18: warning: ‘virtual void juce::AudioProcessor::processBlock(juce::AudioBuffer<double>&, juce::MidiBuffer&)’ was hidden [-Woverloaded-virtual=]
   292 |     virtual void processBlock (AudioBuffer<double>& buffer,
@@ -354,44 +301,97 @@ In file included from /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/build/_d
 /home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.h:17:10: note:   by ‘virtual void WhiskerwaveProcessor::processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&)’
    17 |     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
       |          ^~~~~~~~~~~~
-[ 39%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics.cpp.o
-[ 41%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics_2.cpp.o
-[ 42%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics_3.cpp.o
-[ 44%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics_4.cpp.o
-[ 46%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics_5.cpp.o
-[ 47%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_graphics/juce_graphics.cpp.o
-[ 49%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
-[ 50%] Building C object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
-[ 52%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_events/juce_events.cpp.o
-[ 53%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_core/juce_core.cpp.o
-[ 55%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_core/juce_core_CompilationTime.cpp.o
-[ 57%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_data_structures/juce_data_structures.cpp.o
-[ 58%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless.cpp.o
-[ 60%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless_ara.cpp.o
-[ 61%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless_lv2_libs.cpp.o
-[ 63%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_basics/juce_audio_basics.cpp.o
-[ 65%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_utils/juce_audio_utils.cpp.o
-[ 66%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_formats/juce_audio_formats.cpp.o
-[ 68%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_devices/juce_audio_devices.cpp.o
-[ 69%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_dsp/juce_dsp.cpp.o
-[ 71%] Linking CXX static library Whiskerwave_artefacts/Release/libWhiskerWave_SharedCode.a
-[ 71%] Built target Whiskerwave
-[ 73%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o
-[ 76%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o
-[ 76%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
-[ 77%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
-[ 79%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Ui.h: In function ‘juce::Font wwui::font(float, int, bool, float)’:
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Ui.h:22:26: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
+   22 |     return letterSpacing != 0 ? f.withExtraKerningFactor(letterSpacing / px) : f;
+      |            ~~~~~~~~~~~~~~^~~~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Ui.h: In member function ‘double wwui::Bind::toN(double) const’:
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Ui.h:31:152: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
+   31 |     double toN(double v) const { if (kind == whisker::PK::Exp) return std::log(std::max(v, mn) / mn) / std::log(mx / mn); return (v - mn) / ((mx - mn) != 0 ? (mx - mn) : 1.0); }
+      |                                                                                                                                              ~~~~~~~~~~^~~~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Ui.h: In function ‘juce::Colour wwui::meterColour(double)’:
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Ui.h:77:5: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+   77 |     if (db <= st[0]) return juce::Colour(cs[0]); for (int i = 1; i < 6; ++i) if (db <= st[i]) return juce::Colour(cs[i - 1]).interpolatedWith(juce::Colour(cs[i]), (float) ((db - st[i - 1]) / (st[i] - st[i - 1]))); return juce::Colour(cs[5]);
+      |     ^~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Ui.h:77:50: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+   77 |     if (db <= st[0]) return juce::Colour(cs[0]); for (int i = 1; i < 6; ++i) if (db <= st[i]) return juce::Colour(cs[i - 1]).interpolatedWith(juce::Colour(cs[i]), (float) ((db - st[i - 1]) / (st[i] - st[i - 1]))); return juce::Colour(cs[5]);
+      |                                                  ^~~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp: In member function ‘void WhiskerwaveEditor::Widget::tick()’:
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp:29:58: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
+   29 |         if (b.valid()) { const double v = b.get(); if (v != last) { last = v; repaint(); } }
+      |                                                        ~~^~~~~~~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp: In member function ‘virtual void WhiskerwaveEditor::Widget::paint(juce::Graphics&)’:
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp:56:13: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+   56 |             if (!b.valid()) return; const double v = b.get(), n = b.toN(v);
+      |             ^~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp:56:37: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+   56 |             if (!b.valid()) return; const double v = b.get(), n = b.toN(v);
+      |                                     ^~~~~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp:91:13: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+   91 |             if (!b.valid()) return; const float tx = r.getCentreX(), top = r.getY(), h = r.getHeight(); g.setColour(cDisp); g.fillRoundedRectangle(tx - 3, top, 6, h, 3); g.setColour(cLine); g.drawRoundedRectangle(tx - 3, top, 6, h, 3, 1);
+      |             ^~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp:91:37: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+   91 |             if (!b.valid()) return; const float tx = r.getCentreX(), top = r.getY(), h = r.getHeight(); g.setColour(cDisp); g.fillRoundedRectangle(tx - 3, top, 6, h, 3); g.setColour(cLine); g.drawRoundedRectangle(tx - 3, top, 6, h, 3, 1);
+      |                                     ^~~~~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp: In member function ‘void WhiskerwaveEditor::Widget::paintDisplay(juce::Graphics&, juce::Rectangle<float>)’:
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp:130:9: warning: this ‘for’ clause does not guard... [-Wmisleading-indentation]
+  130 |         for (int i = 0; i < 1024; ++i) buf[i] = sc[(sp - 1024 + i + 2048) & 2047]; win.multiplyWithWindowingTable(buf, 1024); fft.performFrequencyOnlyForwardTransform(buf);
+      |         ^~~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp:130:84: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘for’
+  130 |         for (int i = 0; i < 1024; ++i) buf[i] = sc[(sp - 1024 + i + 2048) & 2047]; win.multiplyWithWindowingTable(buf, 1024); fft.performFrequencyOnlyForwardTransform(buf);
+      |                                                                                    ^~~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp: In member function ‘void WhiskerwaveEditor::FxPage::rebuild()’:
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp:247:131: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
+  247 |             auto b = bindFx(n, i); const bool isList = sp.ps[i].kind == PK::List, isTog = sp.ps[i].kind == PK::Int && sp.ps[i].mn == 0 && sp.ps[i].mx == 1;
+      |                                                                                                                       ~~~~~~~~~~~~^~~~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp:247:151: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
+  247 |             auto b = bindFx(n, i); const bool isList = sp.ps[i].kind == PK::List, isTog = sp.ps[i].kind == PK::Int && sp.ps[i].mn == 0 && sp.ps[i].mx == 1;
+      |                                                                                                                                           ~~~~~~~~~~~~^~~~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp: In lambda function:
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp:446:13: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+  446 |             if (self == nullptr) return; juce::File dir(snapDir); dir.createDirectory(); self->setSize((int) (kW + 2 * kCheek), (int) kH);
+      |             ^~
+/home/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp:446:42: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  446 |             if (self == nullptr) return; juce::File dir(snapDir); dir.createDirectory(); self->setSize((int) (kW + 2 * kCheek), (int) kH);
+      |                                          ^~~~
+[ 44%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics.cpp.o
+[ 45%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics_2.cpp.o
+[ 47%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics_3.cpp.o
+[ 48%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics_4.cpp.o
+[ 50%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_gui_basics/juce_gui_basics_5.cpp.o
+[ 51%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_graphics/juce_graphics.cpp.o
+[ 52%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[ 54%] Building C object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[ 55%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_events/juce_events.cpp.o
+[ 57%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_core/juce_core.cpp.o
+[ 58%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_core/juce_core_CompilationTime.cpp.o
+[ 60%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_data_structures/juce_data_structures.cpp.o
+[ 61%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless.cpp.o
+[ 63%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless_ara.cpp.o
+[ 64%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_processors_headless/juce_audio_processors_headless_lv2_libs.cpp.o
+[ 66%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_basics/juce_audio_basics.cpp.o
+[ 67%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_utils/juce_audio_utils.cpp.o
+[ 69%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_formats/juce_audio_formats.cpp.o
+[ 70%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_audio_devices/juce_audio_devices.cpp.o
+[ 72%] Building CXX object CMakeFiles/Whiskerwave.dir/_deps/juce-src/modules/juce_dsp/juce_dsp.cpp.o
+[ 73%] Linking CXX static library Whiskerwave_artefacts/Release/libWhiskerWave_SharedCode.a
+[ 73%] Built target Whiskerwave
+[ 75%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o
+[ 77%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o
+[ 77%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
+[ 79%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
 [ 80%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
-[ 82%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o
-[ 84%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o
-[ 85%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
-[ 90%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
-[ 90%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
-[ 90%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
-[ 93%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o
-[ 93%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o
-[ 95%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o
-[ 96%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o
+[ 82%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
+[ 83%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o
+[ 85%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o
+[ 86%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
+[ 88%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
+[ 89%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
+[ 91%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o
+[ 94%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o
+[ 94%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
+[ 95%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o
+[ 97%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o
 [ 98%] Linking CXX executable Whiskerwave_artefacts/Release/Standalone/WhiskerWave
 [ 98%] Built target Whiskerwave_Standalone
 [100%] Linking CXX shared module Whiskerwave_artefacts/Release/VST3/WhiskerWave.vst3/Contents/x86_64-linux/WhiskerWave.so
