@@ -86,7 +86,9 @@ WhiskerwaveEditor::WhiskerwaveEditor(WhiskerwaveProcessor& p) : AudioProcessorEd
             { (a + "_oct").toRawUTF8(), "Octave" }, { (a + "_semi").toRawUTF8(), "Semi" }, { (a + "_fine").toRawUTF8(), "Fine" },
             { (a + "_ph").toRawUTF8(), "Phase" }, { (a + "_rnd").toRawUTF8(), "Rand" }, { (a + "_anl").toRawUTF8(), "Analog" },
             { (a + "_uv").toRawUTF8(), "Voices" }, { (a + "_ud").toRawUTF8(), "Detune" }, { (a + "_us").toRawUTF8(), "Style" },
-            { (a + "_ub").toRawUTF8(), "Blend" }, { (a + "_usp").toRawUTF8(), "Spread" } });
+            { (a + "_ub").toRawUTF8(), "Blend" }, { (a + "_usp").toRawUTF8(), "Spread" },
+            { (a + "_w1").toRawUTF8(), "Warp 1" }, { (a + "_w1a").toRawUTF8(), "Warp 1 amt" }, { (a + "_w2").toRawUTF8(), "Warp 2" }, { (a + "_w2a").toRawUTF8(), "Warp 2 amt" },
+            { (a + "_mm").toRawUTF8(), "Mod" }, { (a + "_ms").toRawUTF8(), "Mod src" }, { (a + "_ma").toRawUTF8(), "Mod amt" }, { (a + "_fb").toRawUTF8(), "Feedback" } });
     };
     // NB: toRawUTF8 of temporaries is only valid inside the call, and ParamControl copies the text, so this is safe.
     osc("a", "OSC A"); osc("b", "OSC B"); osc("c", "OSC C");

@@ -8,6 +8,9 @@ namespace whisker
 inline const juce::StringArray kFilterNames { "Off", "LP 12", "LP 24", "HP 12", "HP 24", "BP 12", "Notch", "Ladder 24", "Ladder 12", "Acid 18", "Ladder HP" };
 inline const int kFilterJs[] = { 0, 2, 3, 6, 7, 8, 10, 14, 15, 16, 17 }; // mockup filter list indices
 inline const juce::StringArray kUnisonNames { "Classic", "Supersaw", "JP Super", "Octaves", "Power", "Minor" };
+inline const juce::StringArray kWarpNames { "Off", "Sync", "Bend +", "Bend -", "Bend +/-", "PWM", "Mirror", "Asym", "Quantize", "Fold", "Clip", "Crush", "Flip" };
+inline const juce::StringArray kModNames { "None", "FM", "AM", "Ring" };
+inline const juce::StringArray kModSrcNames { "A", "B", "C", "Sub" };
 inline const juce::StringArray kRouteNames { "Dry", "F1", "F2", "F1+F2" };
 inline const juce::StringArray kSubNames { "Sine", "Triangle", "Square", "Saw", "Pulse", "Half Sine", "Soft Square", "Organ" };
 inline const juce::StringArray kNoiseNames { "White", "Pink", "Brown" };
@@ -57,6 +60,10 @@ inline juce::AudioProcessorValueTreeState::ParameterLayout makeLayout()
         F(k + "_usp", n + "unison spread", 0.f, 1.f, .7f);
         F(k + "_anl", n + "analog", 0.f, 1.f, .2f);
         C(k + "_rt", n + "route", kRouteNames, 1);
+        C(k + "_w1", n + "warp 1", kWarpNames, 0); F(k + "_w1a", n + "warp 1 amount", 0.f, 1.f, 0.f);
+        C(k + "_w2", n + "warp 2", kWarpNames, 0); F(k + "_w2a", n + "warp 2 amount", 0.f, 1.f, 0.f);
+        C(k + "_mm", n + "mod mode", kModNames, 0); C(k + "_ms", n + "mod source", kModSrcNames, k == "a" ? 1 : 0);
+        F(k + "_ma", n + "mod amount", 0.f, 1.f, 0.f); F(k + "_fb", n + "feedback", 0.f, 1.f, 0.f);
     }
     B("sub_on", "Sub on", false); C("sub_wave", "Sub wave", kSubNames, 0); I("sub_oct", "Sub octave", -4, 1, -1);
     F("sub_lvl", "Sub level", 0.f, 1.f, .5f); F("sub_pw", "Sub pulse width", .05f, .95f, .5f); F("sub_fine", "Sub fine (cents)", -100.f, 100.f, 0.f);

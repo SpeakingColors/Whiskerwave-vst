@@ -6,6 +6,8 @@ const e = new G.Engine(44100);
 for (const k in G.PR) e.pv[k] = G.PR[k].d;
 e.pv.master = 3; e.pv.lim = 0; e.pv['a.anl'] = .2; e.pv['b.anl'] = .2; e.pv['c.anl'] = .2;
 if (which === 'wonder') { e.pv['a.pos'] = .26; e.pv['a.uv'] = 3; }
+if (which === 'warp') { e.pv['a.w1'] = 1; e.pv['a.w1a'] = .5; e.pv['a.w2'] = 9; e.pv['a.w2a'] = .4; }
+if (which === 'fm') { e.pv['a.mm'] = 1; e.pv['a.ms'] = 1; e.pv['a.ma'] = .3; e.pv['a.fb'] = .2; e.pv['b.on'] = 1; e.pv['b.lvl'] = 0; e.pv['b.semi'] = 7; e.pv['b.rt'] = 0; }
 for (const k in e.pv) e.setParam(k, e.pv[k]);
 e.msg({ t: 'on', n: 57, v: .8 });
 const N = Math.floor(4 * 44100 / 2048) * 2048, L = new Float32Array(N), R = new Float32Array(N), bl = new Float32Array(2048), br = new Float32Array(2048);

@@ -127,6 +127,7 @@ struct OscP
     bool on = false; const Table* tab = nullptr;
     float pos = 0, lvl = .6f, pan = 0, ph = 0, rnd = 1, ud = .25f, ub = .5f, usp = .7f, anl = 0, fine = 0;
     int oct = 0, semi = 0, uv = 1, us = 0, rt = 1;
+    int w1 = 0, w2 = 0, mm = 0, ms = 0; float w1a = 0, w2a = 0, ma = 0, fb = 0; // warp 1/2, FM/AM/ring from source ms (A,B,C,Sub), feedback
 };
 struct FiltP { int type = 0; float cut = 9000, res = .2f, kt = .25f, env = 0; int es = 2; };
 struct EnvP { float a = 2, h = 0, d = 400, s = .7f, r = 180, c = -.4f, ca = 0; };
@@ -142,6 +143,34 @@ struct Patch
     int subw = 0, subo = -1, subrt = 0, nzt = 0, nzrt = 0;
     float subl = .5f, subpw = .5f, subfn = 0, subpn = 0, nzl = .3f, nzpn = 0;
 };
+
+// warp modes (wph / wamp in the JS engine)
+inline double wph(int id, double a, double p)
+{
+    switch (id)
+    {
+        case 1: { const double r = 1 + a * 7; return std::fmod(p * r, 1.0); }
+        case 2: return std::pow(p, 1 + a * 3);
+        case 3: return 1 - std::pow(1 - p, 1 + a * 3);
+        case 4: return p < .5 ? .5 * std::pow(2 * p, 1 + a * 3) : 1 - .5 * std::pow(2 * (1 - p), 1 + a * 3);
+        case 5: { const double w = .5 - a * .45; return p < w ? p * .5 / w : .5 + (p - w) * .5 / (1 - w); }
+        case 6: return p * (1 - a) + (p < .5 ? 2 * p : 2 - 2 * p) * a;
+        case 7: return p + a * .25 * std::sin(kTau * p) / kPi * 2;
+        case 8: { const double st = std::max(2.0, std::round(66 - a * 64)); return p + (std::floor(p * st) / st - p) * std::min(1.0, a * 3); }
+        default: return p;
+    }
+}
+inline double wamp(int id, double a, double s, double p)
+{
+    switch (id)
+    {
+        case 9: { double y = s * (1 + a * 6); int n = 0; while ((y > 1 || y < -1) && n++ < 8) y = y > 1 ? 2 - y : -2 - y; return y; }
+        case 10: { const double g = 1 + a * 8; return clampd(s * g, -1, 1) * (1 - .3 * a); }
+        case 11: { const double q = std::pow(2.0, 1 + (1 - a) * 10); return std::round(s * q) / q; }
+        case 12: return p < .5 ? s : s * (1 - 2 * a);
+        default: return s;
+    }
+}
 
 // ---------------------------------------------------------------- envelope (Env.tick in JS)
 struct Env

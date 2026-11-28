@@ -15,6 +15,8 @@ int main(int argc, char** argv)
     P.o[0].on = true; P.f[0].type = 14; P.f[0].cut = 9000; P.f[0].res = .2f; P.f[0].es = 2; P.f[0].env = 0;
     P.e[1].d = 550; P.e[1].s = .35f; P.e[1].r = 200; P.master = 3;
     if (which == "wonder") { P.o[0].pos = .26f; P.o[0].uv = 3; }
+    if (which == "warp") { P.o[0].w1 = 1; P.o[0].w1a = .5f; P.o[0].w2 = 9; P.o[0].w2a = .4f; }
+    if (which == "fm") { P.o[0].mm = 1; P.o[0].ms = 1; P.o[0].ma = .3f; P.o[0].fb = .2f; P.o[1].on = true; P.o[1].lvl = 0; P.o[1].semi = 7; P.o[1].rt = 0; }
     const double sr = 44100; const int N = (int) (4 * sr) / 2048 * 2048;
     std::vector<double> L((size_t) N), R((size_t) N);
     Engine e; e.prepare(sr); e.noteOn(57, .8, P);

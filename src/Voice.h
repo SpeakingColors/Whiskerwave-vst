@@ -35,6 +35,22 @@ inline double jpCurve(double x) { double y = 0; for (double c : kJpC) y = y * x 
 inline double jpCen(double m) { return -0.55366 * m + 0.99785; }
 inline double jpSide(double m) { return -0.73764 * m * m + 1.2841 * m + 0.044372; }
 
+static const std::array<double, 31>& fir4()
+{
+    static const std::array<double, 31> k = [] {
+        std::array<double, 31> a {}; double sm = 0;
+        for (int j = 0; j < 31; ++j)
+        {
+            const int x = j - 15;
+            const double w = .42 - .5 * std::cos(2 * kPi * j / 30) + .08 * std::cos(4 * kPi * j / 30);
+            a[(size_t) j] = (x == 0 ? .25 : std::sin(kPi * x * .25) / (kPi * x)) * w; sm += a[(size_t) j];
+        }
+        for (auto& x : a) x /= sm;
+        return a;
+    }();
+    return k;
+}
+
 class Voice
 {
 public:
@@ -54,6 +70,7 @@ public:
         for (int o = 0; o < 3; ++o)
             for (int u = 0; u < 8; ++u) ph[o][u] = std::fmod(P.o[o].ph + u01(rng) * P.o[o].rnd, 1.0);
         subPh = 0; fresh = true;
+        std::fill(&H[0][0], &H[0][0] + 3 * 8 * 32, 0.0); std::fill(&W[0][0], &W[0][0] + 24, 0); std::fill(last, last + 5, 0.0); std::fill(fbs, fbs + 3, 0.0);
         ks = 1 - std::exp(-1 / (sr * .00035));
     }
     void release() { gate = false; env[0].off(); env[1].off(); }
@@ -88,7 +105,7 @@ public:
         const double bend = bendNorm * P.bendr;
         const double velg = (1 - P.vel) + P.vel * vel;
         // oscillator control
-        struct Osc { int nU = 0; double inc[8], gL[8], gR[8], fmax = 0, posP = 0, pos = 0, lvP = 0, lv = 0; bool jp = false; double jg = 0; };
+        struct Osc { int nU = 0; double inc[8], gL[8], gR[8], fmax = 0, posP = 0, pos = 0, lvP = 0, lv = 0, a1P = 0, a1 = 0, a2P = 0, a2 = 0, maP = 0, ma = 0, fbP = 0, fb = 0; bool jp = false, os = false; double jg = 0; };
         Osc os[3];
         for (int o = 0; o < 3; ++o)
         {
@@ -131,6 +148,11 @@ public:
             for (int u = 0; u < nU; ++u) { q.gL[u] *= gg[u] * nrm; q.gR[u] *= gg[u] * nrm; }
             q.pos = c.pos; q.posP = fresh ? c.pos : lastPos[o]; lastPos[o] = c.pos;
             q.lv = c.lvl; q.lvP = fresh ? c.lvl : lastLvl[o]; lastLvl[o] = c.lvl;
+            q.a1 = c.w1a; q.a1P = fresh ? c.w1a : lastA1[o]; lastA1[o] = c.w1a;
+            q.a2 = c.w2a; q.a2P = fresh ? c.w2a : lastA2[o]; lastA2[o] = c.w2a;
+            q.ma = c.ma; q.maP = fresh ? c.ma : lastMa[o]; lastMa[o] = c.ma;
+            q.fb = c.fb; q.fbP = fresh ? c.fb : lastFb[o]; lastFb[o] = c.fb;
+            q.os = (c.w1 > 0 && c.w1a > 0) || (c.w2 > 0 && c.w2a > 0) || (c.mm > 0 && c.ma > 0) || c.fb > 0;
             q.jp = c.us == 2 && nU > 1;
             if (q.jp) { const double fh = std::min(.45 * sr, mtof(base)); q.jg = std::tan(kPi * fh / sr); }
         }
@@ -165,15 +187,39 @@ public:
                 const int f0i = std::min(kTableFrames - 1, (int) fi), f1i = std::min(kTableFrames - 1, f0i + 1);
                 const double ff = fi - f0i;
                 const float* A = T->frame(m, f0i); const float* B = T->frame(m, f1i);
+                const OscP& c = P.o[o];
+                const double a1i = q.a1P + (q.a1 - q.a1P) * t, a2i = q.a2P + (q.a2 - q.a2P) * t, mai = q.maP + (q.ma - q.maP) * t, fbi = q.fbP + (q.fb - q.fbP) * t;
+                const double msrc = c.mm > 0 ? last[std::min(3, c.ms)] : 0;
+                auto readTab = [&](double p) { const double idx = p * kTableLen; const int i0 = (int) idx; const double fq = idx - i0;
+                    const double a = A[i0] + (A[i0 + 1] - A[i0]) * fq, b = B[i0] + (B[i0 + 1] - B[i0]) * fq; return a + (b - a) * ff; };
+                auto oscS = [&](double p) {
+                    double qq = p;
+                    if (c.mm == 1) qq += mai * msrc * .8;
+                    if (c.fb > 0) qq += fbi * fbs[o] * .5;
+                    qq -= std::floor(qq);
+                    if (c.w1 >= 1 && c.w1 <= 8) qq = wph(c.w1, a1i, qq);
+                    if (c.w2 >= 1 && c.w2 <= 8) qq = wph(c.w2, a2i, qq);
+                    double s = readTab(qq);
+                    if (c.w1 >= 9) s = wamp(c.w1, a1i, s, qq);
+                    if (c.w2 >= 9) s = wamp(c.w2, a2i, s, qq);
+                    if (c.mm == 2) s *= (1 - mai) + mai * (msrc * .5 + .5); else if (c.mm == 3) s *= (1 - c.ma) + mai * msrc;
+                    return s; };
                 double sumL = 0, sumR = 0;
                 for (int u = 0; u < q.nU; ++u)
                 {
                     double p = ph[o][u] + q.inc[u]; if (p >= 1) p -= 1; ph[o][u] = p;
-                    const double idx = p * kTableLen; const int i0 = (int) idx; const double fq = idx - i0;
-                    const double a = A[i0] + (A[i0 + 1] - A[i0]) * fq, b = B[i0] + (B[i0 + 1] - B[i0]) * fq;
-                    const double s = a + (b - a) * ff;
+                    double s;
+                    if (q.os) // warp, FM, AM, ring or feedback make harmonics above Nyquist: 4x oversampled, 31-tap windowed-sinc decimation
+                    {
+                        double* Hh = &H[o][u * 32]; int w = W[o][u];
+                        for (int k = 3; k >= 0; --k) { double pk = p - q.inc[u] * k * .25; if (pk < 0) pk += 1; Hh[w] = oscS(pk); w = (w + 1) & 31; }
+                        W[o][u] = w; s = 0; const auto& F = fir4();
+                        for (int j = 0; j < 31; ++j) s += F[(size_t) j] * Hh[(w - 1 - j) & 31];
+                    }
+                    else s = oscS(p);
                     sumL += s * q.gL[u]; sumR += s * q.gR[u];
                 }
+                fbs[o] = (sumL + sumR) * .5;
                 if (q.jp)
                 {
                     const double g = q.jg, dn = 1 / (1 + 1.4142135623730951 * g + g * g); double* S = jps + o * 4;
@@ -182,14 +228,14 @@ public:
                 }
                 const double lv = (q.lvP + (q.lv - q.lvP) * t) * .5;
                 const double amp = lv * sg(o, evi);
-                sL[o] = sumL * amp; sR[o] = sumR * amp;
+                sL[o] = sumL * amp; sR[o] = sumR * amp; last[o] = (sumL + sumR) * .5;
             }
             if (P.sub)
             {
                 subPh += sf; if (subPh >= 1) subPh -= 1;
                 const double s1 = subWave(P.subw, std::fmod(subPh + 4, 1.0), sf, P.subw == 2 ? .5 : P.subpw);
                 const double amp = P.subl * .7 * sg(3, evi), pn = P.subpn;
-                sL[3] = s1 * amp * (pn > 0 ? 1 - pn : 1); sR[3] = s1 * amp * (pn < 0 ? 1 + pn : 1);
+                sL[3] = s1 * amp * (pn > 0 ? 1 - pn : 1); sR[3] = s1 * amp * (pn < 0 ? 1 + pn : 1); last[3] = s1;
             }
             if (P.nz)
             {
@@ -237,6 +283,8 @@ private:
     Env env[2]; double ev = 0, evP = 0, envV[2] {}, envP[2] {};
     double ph[3][8] {}; double anP[24] {}, anC[2] {}, anE = 0, anDt[3] {}, anDr[3] {}; double lastPos[3] {}, lastLvl[3] {};
     double subPh = 0, na = 0, nb = 0, nc = 0, jps[12] {};
+    double H[3][8 * 32] {}; int W[3][8] {}; double last[5] {}, fbs[3] {};
+    double lastA1[3] {}, lastA2[3] {}, lastMa[3] {}, lastFb[3] {};
     Filt flt[5][2];
     bool fresh = true;
     double outLbuf[kBlock] {}, outRbuf[kBlock] {};

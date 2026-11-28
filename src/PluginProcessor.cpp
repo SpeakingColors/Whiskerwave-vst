@@ -46,6 +46,8 @@ void WhiskerwaveProcessor::fillPatch(Patch& P)
         c.fine = v(k + "fine"); c.lvl = v(k + "lvl"); c.pan = v(k + "pan"); c.ph = v(k + "ph"); c.rnd = v(k + "rnd");
         c.uv = (int) v(k + "uv"); c.ud = v(k + "ud"); c.us = (int) v(k + "us"); c.ub = v(k + "ub"); c.usp = v(k + "usp"); c.anl = v(k + "anl");
         c.rt = (int) v(k + "rt");
+        c.w1 = (int) v(k + "w1"); c.w1a = v(k + "w1a"); c.w2 = (int) v(k + "w2"); c.w2a = v(k + "w2a");
+        c.mm = (int) v(k + "mm"); c.ms = (int) v(k + "ms"); c.ma = v(k + "ma"); c.fb = v(k + "fb");
     }
     for (int f = 0; f < 2; ++f)
     {
