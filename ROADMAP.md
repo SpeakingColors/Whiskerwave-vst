@@ -9,14 +9,22 @@
 ## Done (preview)
 - [x] Interactive design mockup with full JS sound engine (docs/mockup/index.html), preview release with PDF manual
 
+## Done (VST3, v0.2.0 test build)
+- [x] Full engine ported to C++ from the mockup engine and checked against it by parity tests: 729 parameters, 6 oscillators, 47 filters, 16 modulators, 4 LFOs, 64 routes, macros, voice modes, arp, mixer, limiter
+- [x] 41 effects in node based chains with band splitting, each usable many times (31 from the mockup plus Vocoder, Talk Box, Autotune, Dynamic EQ, Noise Gate, Tape, Granular, Freeze, Envelope Filter, Fat Cat), also added to the mockup
+- [x] 72 factory presets and user presets in the mockup's own format
+- [x] Real window drawn natively from the mockup layout (tools/extract_layout.py, tools/gen_layout.py): Sound, Filter, Mod + Matrix (list), FX, Mixer, Arp, Presets
+- [x] Installers for Linux, macOS and Windows with PDF tour manual and uninstaller (not tried on real machines yet)
+
 ## Next
-- [ ] Port the mockup engine and window to C++/JUCE (VST3). Done in v0.1.0: engine core (41 wavetables, A/B/C unison, sub, noise, LP/HP/BP/notch/ladder filters, 2 envelopes, reverb, delay) with a parity test against the JS engine. Still to port: warp, FM/AM, feedback, sample and granular engines, 16 modulators and matrix, FX chains, arp, LFOs, macros, the full window and preset browser.
-- [ ] Installers for Linux, macOS and Windows with manual and uninstaller
-- [ ] Wave generator in C++ (same shapes as `tools/gen_waves.py`, plus FM, formant, spectral drawing, harmonic sliders)
-- [ ] MIDI test-drive: a set of original MIDI patterns (hardstyle lead, happy hardcore, bass, funk) to audition any generated wave quickly, with a keep/skip list
+- [ ] Listening pass: nothing has been judged by ear yet. Test in real DAWs on Linux, Windows and macOS
+- [ ] Wave Lab page and user wavetables in the plugin
+- [ ] Sample loading for the Sample and Granular oscillator modes
+- [ ] Grid view of the modulation matrix, drag and drop of modulators
+- [ ] Drawing editor for Draw and LFO modulators
+- [ ] Filter curve displays, effect displays
+- [ ] Undo and history, favourites, themes, mixer mute and solo, settings page
 - [ ] Hardware capture tool: sends MIDI notes to a synth, records audio, trims, loops, pitch-detects and exports wavetables and multisamples
-- [ ] Wavetable oscillator with morphing and unison
-- [ ] Mod matrix, filters, built-in FX (use Clawpressor-style MB comp)
 - [ ] Import CC0 packs (AKWF) with credit in the browser
 
 ## Rules for every cat plugin

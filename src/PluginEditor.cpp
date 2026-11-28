@@ -60,7 +60,7 @@ void Ed::Widget::paint(juce::Graphics& g)
                 juce::Path p; p.addCentredArc(cx, cy, rr, rr, 0, a0 + sw * (float) std::min(lo, hi), a0 + sw * (float) std::max(lo, hi), true); g.setColour(srcColour(s.s).withMultipliedAlpha(al)); g.strokePath(p, juce::PathStrokeType(2.f)); ++k; }
             const float ly = c ? c->a / 10.f + oy() : cr.getBottom() + 2, vy = c ? c->b / 10.f + oy() : cr.getBottom() + 14, lfs = c ? c->lfs : 9.f, vfs = c ? c->vfs : 9.f;
             paintText(g, (c ? juce::String::fromUTF8(c->label) : b.label).toUpperCase(), rc(-10, ly - 1, (float) getWidth() + 20, lfs + 3), cDim.withMultipliedAlpha(al), font(lfs, 400, false, .4f));
-            paintText(g, b.text(v), rc(-10, vy - 1, (float) getWidth() + 20, vfs + 3), cGold.withMultipliedAlpha(al), font(vfs, 400, true, .2f));
+            paintText(g, b.text(v).removeCharacters(" "), rc(-10, vy - 1, (float) getWidth() + 20, vfs + 3), cGold.withMultipliedAlpha(al), font(vfs, 400, true, .2f));
             break;
         }
         case 's': case 'T':
@@ -257,7 +257,7 @@ struct Ed::FxPage : public juce::Component
         static const char* bn[7] = {"Main", "FX 1", "FX 2", "A + D", "B + E", "C + F", "Sub + Noise"};
         for (int i = 0; i < 7; ++i) { const bool on = busOf(i) == bus; paintBox(g, busRect(i), on ? cSelBg : cBtn, on ? cLilac : cLine); paintText(g, bn[i], busRect(i), on ? cMist : cDim, font(11, 600)); }
         paintBox(g, rc(0, 50, 232, kPageH - 54), cPanel, cLine, 7); paintText(g, "EFFECTS", rc(10, 58, 200, 16), cMist, font(13, 700, false, 1.f), juce::Justification::centredLeft);
-        juce::String where = path.empty() ? juce::String("In order, top to bottom. Add the same effect as often as you like.") : juce::String("Inside band ") + juce::String(path.back().second + 1) + " of a Band Split. Click here to go back.";
+        juce::String where = path.empty() ? juce::String("Top to bottom. Any effect can be added many times.") : juce::String("Inside band ") + juce::String(path.back().second + 1) + " of a Band Split. Click here to go back.";
         paintText(g, where, rc(10, 74, 212, 20), path.empty() ? cDim : cAcc, font(10), juce::Justification::centredLeft);
         const auto l = list(); int i = 0;
         for (auto& n : l) { const auto r = rowRect(i); const bool s = n->id == sel, on = n->st->on.load(); paintBox(g, r, s ? cSelBg : cBtn, s ? cAcc : cLine); g.setColour(on ? cAcc : cLine); g.fillEllipse(r.getX() + 8, r.getCentreY() - 4, 8, 8);
@@ -418,7 +418,7 @@ struct Ed::Stage : public juce::Component
         {
             const auto& t = kTexts[i]; if (t.page >= 0 && t.page != ed.page) continue; juce::String s = juce::String::fromUTF8(t.s);
             if (t.dyn == 2) s = "LIM " + juce::String(-std::abs(ed.proc.limGr.load()), 1) + " dB"; else if (t.dyn == 3) s = juce::String(ed.proc.voicesOn.load()); else if (t.dyn >= 10) { const int bi = t.dyn - 10; static const char* bn[8] = {"t0", "t1", "t2", "t3", "x1", "x2", "fx", "mst"}; const int pi = pidx(std::string("bus.") + bn[bi] + ".vol"); const float v = pi >= 0 ? ed.proc.paramValue(pi) : 0.f; s = v <= -59.9f ? juce::String("-inf dB") : juce::String(v, 1) + " dB"; }
-            if (t.grp >= 1 && t.grp <= 3 && s == "OSC") s = "OSC";
+            if (t.page < 0 && s.startsWith("Macro ") && s.length() == 7) { const int mi = s.getLastCharacter() - '1'; if (mi >= 0 && mi < ed.proc.macroNames.size()) s = ed.proc.macroNames[mi]; }
             if (t.up) s = s.toUpperCase();
             const float a = t.op * (dimmed(t.grp) ? .45f : 1.f); const auto f = font(t.fs, t.fw, t.mono != 0, t.ls); g.setColour(juce::Colour(t.col).withMultipliedAlpha(a)); g.setFont(f);
             if (t.h > t.fs * 1.9f) g.drawFittedText(s, juce::Rectangle<float>(t.x, t.y, t.w + 6, t.h + 2).toNearestInt(), juce::Justification::topLeft, 12, 1.f);

@@ -36,3 +36,7 @@ h += `inline const char* const kFxCats[] = {${G.FXCATS.map(esc).join(', ')}}; co
 h += '}\n';
 fs.writeFileSync('src/FxTable.h', h);
 console.log(types.length, 'fx types, max params', maxP);
+// plain data for the manual
+fs.mkdirSync('data', { recursive: true });
+fs.writeFileSync('data/fx.json', JSON.stringify(types.map(t => { const d = G.FXDEF[t]; return { type: t, name: d.name, cat: d.cat, tip: d.tip, ps: d.order.map(s => ({ key: s.key, l: s.l, min: s.min, max: s.max, d: s.d, k: s.k, u: s.u, tip: s.tip, list: s.list || null })) }; })));
+fs.writeFileSync('data/params.json', JSON.stringify(Object.keys(G.PR).map(k => { const p = G.PR[k]; return { key: k, l: p.l, min: p.min, max: p.max, d: p.d, k: p.k, u: p.u || '', tip: p.tip || '', list: typeof p.list === 'string' ? G.LISTS[p.list] : (p.list || null) }; })));
