@@ -18,7 +18,7 @@ Free, open source wavetable synth for Linux (VST3). Wavetable oscillators with m
 
 The VST3 plugin is **not released yet**: it comes after the C++ port of this exact design. The C++ code in `src/` is still an early scaffold with a placeholder window and is not shipped.
 
-What the preview has: 6 wavetable oscillators (wavetable, sample and grain engines, unison up to 8, 12 warp modes, FM/AM/ring), sub and noise, 2 filters with 47 types, 8 envelopes, 4 LFOs, drag-to-modulate matrix, 30 effects on tracks and buses, mixer, arp, Wave Lab and 71 presets. Sound quality work so far (measured, not yet heard by ear): lookahead limiter, zero-delay ladder filters, 4x oversampled warp/FM oscillators and distortion effects, phase-aligned dry/wet mixing.
+What the preview has: 6 wavetable oscillators (wavetable, sample and grain engines, unison up to 8, 12 warp modes, FM/AM/ring), sub and noise, 2 filters with 47 types, 8 envelopes, 4 LFOs, drag-to-modulate matrix, 30 effects on tracks and buses, mixer, arp, Wave Lab and 72 presets. Sound quality work so far (measured, not yet heard by ear): lookahead limiter, zero-delay ladder filters, 4x oversampled warp/FM oscillators and distortion effects, phase-aligned dry/wet mixing.
 
 <p align="center">
   <a href="https://ko-fi.com/studio87"><img src="https://img.shields.io/badge/Support_Studio_87-on_Ko--fi-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white" alt="Support Studio 87 on Ko-fi"></a>
