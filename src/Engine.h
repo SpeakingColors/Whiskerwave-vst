@@ -25,7 +25,7 @@ public:
   float scope[2048] = {}; int sp = 0;
   double bgL[8] = {}, bgR[8] = {}; bool bgInit[8] = {};
   std::unique_ptr<LookLim> mlim;
-  ChainFn chainFn = nullptr; void* chainCtx = nullptr;
+  ChainFn chainFn = nullptr; void* chainCtx = nullptr; void (*preFn)(void*) = nullptr;
   double wheelT = 0, bendT = 0, atT = 0;
 
   explicit Engine(double sr) { S.sr = sr; for (int i = 0; i < kMaxVoices; i++) voices[i] = std::make_unique<Voice>(S, i); mlim = std::make_unique<LookLim>(sr); }
@@ -139,7 +139,7 @@ public:
   void peak(int b, const float* L, const float* R, int m) { double pl = 0, pr = 0; for (int i = 0; i < m; i++) { pl = std::max(pl, (double)std::fabs(L[i])); pr = std::max(pr, (double)std::fabs(R[i])); } meter[b].l = std::max(meter[b].l * .92, pl); meter[b].r = std::max(meter[b].r * .92, pr); }
   void runChain(int c, float* L, float* R, int m) { if (chainFn) chainFn(chainCtx, c, L, R, m, 0); }
   void mixdown(int m) {
-    const Idx& ix = I();
+    const Idx& ix = I(); if (preFn) preFn(chainCtx);
     std::fill(mst.l, mst.l + m, 0.f); std::fill(mst.r, mst.r + m, 0.f); std::fill(fxo.l, fxo.l + m, 0.f); std::fill(fxo.r, fxo.r + m, 0.f);
     for (auto& a : aux) { std::fill(a.l, a.l + m, 0.f); std::fill(a.r, a.r + m, 0.f); }
     auto gains = [&](int vi, int pi, double& tl, double& tr) { const double v = pv(vi), pn = pv(pi), tv = v <= -59.9 ? 0 : dbv(v); tl = tv * std::cos((pn * .5 + .5) * kPi / 2) * 1.414; tr = tv * std::sin((pn * .5 + .5) * kPi / 2) * 1.414; };
