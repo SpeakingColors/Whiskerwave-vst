@@ -1,0 +1,121 @@
+/* ---------- FX preset browser (v1.9.3) ----------
+   Module presets load into one effect; chain presets replace every chain (and may set mixer sends).
+   Values are starting points from the recipe notes (AI-written recipes, level checked, not heard). */
+const FXMOD={
+ eq:[['Lead bus clean',{hp:135,m1f:280,m1g:-3.5,m1q:1.4,m2f:3200,m2g:2.5,m2q:1,hf:10000,hg:2.5},'High-pass 135 Hz, mud scoop at 280 Hz, bite at 3.2 kHz, air shelf at 10 kHz.'],
+  ['Bright piano',{hp:160,m1f:290,m1g:-5,m1q:1.4,m2f:3200,m2g:4,m2q:1.8,hf:10000,hg:3.5},'Bright pop piano: cut low mud, hammer boost at 3.2 kHz, sparkle shelf.'],
+  ['Bass tight',{hp:28,lf:100,lg:2.5,m1f:290,m1g:-6,m1q:1.4,m2f:3800,m2g:3,m2q:1.2},'Sub-sonic cut, punch at 100 Hz, deep scoop at 290 Hz, click at 3.8 kHz.'],
+  ['Pad carve',{hp:150,m2f:2000,m2g:-3.5,m2q:1.2,lp:11000},'Clears a pocket at 2 kHz for the lead and rolls off the top.'],
+  ['Strings bow',{hp:120,m1f:280,m1g:-3,m1q:1.4,m2f:4500,m2g:2.5,m2q:1},'Breakdown strings: less stage mud, more bow bite.'],
+  ['Brass body',{hp:95,m1f:950,m1g:3,m1q:1.2,m2f:3500,m2g:-2,m2q:1.4},'Horn body at 950 Hz, dip at 3.5 kHz so it stays out of the lead.'],
+  ['Pluck snap',{hp:180,m2f:2800,m2g:3.5,m2q:1.4},'Plucked strings: high-pass and pick snap at 2.8 kHz.'],
+  ['Air and silk',{hp:115,m1f:250,m1g:-3.5,m1q:1.6,m2f:3500,m2g:2,m2q:1,hf:15000,hg:3.5},'Vocal style polish: low mud out, presence, glossy air.'],
+  ['Master bookends',{hp:28,m1f:300,m1g:-1.2,m1q:1.4,lp:18500},'High-pass 28 Hz, low-pass 18.5 kHz, a gentle dip at 300 Hz.'],
+  ['Telephone',{hp:400,m1f:1500,m1g:4,m1q:.8,lp:3500},'Small speaker sound for breakdowns.']],
+ comp:[['Bus glue',{thr:-18,ratio:2,att:30,rel:100,knee:6,makeup:1.5},'2:1, 30 ms attack lets transients through, 1.5 to 2 dB of reduction.'],
+  ['Punch',{thr:-20,ratio:4,att:35,rel:100,knee:6,makeup:3},'4:1 with a slow attack for punchy hits.'],
+  ['Fast FET',{thr:-24,ratio:6,att:10,rel:60,knee:3,makeup:4},'Fast and firm for pianos and stabs.'],
+  ['Gentle leveler',{thr:-20,ratio:3,att:10,rel:300,knee:12,makeup:3},'Smooth, slow leveling for pads and long notes.'],
+  ['Strings glue',{thr:-18,ratio:2.5,att:20,rel:100,knee:8,makeup:2},'Glues layered sections together.'],
+  ['Parallel smash',{thr:-40,ratio:20,att:.5,rel:50,knee:0,makeup:12,mix:.3},'Heavy crush blended under the dry sound for weight.']],
+ maxi:[['Gentle',{gain:3,ceil:-1,soft:.5,rel:100},'A little more level, safe ceiling.'],
+  ['Transparent',{gain:4,ceil:-.3,soft:.3,rel:120}],
+  ['Club loud',{gain:8,ceil:-.3,soft:.6,rel:60},'Loud and dense. Watch the LIM readout.'],
+  ['Hard push',{gain:12,ceil:-.3,soft:.8,rel:40},'Very loud; for hard dance. Check for grit.']],
+ squeeze:[['Lead glue 25%',{depth:.25,time:1.5,lowg:-1.5,midg:0,highg:2},'Glues unison voices, brings quiet highs forward.'],
+  ['Lead dense 40%',{depth:.4,time:1.6,lowg:-1.5,highg:2}],
+  ['Bass 30%',{depth:.3,time:1.6,lowg:-1.5,highg:2}],
+  ['Sparkle 14%',{depth:.14,time:1.4,highg:1.5},'Subtle detail on top.'],
+  ['Full squash',{depth:1,time:1,out:-6},'All the way. Loud and flat.']],
+ pump:[['Quarter pump',{div:2,depth:.8,attack:.01,release:.6,curve:0}],
+  ['Bass hard duck',{div:2,depth:1,attack:.01,release:.35,curve:.5},'Sub out of the way of every kick.'],
+  ['Lead groove',{div:2,depth:.45,release:.6}],
+  ['Eighth pump',{div:3,depth:.6,release:.5}],
+  ['Reverse suction',{div:2,depth:1,attack:.01,release:.55,curve:.8},'Silent on the kick, swells up into the off-beat.']],
+ tgate:[['Trance 1/16',{div:4,depth:1,smooth:2}],['Soft 1/16',{div:4,depth:.7,smooth:10}],['Chop 1/8',{div:3,depth:1,smooth:3}],['Swing 1/16',{div:4,depth:1,smooth:3,swing:.3}]],
+ trans:[['Punch',{attack:.25,sustain:-.1}],['Tight',{attack:.15,sustain:-.3}],['Long tail',{sustain:.3}],['Click only',{attack:.6,sustain:-1,mix:.3},'Only the first milliseconds, blended low.']],
+ dist:[['Warm tube',{type:2,drive:6,level:-3,mix:.25},'Parallel warmth.'],['Hard clip lead',{type:1,drive:12,mix:.6}],['Diode growl',{type:5,drive:18,pre:120,tone:6000}],
+  ['Fuzz screech',{type:8,drive:24,tone:8000,mix:.7}],['Tape soft',{type:4,drive:8}],['Even harmonics',{type:9,drive:10},'Asymmetric curve for even harmonics.'],['Octave rectify',{type:6,drive:12,mix:.5}]],
+ fat:[['Tape glue',{mode:1,drive:6,fat:.3,mix:.25}],['Transformer',{mode:7,drive:8,fat:.3}],['Crunch bus',{mode:2,drive:14,fat:.5}],['Fuzz bass',{mode:3,drive:20,fat:.6,out:-6}]],
+ crush:[['12-bit',{bits:12,rate:1}],['Rave grit',{bits:10,rate:2,mix:.35}],['8-bit lo-fi',{bits:8,rate:3,mix:.5}],['Destroyed',{bits:4,rate:12,mix:.6}]],
+ folder:[['Gentle fold',{drive:6,mix:.5}],['Metal',{drive:18,stages:2}],['Screech',{drive:24,stages:3,sym:.3,mix:.7}]],
+ fshift:[['Detune smear',{shift:3,mix:.3}],['Shimmer up',{shift:120,fb:.4,mix:.3}],['Metallic',{shift:-250,mix:.5}],['Endless riser',{shift:40,fb:.7,mix:.4}]],
+ ring:[['Bell',{freq:880,mix:.35}],['Robot',{freq:120,wave:2,mix:.6}],['Sci-fi',{freq:2300,mix:.4}]],
+ vowel:[['A',{vowel:0,res:.5}],['O drive',{vowel:3,res:.6,drive:8}],['E bright',{vowel:1,res:.55}]],
+ filt:[['Lead high-pass',{type:7,cut:135,res:.1}],['Bass LP 24',{type:3,cut:220,res:.25,drive:.45}],['DJ filter',{type:41,cut:1000,res:.3}],['Telephone',{type:32,cut:1500}],
+  ['Acid squelch',{type:16,cut:600,res:.72,drive:.3}],['Wah',{type:45,cut:900,res:.5}],['Comb ring',{type:23,cut:440,res:.7,mix:.5}],['Warm diode',{type:22,cut:1500,res:.2}]],
+ chorus:[['Wide classic',{mode:0,rate:.15,depth:.5,delay:12,spread:1,mix:.35}],['Analog poly',{mode:0,rate:.5,depth:.5,mix:.35}],['Vintage slow',{mode:0,rate:.25,mix:.45}],
+  ['Ensemble strings',{mode:1,rate:.6,mix:.5}],['Dimension subtle',{mode:2,mix:.4}],['Bass safe',{mode:0,rate:.5,hp:300,mix:.4},'Only above 300 Hz, so the sub stays mono.'],['Vibrato',{mode:3,rate:5,depth:.4,mix:1}]],
+ flanger:[['Jet slow',{rate:.1,fb:.7,mix:.5}],['Acid flange',{rate:.1,fb:.3,mix:.3}],['Tight metal',{delay:1,fb:.85,rate:.5}],['One bar sweep',{sync:1,fb:.6,mix:.5}]],
+ phaser:[['Static notch',{rate:.02,depth:.05,fb:.65,freq:1500},'Rate near zero: a fixed tone colour, no movement.'],['One bar sweep',{sync:1,stages:2,fb:.55,spread:.5}],['Slow 4-pole',{stages:0,rate:.1,fb:.4,mix:.2}],['Swirl 12',{stages:3,rate:.3,fb:.7}]],
+ trem:[['Autopan 1/8',{mode:1,sync:4,depth:.6}],['Tremolo 1/16',{mode:0,sync:5,depth:.5}],['Helicopter',{rate:12,depth:.9,shape:2}]],
+ delay:[['Dotted ping-pong',{mode:1,syncl:11,syncr:11,fb:.38,lc:450,hc:4500,mix:.25},'Dotted 1/8, filtered so the echoes stay out of the way.'],
+  ['Slap widener',{mode:0,syncl:5,syncr:4,fb:0,lc:350,hc:6000,mix:.2},'1/16 left, 1/8 right, no feedback.'],
+  ['Tape echo',{mode:2,syncl:3,syncr:3,fb:.45,sat:.4,wow:.3,hc:4000,mix:.25}],['Quarter throw',{mode:1,syncl:3,syncr:3,fb:.35,lc:400,hc:5000,mix:.3}],
+  ['Dub feedback',{mode:2,syncl:10,syncr:10,fb:.75,hc:2500,sat:.5,mix:.3}],['Cascade 22%',{mode:1,syncl:11,syncr:11,fb:.3,mix:.22}],
+  ['Short doubler',{mode:3,syncl:0,syncr:0,timel:12,timer:18,fb:0,mix:.3}]],
+ pitch:[['Octave up shimmer',{semi:12,mix:.25}],['Fifth',{semi:7,mix:.3}],['Octave down',{semi:-12,mix:.3}],['Rising echoes',{semi:12,fb:.5,mix:.3}],['Detune double',{semi:0,fine:12,mix:.35}]],
+ verb:[['Stadium hall',{type:2,decay:3.8,pre:40,lc:350,damp:7500,mix:.3}],['Long hall',{type:2,decay:4.5,pre:45,lc:300,mix:.35}],['Vocal plate',{type:1,decay:1.2,pre:20,lc:300,damp:8500,mix:.25}],
+  ['Snare plate',{type:1,decay:1.3,pre:18,lc:350,damp:8000,mix:.25}],['Scoring hall',{type:3,decay:2.8,pre:55,lc:250,damp:6000,mix:.3}],['Shimmer',{type:6,decay:4,shim:.6,lc:300,mix:.35}],
+  ['Tight room',{type:0,decay:.8,lc:200,mix:.2}],['Gated',{type:7,mix:.3}],['Bloom pad',{type:8,decay:6,mix:.4}],['Ambient wash',{type:9,decay:10,mix:.45}],['Room for distortion',{type:0,decay:.9,mix:1},'Put a distortion after it: the roar trick.']],
+ disp:[['Chirp zap',{amount:32,freq:800}],['Bass smear',{amount:16,freq:120}],['Laser',{amount:48,freq:3000,fb:.4}]],
+ image:[['Wide 120%',{width:1.2,bass:120}],['Wide 135% mono bass',{width:1.35,bass:140}],['Narrow 70%',{width:.7}],['Mono bass only',{bass:150}],['Side air',{side:2}],['Mono',{width:0}]],
+ haas:[['Subtle 8 ms',{time:8,mix:.4}],['Classic 14 ms',{time:14,mix:.6}],['Wide 18 ms',{time:18,mix:.6}]],
+ util:[['Mono',{mono:1}],['Minus 6 dB',{gain:-6}],['Flip left',{invert:1}],['DC block',{dc:1}]],
+ subx:[['Phone translation',{freq:90,amount:.35,harm:.6},'2nd and 3rd harmonics so small speakers hint at the sub.'],['Deep weight',{freq:55,amount:.6,harm:.3}],['Kick weight',{freq:70,amount:.5,harm:.4}]],
+ exciter:[['Air 10k',{freq:10000,drive:6,amount:.35}],['Presence 3.5k',{freq:3500,drive:8,amount:.3}],['Radio gloss',{freq:1200,drive:6,amount:.4,mix:.5}],['Bright master',{freq:8000,drive:4,amount:.2}]],
+ stutter:[['1/16 roll',{div:4,len:4,prob:.5}],['1/32 build',{div:5,len:5,prob:.8}],['1/8 glitch',{div:3,len:3,prob:.4}]],
+ taps:[['Spread taps',{}],['Tight rhythm',{fb:.15,d1:3,d2:4,d3:9,d4:10,mix:.25}]]};
+const FXM=(t,name)=>{const l=FXMOD[t]||[];const e=l.find(x=>x[0]===name);return [t,Object.assign({},e?e[1]:{})];};
+const SEND=(b,s1,s2)=>{const o={};if(s1!==undefined)o['bus.'+b+'.s1']=s1;if(s2!==undefined)o['bus.'+b+'.s2']=s2;return o;};
+const FXCHAINS={
+ 'Leads':{
+  'Festival lead bus':{d:'Lead bus chain: clean EQ, 25% squeeze, tape glue, width with mono lows; hall and dotted delay on the sends.',t0:[FXM('eq','Lead bus clean'),FXM('squeeze','Lead glue 25%'),FXM('fat','Tape glue'),FXM('image','Wide 120%')],x1:[['verb',{type:2,decay:3.8,pre:40,lc:350,damp:7500,mix:1}]],x2:[['delay',{mode:1,syncl:11,syncr:11,fb:.38,lc:450,hc:4500,mix:1}]],p:SEND('t0',.25,.2)},
+  'Silky trance lead':{d:'Smooth and wide: gentle EQ and chorus, long hall, dotted ping-pong.',t0:[['eq',{hp:140,m1f:280,m1g:-3,m1q:1.4}],FXM('chorus','Wide classic')],x1:[['verb',{type:2,decay:4.5,pre:45,lc:300,mix:1}]],x2:[['delay',{mode:1,syncl:11,syncr:11,fb:.38,lc:450,hc:4500,mix:1}]],p:SEND('t0',.3,.22)},
+  'Hands-up lead':{d:'Chorus, 40% squeeze, wide top.',t0:[FXM('eq','Lead bus clean'),['chorus',{rate:.2,delay:12,mix:.3}],FXM('squeeze','Lead dense 40%'),FXM('image','Wide 120%')],p:SEND('t0',.2,.15)},
+  'Radio gloss lead':{d:'Clean lead plus exciter gloss and a subtle Haas widening.',t0:[FXM('eq','Lead bus clean'),FXM('exciter','Radio gloss'),FXM('image','Wide 120%'),FXM('haas','Subtle 8 ms')],p:SEND('t0',.2,.15)},
+  'Hardstyle screech':{d:'Short room into diode drive (roar), notch the whistle, squeeze.',t0:[['verb',{type:0,decay:.9,mix:.25}],FXM('dist','Diode growl'),['eq',{hp:145,m2f:3800,m2g:-4,m2q:8}],FXM('squeeze','Lead dense 40%')],p:SEND('t0',.15,0)},
+  'Euro brass':{d:'Chorus, hard drive, squeeze and a short bright plate.',t0:[['chorus',{mix:.45}],['dist',{type:1,drive:8,mix:.5}],['squeeze',{depth:.3}],['verb',{type:1,decay:.9,mix:.2}]]},
+  'Mono centre laser':{d:'Keeps a sync or square layer piercing in the centre: high-pass, 2.5 kHz bite, mono.',t0:[['eq',{hp:200,m2f:2500,m2g:3.5,m2q:1.2}],FXM('util','Mono')]}},
+ 'Basses':{
+  'Mono sub clean':{d:'Pure, mono and clean below everything.',t0:[['eq',{hp:28}],FXM('util','Mono')],t3:[FXM('util','Mono')]},
+  'Offbeat pump bass':{d:'Hard duck on every beat, tape warmth, mono lows.',t0:[FXM('pump','Bass hard duck'),FXM('fat','Tape glue'),FXM('image','Mono bass only')]},
+  'Reverse bass suction':{d:'Silent on the kick, swells into the off-beat.',t0:[FXM('pump','Reverse suction'),FXM('dist','Warm tube')]},
+  'Garage warp bass':{d:'Low-pass with drive, tape fat, quarter pump.',t0:[FXM('filt','Bass LP 24'),['fat',{mode:1,drive:8,fat:.4}],FXM('pump','Quarter pump')]},
+  'Reese swirl':{d:'Chorus and phaser above 300 Hz only, mono sub.',t0:[FXM('chorus','Bass safe'),FXM('dist','Warm tube'),FXM('phaser','Slow 4-pole'),FXM('image','Mono bass only')]},
+  'Band-split bass':{d:'Sub mono and clean, mid band driven and compressed, top band wide.',t3:[['split',{},{n:3,b:[[['util',{mono:1}]],[['dist',{drive:10}],['comp',{}]],[['chorus',{mix:.3}],['verb',{mix:.2,decay:1.2}]]]}]]},
+  'Acid line':{d:'Acid filter, light clip, dotted delay.',t0:[FXM('filt','Acid squelch'),['dist',{type:1,drive:9,mix:.4}],['delay',{mode:1,syncl:11,syncr:11,fb:.3,mix:.26}]]},
+  'Phone-ready sub':{d:'Adds upper harmonics so the bass is heard on small speakers.',t0:[FXM('subx','Phone translation'),FXM('image','Mono bass only')]}},
+ 'Chords & Pads':{
+  'Wide supersaw chords':{d:'Pocket for the lead, chorus, quarter pump, wide with mono lows.',t0:[FXM('eq','Pad carve'),FXM('chorus','Analog poly'),['pump',{div:2,depth:.6,release:.6}],FXM('image','Wide 135% mono bass')],p:SEND('t0',.2,0)},
+  'Velvet pad':{d:'Ensemble chorus and a blooming reverb.',t0:[['eq',{hp:150}],FXM('chorus','Ensemble strings'),FXM('image','Wide 120%')],x1:[['verb',{type:8,decay:6,mix:1}]],p:SEND('t0',.5,0)},
+  'Soaring strings':{d:'Bow bite, gentle chorus, long concert hall.',t0:[FXM('eq','Strings bow'),['chorus',{mode:1,mix:.3}]],x1:[['verb',{type:2,decay:4.5,pre:45,lc:300,mix:1}]],p:SEND('t0',.45,0)},
+  'Cosmic shimmer':{d:'Shimmer reverb and slow phaser.',t0:[FXM('phaser','Slow 4-pole')],x1:[['verb',{type:6,decay:6,shim:.6,lc:300,mix:1}]],p:SEND('t0',.55,0)},
+  'Trance gate dream':{d:'16th gate with dotted delay and a pumping hall.',t0:[['tgate',{div:4,depth:1}],['delay',{syncl:11,fb:.5,mix:.35}]],x1:[['verb',{type:2,decay:4,mix:1}],['pump',{depth:.6,div:2}]],p:SEND('t0',.3,0)}},
+ 'Plucks & Keys':{
+  'Dream pluck':{d:'Quarter delay and a long hall.',t0:[['delay',{mode:0,syncl:3,syncr:3,fb:.45,mix:.25}]],x1:[['verb',{type:2,decay:4.5,lc:300,mix:1}]],p:SEND('t0',.4,0)},
+  'Bright piano':{d:'Hammer EQ, fast compressor, width, vocal plate.',t0:[FXM('eq','Bright piano'),FXM('comp','Fast FET'),FXM('image','Wide 120%')],x1:[['verb',{type:1,decay:1.2,pre:20,mix:1}]],p:SEND('t0',.2,0)},
+  'Pluck cascade':{d:'Attack boost, snap EQ, dotted ping-pong across the stereo field.',t0:[['trans',{attack:.15}],FXM('eq','Pluck snap'),FXM('delay','Cascade 22%')]},
+  'Glass bell':{d:'Air, dotted delay, plate.',t0:[FXM('exciter','Air 10k'),FXM('delay','Dotted ping-pong')],x1:[['verb',{type:1,decay:1.8,mix:1}]],p:SEND('t0',.25,0)},
+  'Wide pluck':{d:'Chorus, dotted delay and width.',t0:[['chorus',{mix:.4}],['delay',{mix:.25,syncl:4}],['image',{width:1.4}]],x1:[['verb',{type:1,decay:1.8,mix:1}]],p:SEND('t0',.25,0)}},
+ 'Master':{
+  'Hard dance master':{d:'EQ, squeeze, exciter and maximizer.',mst:[['eq',{hp:28,lf:60,lg:1.5,m1f:350,m1g:-1.5,hf:9000,hg:1.5}],['squeeze',{depth:.4,out:-1}],['exciter',{freq:5000,drive:6,amount:.25,mix:.5}],['maxi',{gain:5,ceil:-.3,soft:.6}]]},
+  'Club master gentle':{d:'Bookend EQ, light squeeze, glue, gentle maximizer.',mst:[FXM('eq','Master bookends'),['squeeze',{depth:.2,out:-1}],FXM('comp','Bus glue'),FXM('maxi','Gentle')]},
+  'Hardcore 170 master':{d:'Fast glue release for 170 BPM, mono lows to 140 Hz, loud maximizer.',mst:[['eq',{hp:28,m1f:290,m1g:-1.2,m1q:1.4,lp:18500}],['image',{bass:140}],['comp',{thr:-18,ratio:2,att:30,rel:50,knee:6,makeup:1.5}],FXM('maxi','Club loud')]},
+  'Radio pop master':{d:'Warmer and less crushed.',mst:[FXM('eq','Master bookends'),FXM('comp','Bus glue'),FXM('exciter','Bright master'),FXM('maxi','Gentle')]}},
+ 'Creative':{
+  'Hoover space':{d:'Dimension chorus, tube drive, phaser, big hall.',t0:[['chorus',{mode:2,mix:.6}],['dist',{drive:14,type:2,mix:.7}],['phaser',{mix:.4}]],x1:[['verb',{type:2,decay:3.5,mix:1}]],mst:[['maxi',{gain:3}]],p:SEND('t0',.3,0)},
+  'Riser wash':{d:'High-pass, static phaser, wide hall.',t0:[['filt',{type:7,cut:400,res:.2}],FXM('phaser','Static notch'),FXM('image','Wide 135% mono bass')],x1:[['verb',{type:2,decay:5,mix:1}]],p:SEND('t0',.45,0)},
+  'Telephone breakdown':{d:'Small speaker EQ and 12-bit grit.',t0:[FXM('eq','Telephone'),['crush',{bits:12,rate:1,mix:.3}]]},
+  'Glitch roll':{d:'1/16 stutter and short delay.',t0:[FXM('stutter','1/16 roll'),['delay',{syncl:5,syncr:5,fb:.3,mix:.2}]]},
+  'Distorted room roar':{d:'Send 2 runs a short room into diode drive, band-limited: an aggressive roar under the dry sound.',x2:[['verb',{type:0,decay:.9,mix:1}],['dist',{type:5,drive:18,mix:1}],['eq',{hp:600,lp:4000}]],p:SEND('t0',0,.2)},
+  'Lo-fi crush':{d:'Bit crush, telephone filter, disperser.',t0:[['crush',{bits:9,rate:3,mix:.5}],['filt',{type:15,cut:3500}],['disp',{amount:20,freq:600}]]},
+  'Clear all':{d:'Removes every effect, including the default reverb and delay.',clear:1}}};
+function fxUserGet(k){try{return JSON.parse(localStorage.getItem(k)||'{}');}catch(e){return {};}}
+function fxUserSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){toast('Could not save in this browser');}}
+const FXU_CH='whiskerwave.fxchains.v1',FXU_MOD='whiskerwave.fxmods.v1';
+function applyFxChain(name,spec){S.chains=D.defaultChains();if(spec.clear){S.chains.x1=[];S.chains.x2=[];}
+  for(const b of ['mst','x1','x2','t0','t1','t2','t3'])if(spec[b])S.chains[b]=spec[b].map(n=>n&&n.id?JSON.parse(JSON.stringify(n)):mkNode(n));
+  if(spec.p)for(const k in spec.p)if(PR[k])setV(k,spec.p[k]);
+  S.sel.node=null;S.slots=S.slots.filter(s=>!s.d.startsWith('fx:'));sendSlots();chainChanged();rebuildMatrix&&rebuildMatrix();toast('FX chain: '+name);}
+function askName(title,def,cb){const inp=h('input',{class:'sel',style:'width:300px',value:def});dialog(title,h('div',{class:'col'},[inp]),[['Cancel'],['Save',()=>{const v=inp.value.trim();if(!v)return false;setTimeout(()=>cb(v),0);},1]]);setTimeout(()=>{inp.focus();inp.select();},50);}
