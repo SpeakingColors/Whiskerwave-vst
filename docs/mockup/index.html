@@ -2194,22 +2194,16 @@ async function startAudio_(){
   if(eng)return true;
   try{actx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});}catch(e){toast('Audio is not available here');return false;}
   let ok=false;
-  const tmo=(pr,ms,what)=>Promise.race([pr,new Promise((_,rej)=>setTimeout(()=>rej(new Error(what+' timed out')),ms))]);
-  try{const url=URL.createObjectURL(new Blob([D.workletSource()],{type:'text/javascript'}));await tmo(actx.audioWorklet.addModule(url),4000,'worklet load');
+  try{const url=URL.createObjectURL(new Blob([D.workletSource()],{type:'text/javascript'}));await actx.audioWorklet.addModule(url);
     const node=new AudioWorkletNode(actx,'ww',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[2]});
-    let alive=false;node.port.onmessage=e=>{const m=e.data;alive=true;if(m.t==='vis')S.V=m;else if(m.t==='err')console.error('engine',m.m);};node.connect(actx.destination);
-    if(actx.state==='suspended'){try{await tmo(actx.resume(),1500,'resume');}catch(e){}}
-    // watchdog: the engine posts a message about every 40 ms; silence for 1.5 s means the worklet is not running here, use the fallback
-    for(let t=0;t<15&&!alive;t++)await new Promise(r=>setTimeout(r,100));
-    if(!alive){try{node.disconnect();}catch(e){}throw new Error('worklet is silent');}
+    node.port.onmessage=e=>{const m=e.data;if(m.t==='vis')S.V=m;else if(m.t==='err')console.error('engine',m.m);};node.connect(actx.destination);
     eng={post:m=>node.port.postMessage(m),mode:'worklet'};ok=true;}
   catch(err){console.warn('worklet unavailable, using fallback',err&&err.message);}
   if(!ok){const E=new D.Engine(actx.sampleRate);const sp=actx.createScriptProcessor(1024,0,2);
     sp.onaudioprocess=e=>{E.process(e.outputBuffer.getChannelData(0),e.outputBuffer.getChannelData(1),1024);};sp.connect(actx.destination);
     eng={post:m=>E.msg(m),mode:'script'};vlocal=E;}
   syncAll();$('#audiobtn').classList.remove('pulse');$('#audiobtn').textContent='Audio on';$('#audiobtn').classList.add('on');
-  if(actx.state!=='running'){try{actx.resume();}catch(e){}const kick=()=>{if(actx&&actx.state!=='running')actx.resume().catch(()=>{});};['pointerdown','keydown','touchend'].forEach(ev=>addEventListener(ev,kick,{capture:true}));setTimeout(()=>{if(actx.state!=='running')toast('Click anywhere to turn the sound on');},1500);}
-  return true;}
+  if(actx.state==='suspended')actx.resume();return true;}
 function noteOn(n,v){S.lastVel=v||.8;S.lastNote=n;if(!eng){startAudio().then(()=>{send({t:'on',n,v:v||.8});});return;}send({t:'on',n,v:v||.8});}
 function noteOff(n){send({t:'off',n});}
 /* ---------- tooltips, toast, dialogs ---------- */
