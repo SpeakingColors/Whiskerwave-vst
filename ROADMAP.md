@@ -10,7 +10,7 @@
 - [x] Interactive design mockup with full JS sound engine (docs/mockup/index.html), preview release with PDF manual
 
 ## Next
-- [ ] Port the mockup engine and window to C++/JUCE (VST3), parity tests against the JS engine
+- [ ] Port the mockup engine and window to C++/JUCE (VST3). Done in v0.1.0: engine core (41 wavetables, A/B/C unison, sub, noise, LP/HP/BP/notch/ladder filters, 2 envelopes, reverb, delay) with a parity test against the JS engine. Still to port: warp, FM/AM, feedback, sample and granular engines, 16 modulators and matrix, FX chains, arp, LFOs, macros, the full window and preset browser.
 - [ ] Installers for Linux, macOS and Windows with manual and uninstaller
 - [ ] Wave generator in C++ (same shapes as `tools/gen_waves.py`, plus FM, formant, spectral drawing, harmonic sliders)
 - [ ] MIDI test-drive: a set of original MIDI patterns (hardstyle lead, happy hardcore, bass, funk) to audition any generated wave quickly, with a keep/skip list
