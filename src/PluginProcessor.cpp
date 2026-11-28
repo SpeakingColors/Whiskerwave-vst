@@ -1,88 +1,138 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "WhiskerBinary.h"
 
-using APVTS = juce::AudioProcessorValueTreeState;
-
-APVTS::ParameterLayout WhiskerwaveProcessor::layout()
-{
-    std::vector<std::unique_ptr<juce::RangedAudioParameter>> p;
-    auto f = [&](const char* id, const char* name, float lo, float hi, float def, float centre = 0.f)
-    {
-        juce::NormalisableRange<float> r(lo, hi);
-        if (centre > 0.f) r.setSkewForCentre(centre);
-        p.push_back(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{id, 1}, name, r, def));
-    };
-    f("pos", "Wave position", 0.f, (float) whisker::kNumWaves - 1.f, 2.f);
-    p.push_back(std::make_unique<juce::AudioParameterInt>(juce::ParameterID{"uni", 1}, "Unison voices", 1, 7, 1));
-    f("det", "Unison detune (cents)", 0.f, 100.f, 20.f);
-    f("spread", "Stereo spread", 0.f, 1.f, 0.7f);
-    f("aA", "Amp attack", 0.001f, 5.f, 0.005f, 0.2f);
-    f("aD", "Amp decay", 0.001f, 5.f, 0.3f, 0.5f);
-    f("aS", "Amp sustain", 0.f, 1.f, 0.8f);
-    f("aR", "Amp release", 0.001f, 8.f, 0.25f, 0.5f);
-    f("fc", "Filter cutoff", 20.f, 18000.f, 8000.f, 1000.f);
-    f("fr", "Filter resonance", 0.f, 1.f, 0.1f);
-    f("fe", "Filter env amount", -1.f, 1.f, 0.3f);
-    f("fA", "Filter attack", 0.001f, 5.f, 0.005f, 0.2f);
-    f("fD", "Filter decay", 0.001f, 5.f, 0.4f, 0.5f);
-    f("fS", "Filter sustain", 0.f, 1.f, 0.3f);
-    f("fR", "Filter release", 0.001f, 8.f, 0.3f, 0.5f);
-    f("lfoRate", "LFO rate", 0.05f, 20.f, 2.f, 2.f);
-    f("lfoAmt", "LFO to wave position", 0.f, 1.f, 0.f);
-    f("vol", "Volume", 0.f, 1.f, 0.6f);
-    f("bend", "Pitch bend range (semitones)", 0.f, 24.f, 2.f);
-    // Built-in FX (shared catfx code): shimmer delay then reverb
-    p.push_back(std::make_unique<juce::AudioParameterChoice>(juce::ParameterID{"rvType", 1}, "Reverb type",
-                juce::StringArray{ "Off", "Plate", "Hall", "Shimmer Plate", "Shimmer Hall" }, 0));
-    f("rvDecay", "Reverb decay", 0.f, 1.f, 0.6f);
-    f("rvDamp", "Reverb damping (Hz)", 500.f, 16000.f, 6000.f, 3000.f);
-    f("rvMix", "Reverb mix", 0.f, 1.f, 0.25f);
-    f("rvShift", "Reverb shimmer pitch", -12.f, 12.f, 12.f);
-    f("rvShim", "Reverb shimmer amount", 0.f, 1.f, 0.5f);
-    f("dlMix", "Delay mix (0 = off)", 0.f, 1.f, 0.f);
-    f("dlTime", "Delay time (ms)", 20.f, 2000.f, 400.f, 400.f);
-    f("dlFb", "Delay feedback", 0.f, 0.95f, 0.5f);
-    f("dlShift", "Delay shimmer pitch", -12.f, 12.f, 12.f);
-    f("dlShim", "Delay shimmer amount", 0.f, 1.f, 1.f);
-    return { p.begin(), p.end() };
-}
+using namespace whisker;
 
 WhiskerwaveProcessor::WhiskerwaveProcessor()
     : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
-      apvts(*this, nullptr, "STATE", layout())
+      apvts(*this, nullptr, "STATE", makeLayout())
 {
-    auto g = [&](const char* id) { return apvts.getRawParameterValue(id); };
-    params = { g("pos"), g("uni"), g("det"), g("spread"), g("aA"), g("aD"), g("aS"), g("aR"),
-               g("fc"), g("fr"), g("fe"), g("fA"), g("fD"), g("fS"), g("fR"), g("lfoRate"), g("lfoAmt"), g("vol"), g("bend") };
-    synth.addSound(new whisker::Sound());
-    for (int i = 0; i < 8; ++i) synth.addVoice(new whisker::Voice(bank, params));
+    tables.setSource(WhiskerBinary::ww_tables_bin, (size_t) WhiskerBinary::ww_tables_binSize);
+    refreshTables();
+    startTimerHz(20);
+}
+
+void WhiskerwaveProcessor::refreshTables()
+{
+    // message thread: build tables when the table choice changed, then publish the pointer for the audio thread
+    for (int o = 0; o < 3; ++o)
+    {
+        const int idx = (int) raw(juce::String("abc").substring(o, o + 1) + "_tab")->load();
+        if (idx != tabIdx[o] || tabPtr[o].load() == nullptr) { tabPtr[o].store(tables.get(idx)); tabIdx[o] = idx; }
+    }
+}
+
+void WhiskerwaveProcessor::prepareToPlay(double sr, int bs)
+{
+    sampleRate = sr;
+    engine.prepare(sr);
+    fx.prepare((float) sr);
+    limiter.prepare({ sr, (juce::uint32) std::max(bs, 1), 2 });
+    limiter.setThreshold(-0.3f); limiter.setRelease(100.f);
+    bufL.assign((size_t) std::max(bs, 4096), 0.0); bufR = bufL;
+    refreshTables();
+}
+
+void WhiskerwaveProcessor::fillPatch(Patch& P)
+{
+    auto v = [&](const juce::String& id) { return raw(id)->load(); };
+    P.master = v("master"); P.poly = (int) v("poly"); P.vel = v("vel"); P.bendr = v("bendr");
+    for (int o = 0; o < 3; ++o)
+    {
+        const juce::String k = juce::String("abc").substring(o, o + 1) + "_";
+        OscP& c = P.o[o];
+        c.on = v(k + "on") > .5f; c.tab = tabPtr[o].load(); c.pos = v(k + "pos"); c.oct = (int) v(k + "oct"); c.semi = (int) v(k + "semi");
+        c.fine = v(k + "fine"); c.lvl = v(k + "lvl"); c.pan = v(k + "pan"); c.ph = v(k + "ph"); c.rnd = v(k + "rnd");
+        c.uv = (int) v(k + "uv"); c.ud = v(k + "ud"); c.us = (int) v(k + "us"); c.ub = v(k + "ub"); c.usp = v(k + "usp"); c.anl = v(k + "anl");
+        c.rt = (int) v(k + "rt");
+    }
+    for (int f = 0; f < 2; ++f)
+    {
+        const juce::String k = f == 0 ? "f1_" : "f2_";
+        FiltP& c = P.f[f];
+        c.type = kFilterJs[juce::jlimit(0, (int) kFilterNames.size() - 1, (int) v(k + "type"))];
+        c.cut = v(k + "cut"); c.res = v(k + "res"); c.kt = v(k + "kt"); c.env = v(k + "env"); c.es = (int) v(k + "es");
+    }
+    P.serial = (int) v("frt") == 0;
+    for (int e = 0; e < 2; ++e)
+    {
+        const juce::String k = e == 0 ? "e1_" : "e2_";
+        EnvP& c = P.e[e];
+        c.a = v(k + "a"); c.h = v(k + "h"); c.d = v(k + "d"); c.s = v(k + "s"); c.r = v(k + "r"); c.c = v(k + "c"); c.ca = v(k + "ca");
+    }
+    P.sub = v("sub_on") > .5f; P.subw = (int) v("sub_wave"); P.subo = (int) v("sub_oct"); P.subl = v("sub_lvl"); P.subpw = v("sub_pw");
+    P.subfn = v("sub_fine"); P.subpn = v("sub_pan"); P.subrt = (int) v("sub_rt");
+    P.nz = v("nz_on") > .5f; P.nzt = (int) v("nz_type"); P.nzl = v("nz_lvl"); P.nzpn = v("nz_pan"); P.nzrt = (int) v("nz_rt");
 }
 
 void WhiskerwaveProcessor::processBlock(juce::AudioBuffer<float>& buf, juce::MidiBuffer& midi)
 {
     juce::ScopedNoDenormals nd;
+    const int num = buf.getNumSamples();
     buf.clear();
-    synth.renderNextBlock(buf, midi, 0, buf.getNumSamples());
-    if (buf.getNumChannels() >= 2)
+    if ((int) bufL.size() < num) { bufL.assign((size_t) num, 0.0); bufR = bufL; } // only if the host exceeds the announced block size
+    std::fill(bufL.begin(), bufL.begin() + num, 0.0); std::fill(bufR.begin(), bufR.begin() + num, 0.0);
+    fillPatch(patch);
+    int pos = 0;
+    auto renderTo = [&](int end)
+    { if (end > pos) { engine.render(patch, bufL.data() + pos, bufR.data() + pos, end - pos); pos = end; } };
+    for (const auto meta : midi)
     {
-        auto v = [&](const char* id) { return apvts.getRawParameterValue(id)->load(); };
+        renderTo(meta.samplePosition);
+        const auto m = meta.getMessage();
+        if (m.isNoteOn()) engine.noteOn(m.getNoteNumber(), m.getFloatVelocity(), patch);
+        else if (m.isNoteOff()) engine.noteOff(m.getNoteNumber());
+        else if (m.isAllNotesOff() || m.isAllSoundOff()) engine.allOff();
+        else if (m.isPitchWheel()) engine.setBend((m.getPitchWheelValue() - 8192) / 8192.0);
+    }
+    renderTo(num);
+    const float gain = std::pow(10.f, patch.master / 20.f);
+    auto* L = buf.getWritePointer(0); auto* R = buf.getWritePointer(1);
+    for (int i = 0; i < num; ++i) { L[i] = (float) bufL[(size_t) i] * gain; R[i] = (float) bufR[(size_t) i] * gain; }
+    // built-in FX (shared catfx code)
+    {
+        auto v = [&](const char* id) { return raw(id)->load(); };
         catfx::FxRackParams fp;
         const int type = (int) v("rvType");
-        fp.reverbOn = type > 0;
-        fp.reverb.type = catfx::ReverbType(std::max(0, type - 1));
+        fp.reverbOn = type > 0; fp.reverb.type = catfx::ReverbType(std::max(0, type - 1));
         fp.reverb.p.decay = v("rvDecay"); fp.reverb.p.dampHz = v("rvDamp"); fp.reverb.mix = v("rvMix");
         fp.reverb.shimmerSemis = v("rvShift"); fp.reverb.shimmerAmount = v("rvShim");
-        fp.delayOn = v("dlMix") > 0.001f;
-        fp.delay.mix = v("dlMix"); fp.delay.timeMs = v("dlTime"); fp.delay.feedback = v("dlFb");
+        fp.delayOn = v("dlMix") > .001f; fp.delay.mix = v("dlMix"); fp.delay.timeMs = v("dlTime"); fp.delay.feedback = v("dlFb");
         fp.delay.shiftSemis = v("dlShift"); fp.delay.shimmerAmount = v("dlShim");
-        fx.process(buf.getWritePointer(0), buf.getWritePointer(1), buf.getNumSamples(), fp);
+        fx.process(L, R, num, fp);
     }
-    outLevel = buf.getMagnitude(0, buf.getNumSamples());
+    // safety limiter, then a hard ceiling so nothing above 0 dBFS leaves the plugin
+    juce::dsp::AudioBlock<float> block(buf);
+    limiter.process(juce::dsp::ProcessContextReplacing<float>(block));
+    for (int i = 0; i < num; ++i) { L[i] = juce::jlimit(-.966f, .966f, L[i]); R[i] = juce::jlimit(-.966f, .966f, R[i]); }
+    outLevel = buf.getMagnitude(0, num);
+}
+
+void WhiskerwaveProcessor::setCurrentProgram(int i)
+{
+    program = juce::jlimit(0, getNumPrograms() - 1, i);
+    for (auto* p : getParameters())
+        if (auto* rp = dynamic_cast<juce::RangedAudioParameter*>(p)) rp->setValueNotifyingHost(rp->getDefaultValue());
+    for (auto& kv : factoryPresets()[(size_t) program].v)
+        if (auto* rp = apvts.getParameter(kv.first)) rp->setValueNotifyingHost(rp->convertTo0to1(kv.second));
+    engine.allOff();
 }
 
 juce::AudioProcessorEditor* WhiskerwaveProcessor::createEditor() { return new WhiskerwaveEditor(*this); }
 void WhiskerwaveProcessor::getStateInformation(juce::MemoryBlock& d)
-{ if (auto xml = apvts.copyState().createXml()) copyXmlToBinary(*xml, d); }
+{
+    auto state = apvts.copyState(); state.setProperty("program", program, nullptr);
+    if (auto xml = state.createXml()) copyXmlToBinary(*xml, d);
+}
 void WhiskerwaveProcessor::setStateInformation(const void* d, int s)
-{ if (auto xml = getXmlFromBinary(d, s)) apvts.replaceState(juce::ValueTree::fromXml(*xml)); }
+{
+    if (auto xml = getXmlFromBinary(d, s))
+    {
+        auto vt = juce::ValueTree::fromXml(*xml);
+        program = juce::jlimit(0, getNumPrograms() - 1, (int) vt.getProperty("program", 0));
+        apvts.replaceState(vt);
+        refreshTables();
+    }
+}
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() { return new WhiskerwaveProcessor(); }

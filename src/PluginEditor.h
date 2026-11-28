@@ -3,18 +3,23 @@
 #include <catui/CatLookAndFeel.h>
 #include <catui/RenderGate.h>
 
-namespace whisker
+// One control for one parameter: knob, drop-down or toggle, chosen from the parameter type.
+class ParamControl : public juce::Component
 {
-struct Knob
-{
-    juce::Slider s { juce::Slider::RotaryVerticalDrag, juce::Slider::TextBoxBelow };
-    juce::Label l;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> a;
-    void init(juce::Component& parent, juce::AudioProcessorValueTreeState& apvts, const juce::String& id, const juce::String& name);
-    void place(juce::Rectangle<int> r) { l.setBounds(r.removeFromTop(14)); s.setBounds(r); }
+public:
+    ParamControl(juce::AudioProcessorValueTreeState&, const juce::String& id, const juce::String& label);
+    void resized() override;
+private:
+    juce::Label title;
+    juce::Slider slider { juce::Slider::RotaryVerticalDrag, juce::Slider::TextBoxBelow };
+    juce::ComboBox combo;
+    juce::ToggleButton toggle;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> sa;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> ca;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> ba;
+    int kind = 0; // 0 knob, 1 combo, 2 toggle
 };
 
-// Shows the wave at the current position (morph between two neighbours) and its name.
 class WaveView : public juce::Component
 {
 public:
@@ -23,7 +28,6 @@ public:
 private:
     WhiskerwaveProcessor& proc;
 };
-}
 
 class WhiskerwaveEditor : public juce::AudioProcessorEditor
 {
@@ -33,12 +37,13 @@ public:
     void paint(juce::Graphics&) override;
     void resized() override;
 private:
+    struct Section { juce::String name; int cols; std::vector<std::unique_ptr<ParamControl>> ctl; juce::Rectangle<int> area; };
+    void addSection(const juce::String& name, int cols, std::initializer_list<std::pair<const char*, const char*>> items);
     WhiskerwaveProcessor& proc;
     catui::CatLookAndFeel laf;
     catui::RenderGate gate { *this };
-    whisker::WaveView wave;
-    std::array<whisker::Knob, 29> knobs;
-    juce::ComboBox reverbType;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> reverbTypeAttach;
+    WaveView wave;
+    juce::ComboBox presets;
+    std::vector<std::unique_ptr<Section>> sections;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(WhiskerwaveEditor)
 };
