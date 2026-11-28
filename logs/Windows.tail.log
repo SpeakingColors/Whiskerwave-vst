@@ -16,7 +16,7 @@
 -- Exporting juceaide
 -- Testing juceaide
 -- Finished setting up juceaide
--- Configuring done (144.4s)
+-- Configuring done (98.3s)
 -- Generating done (0.1s)
 CMake Warning (unused-cli):
   Manually-specified variables were not used by the project:
@@ -39,7 +39,7 @@ MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
   -- Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/18/Enterprise/VC/Tools/MSVC/14.52.37025/bin/Hostx64/x64/cl.exe - skipped
   -- Detecting CXX compile features
   -- Detecting CXX compile features - done
-  -- Configuring done (2.3s)
+  -- Configuring done (1.2s)
   -- Generating done (0.0s)
   -- Build files have been written to: D:/a/Whiskerwave-vst/Whiskerwave-vst/build/vst3_helpers/Whiskerwave
   MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
@@ -87,3 +87,32 @@ MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
   juce_audio_processors_headless_lv2_libs.cpp
   juce_audio_basics.cpp
   juce_audio_utils.cpp
+  juce_audio_formats.cpp
+  juce_audio_devices.cpp
+  juce_dsp.cpp
+  juce_graphics_Sheenbidi.c
+  Whiskerwave.vcxproj -> D:\a\Whiskerwave-vst\Whiskerwave-vst\build\Whiskerwave_artefacts\Release\Whiskerwave_SharedCode.lib
+  Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/CMakeLists.txt
+  juce_audio_plugin_client_AAX.cpp
+  juce_audio_plugin_client_AAX_utils.cpp
+  juce_audio_plugin_client_ARA.cpp
+  juce_audio_plugin_client_LV2.cpp
+  juce_audio_plugin_client_Standalone.cpp
+  juce_audio_plugin_client_Unity.cpp
+  juce_audio_plugin_client_VST2.cpp
+  juce_audio_plugin_client_VST3.cpp
+     Creating library D:/a/Whiskerwave-vst/Whiskerwave-vst/build/Whiskerwave_artefacts/Release/VST3/Whiskerwave.lib and object D:/a/Whiskerwave-vst/Whiskerwave-vst/build/Whiskerwave_artefacts/Release/VST3/Whiskerwave.exp
+  Whiskerwave_VST3.vcxproj -> D:\a\Whiskerwave-vst\Whiskerwave-vst\build\Whiskerwave_artefacts\Release\VST3\Whiskerwave.vst3\Contents\x86_64-win\Whiskerwave.vst3
+  removing moduleinfo.json
+  creating D:/a/Whiskerwave-vst/Whiskerwave-vst/build/Whiskerwave_artefacts/Release/VST3/Whiskerwave.vst3/Contents/Resources/moduleinfo.json
+  Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/CMakeLists.txt
+  juce_audio_plugin_client_AAX.cpp
+  juce_audio_plugin_client_AAX_utils.cpp
+  juce_audio_plugin_client_ARA.cpp
+  juce_audio_plugin_client_LV2.cpp
+  juce_audio_plugin_client_Standalone.cpp
+  juce_audio_plugin_client_Unity.cpp
+  juce_audio_plugin_client_VST2.cpp
+  juce_audio_plugin_client_VST3.cpp
+  Whiskerwave_Standalone.vcxproj -> D:\a\Whiskerwave-vst\Whiskerwave-vst\build\Whiskerwave_artefacts\Release\Standalone\Whiskerwave.exe
+  Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/CMakeLists.txt
