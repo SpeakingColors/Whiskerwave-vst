@@ -25,8 +25,8 @@ Call Stack (most recent call first):
   CMakeLists.txt:11 (juce_add_plugin)
 
 
--- Configuring done (141.2s)
--- Generating done (0.2s)
+-- Configuring done (138.5s)
+-- Generating done (0.1s)
 CMake Warning (unused-cli):
   Manually-specified variables were not used by the project:
 
@@ -59,8 +59,8 @@ MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
     vst3_helper.vcxproj -> D:\a\Whiskerwave-vst\Whiskerwave-vst\build\vst3_helpers\Whiskerwave\vst3_helper.exe
     Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/extras/Build/CMake/juce_vst3_helper/CMakeLists.txt
   Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/CMakeLists.txt
-  Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/build/_deps/cat_ui-src/CMakeLists.txt
   Generating juce_binarydata_WhiskerBinary/JuceLibraryCode/BinaryData1.cpp, juce_binarydata_WhiskerBinary/JuceLibraryCode/WhiskerBinary.h
+  Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/build/_deps/cat_ui-src/CMakeLists.txt
   CatLookAndFeel.cpp
   CatFrame.cpp
   juce_gui_basics.cpp
