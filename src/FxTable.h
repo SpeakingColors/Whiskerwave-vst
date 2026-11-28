@@ -2,7 +2,7 @@
 #pragma once
 #include "ParamTable.h"
 namespace whisker {
-constexpr int kNumFxTypes = 31; constexpr int kMaxFxParams = 22;
+constexpr int kNumFxTypes = 41; constexpr int kMaxFxParams = 22;
 enum FxType : int {
   FX_eq = 0,
   FX_comp = 1,
@@ -34,7 +34,17 @@ enum FxType : int {
   FX_subx = 27,
   FX_exciter = 28,
   FX_stutter = 29,
-  FX_split = 30,
+  FX_gate = 30,
+  FX_deq = 31,
+  FX_tape = 32,
+  FX_gran = 33,
+  FX_freeze = 34,
+  FX_envf = 35,
+  FX_voc = 36,
+  FX_talk = 37,
+  FX_tune = 38,
+  FX_fatcat = 39,
+  FX_split = 40,
 };
 struct FxParamSpec { const char* key; const char* label; float mn, mx, def; PK kind; const char* unit; const char* tip; const char* const* items; int nItems; };
 struct FxSpec { const char* type; const char* name; const char* cat; const char* tip; int np; const FxParamSpec* ps; int mixIdx; bool special; };
@@ -334,6 +344,144 @@ inline const FxParamSpec kFxPs_stutter[] = {
   {"prob", "Chance", 0.0f, 1.0f, 0.5f, PK::Lin, "", "Chance that a trigger starts a stutter.", nullptr, 0},
   {"mix", "Mix", 0.0f, 1.0f, 1.0f, PK::Lin, "", "Dry/wet balance of this effect. 100% is fully processed.", nullptr, 0},
 };
+inline const FxParamSpec kFxPs_gate[] = {
+  {"thr", "Threshold", -80.0f, 0.0f, -40.0f, PK::Lin, " dB", "The gate opens when the sound is louder than this.", nullptr, 0},
+  {"range", "Range", -80.0f, 0.0f, -80.0f, PK::Lin, " dB", "How far the sound is turned down when the gate is closed. -80 is silence.", nullptr, 0},
+  {"att", "Attack", 0.1f, 50.0f, 1.0f, PK::Exp, " ms", "How fast the gate opens.", nullptr, 0},
+  {"hold", "Hold", 0.0f, 500.0f, 30.0f, PK::Lin, " ms", "How long the gate stays open after the sound drops below the threshold.", nullptr, 0},
+  {"rel", "Release", 5.0f, 2000.0f, 120.0f, PK::Exp, " ms", "How fast the gate closes.", nullptr, 0},
+  {"hyst", "Hysteresis", 0.0f, 12.0f, 4.0f, PK::Lin, " dB", "The gate closes this much below the threshold, so it does not flutter.", nullptr, 0},
+  {"mix", "Mix", 0.0f, 1.0f, 1.0f, PK::Lin, "", "Dry/wet balance of this effect. 100% is fully processed.", nullptr, 0},
+};
+inline const FxParamSpec kFxPs_deq[] = {
+  {"f1", "Band 1 freq", 20.0f, 18000.0f, 150.0f, PK::Exp, " Hz", "Centre of band 1.", nullptr, 0},
+  {"q1", "Band 1 Q", 0.3f, 8.0f, 1.2f, PK::Exp, "", "Width of band 1. Higher is narrower.", nullptr, 0},
+  {"t1", "Band 1 threshold", -60.0f, 0.0f, -24.0f, PK::Lin, " dB", "Band 1 starts to move when its own level passes this. The full range is reached 12 dB above it.", nullptr, 0},
+  {"r1", "Band 1 range", -18.0f, 18.0f, 0.0f, PK::Lin, " dB", "How far band 1 moves when it is loud. Negative cuts (tames harshness or boom), positive boosts. 0 is off.", nullptr, 0},
+  {"f2", "Band 2 freq", 20.0f, 18000.0f, 1200.0f, PK::Exp, " Hz", "Centre of band 2.", nullptr, 0},
+  {"q2", "Band 2 Q", 0.3f, 8.0f, 1.2f, PK::Exp, "", "Width of band 2. Higher is narrower.", nullptr, 0},
+  {"t2", "Band 2 threshold", -60.0f, 0.0f, -24.0f, PK::Lin, " dB", "Band 2 starts to move when its own level passes this. The full range is reached 12 dB above it.", nullptr, 0},
+  {"r2", "Band 2 range", -18.0f, 18.0f, 0.0f, PK::Lin, " dB", "How far band 2 moves when it is loud. Negative cuts (tames harshness or boom), positive boosts. 0 is off.", nullptr, 0},
+  {"f3", "Band 3 freq", 20.0f, 18000.0f, 6000.0f, PK::Exp, " Hz", "Centre of band 3.", nullptr, 0},
+  {"q3", "Band 3 Q", 0.3f, 8.0f, 1.2f, PK::Exp, "", "Width of band 3. Higher is narrower.", nullptr, 0},
+  {"t3", "Band 3 threshold", -60.0f, 0.0f, -24.0f, PK::Lin, " dB", "Band 3 starts to move when its own level passes this. The full range is reached 12 dB above it.", nullptr, 0},
+  {"r3", "Band 3 range", -18.0f, 18.0f, 0.0f, PK::Lin, " dB", "How far band 3 moves when it is loud. Negative cuts (tames harshness or boom), positive boosts. 0 is off.", nullptr, 0},
+  {"att", "Attack", 0.5f, 200.0f, 10.0f, PK::Exp, " ms", "How fast the bands react.", nullptr, 0},
+  {"rel", "Release", 10.0f, 2000.0f, 150.0f, PK::Exp, " ms", "How fast the bands let go.", nullptr, 0},
+};
+inline const FxParamSpec kFxPs_tape[] = {
+  {"drive", "Drive", 0.0f, 24.0f, 6.0f, PK::Lin, " dB", "How hard the tape is hit. More is thicker and more squashed.", nullptr, 0},
+  {"bias", "Bias", -1.0f, 1.0f, 0.2f, PK::Lin, "", "Shifts the tape curve for even harmonics and a warmer tone.", nullptr, 0},
+  {"bump", "Head bump", 0.0f, 9.0f, 2.0f, PK::Lin, " dB", "The low end lift of a tape head, around 95 Hz.", nullptr, 0},
+  {"hf", "High roll-off", 2000.0f, 20000.0f, 13000.0f, PK::Exp, " Hz", "Tape loses highs. Lower is darker and older.", nullptr, 0},
+  {"wow", "Wow", 0.0f, 1.0f, 0.15f, PK::Lin, "", "Slow pitch drift, like an uneven reel.", nullptr, 0},
+  {"flutter", "Flutter", 0.0f, 1.0f, 0.1f, PK::Lin, "", "Fast pitch shake, like a worn tape path.", nullptr, 0},
+  {"hiss", "Hiss", 0.0f, 1.0f, 0.0f, PK::Lin, "", "Tape noise.", nullptr, 0},
+  {"level", "Level", -24.0f, 12.0f, 0.0f, PK::Lin, " dB", "Output level.", nullptr, 0},
+  {"mix", "Mix", 0.0f, 1.0f, 1.0f, PK::Lin, "", "Dry/wet balance of this effect. 100% is fully processed.", nullptr, 0},
+};
+inline const FxParamSpec kFxPs_gran[] = {
+  {"size", "Grain size", 10.0f, 500.0f, 120.0f, PK::Exp, " ms", "Length of one grain. Short is buzzy and glitchy, long is smooth.", nullptr, 0},
+  {"density", "Density", 1.0f, 80.0f, 14.0f, PK::Exp, " /s", "Grains per second. More is a thicker cloud.", nullptr, 0},
+  {"spray", "Spray", 0.0f, 2.0f, 0.12f, PK::Lin, " s", "How far back in time the grains are picked from, at random. More smears the rhythm.", nullptr, 0},
+  {"pitch", "Pitch", -24.0f, 24.0f, 0.0f, PK::Lin, " st", "Pitch of the grains in semitones.", nullptr, 0},
+  {"prand", "Pitch random", 0.0f, 12.0f, 0.0f, PK::Lin, " st", "Random pitch per grain. Small values shimmer, large values scatter.", nullptr, 0},
+  {"rev", "Reverse", 0.0f, 1.0f, 0.0f, PK::Lin, "", "Chance that a grain plays backwards.", nullptr, 0},
+  {"spread", "Stereo", 0.0f, 1.0f, 0.7f, PK::Lin, "", "Random position of each grain between left and right.", nullptr, 0},
+  {"fb", "Feedback", 0.0f, 0.9f, 0.0f, PK::Lin, "", "Feeds the grains back in. With pitch it climbs or falls.", nullptr, 0},
+  {"mix", "Mix", 0.0f, 1.0f, 0.5f, PK::Lin, "", "Dry/wet balance of this effect. 100% is fully processed.", nullptr, 0},
+};
+inline const FxParamSpec kFxPs_freeze[] = {
+  {"on", "On", 0.0f, 1.0f, 0.0f, PK::Int, "", "1 freezes the sound, 0 lets it go. Route a macro, the wheel or a square LFO here to play it.", nullptr, 0},
+  {"size", "Size", 50.0f, 3000.0f, 400.0f, PK::Exp, " ms", "Length of the held moment. Short is a tone, long keeps the movement.", nullptr, 0},
+  {"pitch", "Pitch", -24.0f, 24.0f, 0.0f, PK::Lin, " st", "Pitch of the frozen sound.", nullptr, 0},
+  {"fade", "Fade", 5.0f, 2000.0f, 30.0f, PK::Exp, " ms", "How fast the frozen sound comes in and goes out.", nullptr, 0},
+  {"thru", "Play over", 0.0f, 1.0f, 1.0f, PK::Lin, "", "How much of the live sound still passes while frozen. 0 is only the frozen sound.", nullptr, 0},
+  {"level", "Level", -24.0f, 12.0f, 0.0f, PK::Lin, " dB", "Level of the frozen sound.", nullptr, 0},
+  {"mix", "Mix", 0.0f, 1.0f, 1.0f, PK::Lin, "", "Dry/wet balance of this effect. 100% is fully processed.", nullptr, 0},
+};
+inline const char* const kFxList_envf_type[] = {"Low-pass", "Band-pass", "High-pass", "Notch"};
+inline const FxParamSpec kFxPs_envf[] = {
+  {"type", "Type", 0.0f, 3.0f, 0.0f, PK::List, "", "Which part of the sound the filter lets through.", kFxList_envf_type, 4},
+  {"freq", "Frequency", 40.0f, 8000.0f, 250.0f, PK::Exp, " Hz", "Where the filter rests when the sound is quiet.", nullptr, 0},
+  {"range", "Range", -5.0f, 5.0f, 3.5f, PK::Lin, " oct", "How far the filter moves when the sound is loud. Negative moves down.", nullptr, 0},
+  {"res", "Resonance", 0.0f, 1.0f, 0.6f, PK::Lin, "", "Sharpness of the filter. High values quack.", nullptr, 0},
+  {"sens", "Sensitivity", -12.0f, 36.0f, 12.0f, PK::Lin, " dB", "How easily the sound opens the filter.", nullptr, 0},
+  {"att", "Attack", 0.5f, 200.0f, 8.0f, PK::Exp, " ms", "How fast the filter opens.", nullptr, 0},
+  {"rel", "Release", 10.0f, 2000.0f, 180.0f, PK::Exp, " ms", "How fast the filter falls back.", nullptr, 0},
+  {"mix", "Mix", 0.0f, 1.0f, 1.0f, PK::Lin, "", "Dry/wet balance of this effect. 100% is fully processed.", nullptr, 0},
+};
+inline const char* const kFxList_voc_carrier[] = {"Saw", "Pulse", "Noise", "Chord", "Self", "Track 1", "Track 2", "Track 3", "Track 4"};
+inline const char* const kFxList_voc_bands[] = {"8", "12", "16", "24"};
+inline const FxParamSpec kFxPs_voc[] = {
+  {"carrier", "Carrier", 0.0f, 8.0f, 0.0f, PK::List, "", "What gets shaped. Saw, Pulse and Chord follow the notes you play. Noise whispers. Self reshapes the track with its own tone (use Formant shift). Track 1 to 4 use the sound of another track of this synth.", kFxList_voc_carrier, 9},
+  {"bands", "Bands", 0.0f, 3.0f, 2.0f, PK::List, "", "Number of bands. Few is rough and robotic, many is clearer.", kFxList_voc_bands, 4},
+  {"shift", "Formant shift", -12.0f, 12.0f, 0.0f, PK::Lin, " st", "Moves the shape up or down against the carrier. Small to giant.", nullptr, 0},
+  {"att", "Attack", 0.5f, 100.0f, 4.0f, PK::Exp, " ms", "How fast the bands follow the sound.", nullptr, 0},
+  {"rel", "Release", 5.0f, 1000.0f, 60.0f, PK::Exp, " ms", "How fast the bands fall. Long values smear into a pad.", nullptr, 0},
+  {"tune", "Carrier tune", -24.0f, 24.0f, 0.0f, PK::Int, " st", "Pitch of the built-in carrier against the played note.", nullptr, 0},
+  {"spread", "Stereo", 0.0f, 1.0f, 0.5f, PK::Lin, "", "Detunes the carrier left and right for width.", nullptr, 0},
+  {"unvoiced", "Breath", 0.0f, 1.0f, 0.0f, PK::Lin, "", "Adds noise where the sound has bright, hissy parts, so it stays clear.", nullptr, 0},
+  {"hold", "Hold", 0.0f, 1.0f, 0.0f, PK::Int, "", "1 holds the current shape, like a frozen vowel. Route a macro or LFO here.", nullptr, 0},
+  {"gain", "Gain", -24.0f, 24.0f, 0.0f, PK::Lin, " dB", "Output level.", nullptr, 0},
+  {"mix", "Mix", 0.0f, 1.0f, 1.0f, PK::Lin, "", "Dry/wet balance of this effect. 100% is fully processed.", nullptr, 0},
+};
+inline const char* const kFxList_talk_mode[] = {"LFO", "Steps", "Envelope", "Manual"};
+inline const char* const kFxList_talk_sync[] = {"Hz", "1/1", "1/2", "1/4", "1/8", "1/16", "1/32", "1/4T", "1/8T", "1/16T", "1/4.", "1/8.", "1/16."};
+inline const char* const kFxList_talk_s1[] = {"A", "E", "I", "O", "U"};
+inline const char* const kFxList_talk_s2[] = {"A", "E", "I", "O", "U"};
+inline const char* const kFxList_talk_s3[] = {"A", "E", "I", "O", "U"};
+inline const char* const kFxList_talk_s4[] = {"A", "E", "I", "O", "U"};
+inline const char* const kFxList_talk_s5[] = {"A", "E", "I", "O", "U"};
+inline const char* const kFxList_talk_s6[] = {"A", "E", "I", "O", "U"};
+inline const char* const kFxList_talk_s7[] = {"A", "E", "I", "O", "U"};
+inline const char* const kFxList_talk_s8[] = {"A", "E", "I", "O", "U"};
+inline const FxParamSpec kFxPs_talk[] = {
+  {"mode", "Mode", 0.0f, 3.0f, 1.0f, PK::List, "", "How the mouth moves. LFO sweeps back and forth through the vowels. Steps says them one after the other in time. Envelope opens with the loudness of the sound (wow, yoy). Manual uses the Position knob only.", kFxList_talk_mode, 4},
+  {"rate", "Rate", 0.05f, 20.0f, 2.0f, PK::Exp, " Hz", "Speed of the sweep, or vowels per second in Steps mode.", nullptr, 0},
+  {"sync", "Sync", 0.0f, 12.0f, 0.0f, PK::List, "", "Hz uses the Rate knob. Any other value locks the cycle to the tempo.", kFxList_talk_sync, 13},
+  {"steps", "Vowels", 2.0f, 8.0f, 4.0f, PK::Int, "", "How many of the vowel slots are used.", nullptr, 0},
+  {"s1", "Vowel 1", 0.0f, 4.0f, 0.0f, PK::List, "", "Vowel in slot 1.", kFxList_talk_s1, 5},
+  {"s2", "Vowel 2", 0.0f, 4.0f, 1.0f, PK::List, "", "Vowel in slot 2.", kFxList_talk_s2, 5},
+  {"s3", "Vowel 3", 0.0f, 4.0f, 2.0f, PK::List, "", "Vowel in slot 3.", kFxList_talk_s3, 5},
+  {"s4", "Vowel 4", 0.0f, 4.0f, 3.0f, PK::List, "", "Vowel in slot 4.", kFxList_talk_s4, 5},
+  {"s5", "Vowel 5", 0.0f, 4.0f, 4.0f, PK::List, "", "Vowel in slot 5.", kFxList_talk_s5, 5},
+  {"s6", "Vowel 6", 0.0f, 4.0f, 0.0f, PK::List, "", "Vowel in slot 6.", kFxList_talk_s6, 5},
+  {"s7", "Vowel 7", 0.0f, 4.0f, 3.0f, PK::List, "", "Vowel in slot 7.", kFxList_talk_s7, 5},
+  {"s8", "Vowel 8", 0.0f, 4.0f, 1.0f, PK::List, "", "Vowel in slot 8.", kFxList_talk_s8, 5},
+  {"glide", "Glide", 0.0f, 1.0f, 0.6f, PK::Lin, "", "How smoothly the mouth moves from one vowel to the next in Steps mode. 0 jumps.", nullptr, 0},
+  {"shift", "Formant shift", -1.0f, 1.0f, 0.0f, PK::Lin, "", "Size of the mouth: up to an octave smaller or larger.", nullptr, 0},
+  {"res", "Sharpness", 0.0f, 1.0f, 0.5f, PK::Lin, "", "Narrower formants sound more like a real voice.", nullptr, 0},
+  {"drive", "Drive", 0.0f, 24.0f, 12.0f, PK::Lin, " dB", "Saturation before the mouth, like the driver of a talk box. Makes the vowels speak.", nullptr, 0},
+  {"sens", "Sensitivity", 0.0f, 36.0f, 12.0f, PK::Lin, " dB", "How easily the sound moves the mouth in Envelope mode.", nullptr, 0},
+  {"pos", "Position", 0.0f, 1.0f, 0.0f, PK::Lin, "", "Moves the mouth by hand. Route a macro, the wheel or an envelope here.", nullptr, 0},
+  {"gain", "Gain", -12.0f, 12.0f, 0.0f, PK::Lin, " dB", "Output level.", nullptr, 0},
+  {"mix", "Mix", 0.0f, 1.0f, 1.0f, PK::Lin, "", "Dry/wet balance of this effect. 100% is fully processed.", nullptr, 0},
+};
+inline const char* const kFxList_tune_key[] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+inline const char* const kFxList_tune_scale[] = {"Chromatic", "Major", "Minor", "Harmonic minor", "Major pentatonic", "Minor pentatonic", "Blues", "Dorian", "Mixolydian", "Phrygian", "Whole tone", "Fifths", "Octaves"};
+inline const FxParamSpec kFxPs_tune[] = {
+  {"key", "Key", 0.0f, 11.0f, 0.0f, PK::List, "", "Root note of the scale.", kFxList_tune_key, 12},
+  {"scale", "Scale", 0.0f, 12.0f, 1.0f, PK::List, "", "Notes that are allowed. Notes outside the scale are moved to the nearest one. Chromatic only steps glides and bends.", kFxList_tune_scale, 13},
+  {"speed", "Retune speed", 0.0f, 400.0f, 0.0f, PK::Lin, " ms", "0 jumps to the note at once: the robotic, stepped sound. Slower is more natural.", nullptr, 0},
+  {"amount", "Amount", 0.0f, 1.0f, 1.0f, PK::Lin, "", "How far the pitch is pulled to the scale.", nullptr, 0},
+  {"shift", "Shift", -12.0f, 12.0f, 0.0f, PK::Int, " st", "Extra shift after tuning, for a harmony voice. Use Mix to blend it with the original.", nullptr, 0},
+  {"fine", "Fine", -100.0f, 100.0f, 0.0f, PK::Lin, " ct", "Fine tune in cents.", nullptr, 0},
+  {"win", "Window", 20.0f, 80.0f, 35.0f, PK::Lin, " ms", "Grain size of the pitch shifter. Short is tight, long is smoother.", nullptr, 0},
+  {"mix", "Mix", 0.0f, 1.0f, 1.0f, PK::Lin, "", "Dry/wet balance of this effect. 100% is fully processed.", nullptr, 0},
+};
+inline const char* const kFxList_fatcat_char[] = {"Shipped", "PurrOne stack"};
+inline const FxParamSpec kFxPs_fatcat[] = {
+  {"drive", "Drive", 0.0f, 100.0f, 40.0f, PK::Lin, " %", "How hard the sound is saturated. Smooth and thick up to about 75%, harsher only at the very end. Dynamics are kept at any input level.", nullptr, 0},
+  {"xs", "Transistor", 0.0f, 100.0f, 0.0f, PK::Lin, " %", "Asymmetric soft clip with even harmonics: warm and thick, not buzzy.", nullptr, 0},
+  {"grit", "Grit", 0.0f, 100.0f, 0.0f, PK::Lin, " %", "Lopsided fuzz-style clip. Above 80% it adds a smooth octave-up growl.", nullptr, 0},
+  {"fuzz", "Fuzz", 0.0f, 100.0f, 0.0f, PK::Lin, " %", "Adds clipped highs above about 1.5 kHz for a buzzy, raw top end.", nullptr, 0},
+  {"color", "Color", 0.0f, 100.0f, 0.0f, PK::Lin, " %", "Emphasises one band before the saturation. Low is bass and warmth, high is bite and air.", nullptr, 0},
+  {"turbo", "Stereo Turbo", 0.0f, 100.0f, 0.0f, PK::Lin, " %", "Delays the right side by a few milliseconds for width. Check it in mono.", nullptr, 0},
+  {"char", "Character", 0.0f, 1.0f, 0.0f, PK::List, "", "Shipped is the plain saturation with Transistor and Grit on top. PurrOne stack is the three stage colour shaper of the PurrOne synth.", kFxList_fatcat_char, 2},
+  {"out", "Output", -24.0f, 12.0f, 0.0f, PK::Lin, " dB", "Output level.", nullptr, 0},
+  {"mix", "Mix", 0.0f, 1.0f, 1.0f, PK::Lin, "", "Dry/wet balance of this effect. 100% is fully processed.", nullptr, 0},
+};
 inline const FxParamSpec kFxPs_split[] = {
   {"x1", "Split 1", 40.0f, 1000.0f, 150.0f, PK::Exp, " Hz", "First crossover. Modulate it to sweep the band edge.", nullptr, 0},
   {"x2", "Split 2", 200.0f, 8000.0f, 1800.0f, PK::Exp, " Hz", "Second crossover.", nullptr, 0},
@@ -375,6 +523,16 @@ inline const FxSpec kFx[kNumFxTypes] = {
   {"subx", "Bass Weight", "Tools", "Adds weight and harmonics to the low end so the bass is heard on small speakers and stays mono.", 5, kFxPs_subx, 4, false},
   {"exciter", "Exciter", "Tools", "Adds shine: saturates the highs and mixes the new harmonics in.", 4, kFxPs_exciter, 3, false},
   {"stutter", "Stutter", "Time", "Repeats a slice of the sound on the beat for glitchy rolls.", 4, kFxPs_stutter, 3, false},
+  {"gate", "Noise Gate", "Dynamics", "Turns the sound down when it falls below a level. Cleans tails and noise, or chops a sound short.", 7, kFxPs_gate, 6, false},
+  {"deq", "Dynamic EQ", "Tone", "Three EQ bands that only move when their own frequency range gets loud. Tames harsh or boomy moments and leaves the rest alone.", 14, kFxPs_deq, -1, false},
+  {"tape", "Tape", "Distort", "Tape machine: soft saturation, a low end bump, rolled off highs, slow wow and fast flutter. Warm and slightly unsteady.", 9, kFxPs_tape, 8, false},
+  {"gran", "Granular", "Time", "Cuts the sound into small grains and scatters them in time, pitch and space. Clouds, shimmer, glitches and frozen-like textures.", 9, kFxPs_gran, 8, false},
+  {"freeze", "Freeze", "Time", "Holds the last moment of the sound as an endless loop without clicks. Switch it on by hand, or move On with an LFO, a macro or the mod wheel.", 7, kFxPs_freeze, 6, false},
+  {"envf", "Envelope Filter", "Filter", "Auto-wah: the filter opens with the loudness of the sound itself. Funky quacks, plucky sweeps and talking basses.", 8, kFxPs_envf, 7, false},
+  {"voc", "Vocoder", "Voice", "Robot voice without a microphone. The sound on this track shapes a carrier: a built-in oscillator that follows your notes, the track itself, or another track of the synth.", 11, kFxPs_voc, 10, false},
+  {"talk", "Talk Box", "Voice", "Makes the synth say vowels, with no microphone: up to eight vowel slots moved by an LFO, by steps in time, by the loudness of the sound or by hand.", 20, kFxPs_talk, 19, false},
+  {"tune", "Autotune", "Voice", "Pulls what you play onto a key and scale. It knows the notes from the synth itself, so there is no detection and no delay. With glide or pitch bend it gives the stepped, hard-tuned sound. Best on single lines.", 8, kFxPs_tune, 7, false},
+  {"fatcat", "Fat Cat", "Distort", "The Studio 87 Fat Cat saturator: thick, smooth saturation that keeps the dynamics at any level, with Transistor, Grit and Fuzz stages on top.", 9, kFxPs_fatcat, 8, false},
   {"split", "Band Split", "Routing", "Splits the sound into 2 to 4 bands. Each band gets its own effect chain. Bands can hold more band splitters.", 8, kFxPs_split, 7, true},
 };
 namespace fxp {
@@ -408,7 +566,17 @@ namespace util { enum { p_gain = 0, p_pan = 1, p_mono = 2, p_invert = 3, p_swap 
 namespace subx { enum { p_freq = 0, p_amount = 1, p_harm = 2, p_level = 3, p_mix = 4 }; }
 namespace exciter { enum { p_freq = 0, p_drive = 1, p_amount = 2, p_mix = 3 }; }
 namespace stutter { enum { p_div = 0, p_len = 1, p_prob = 2, p_mix = 3 }; }
+namespace gate { enum { p_thr = 0, p_range = 1, p_att = 2, p_hold = 3, p_rel = 4, p_hyst = 5, p_mix = 6 }; }
+namespace deq { enum { p_f1 = 0, p_q1 = 1, p_t1 = 2, p_r1 = 3, p_f2 = 4, p_q2 = 5, p_t2 = 6, p_r2 = 7, p_f3 = 8, p_q3 = 9, p_t3 = 10, p_r3 = 11, p_att = 12, p_rel = 13 }; }
+namespace tape { enum { p_drive = 0, p_bias = 1, p_bump = 2, p_hf = 3, p_wow = 4, p_flutter = 5, p_hiss = 6, p_level = 7, p_mix = 8 }; }
+namespace gran { enum { p_size = 0, p_density = 1, p_spray = 2, p_pitch = 3, p_prand = 4, p_rev = 5, p_spread = 6, p_fb = 7, p_mix = 8 }; }
+namespace freeze { enum { p_on = 0, p_size = 1, p_pitch = 2, p_fade = 3, p_thru = 4, p_level = 5, p_mix = 6 }; }
+namespace envf { enum { p_type = 0, p_freq = 1, p_range = 2, p_res = 3, p_sens = 4, p_att = 5, p_rel = 6, p_mix = 7 }; }
+namespace voc { enum { p_carrier = 0, p_bands = 1, p_shift = 2, p_att = 3, p_rel = 4, p_tune = 5, p_spread = 6, p_unvoiced = 7, p_hold = 8, p_gain = 9, p_mix = 10 }; }
+namespace talk { enum { p_mode = 0, p_rate = 1, p_sync = 2, p_steps = 3, p_s1 = 4, p_s2 = 5, p_s3 = 6, p_s4 = 7, p_s5 = 8, p_s6 = 9, p_s7 = 10, p_s8 = 11, p_glide = 12, p_shift = 13, p_res = 14, p_drive = 15, p_sens = 16, p_pos = 17, p_gain = 18, p_mix = 19 }; }
+namespace tune { enum { p_key = 0, p_scale = 1, p_speed = 2, p_amount = 3, p_shift = 4, p_fine = 5, p_win = 6, p_mix = 7 }; }
+namespace fatcat { enum { p_drive = 0, p_xs = 1, p_grit = 2, p_fuzz = 3, p_color = 4, p_turbo = 5, p_char = 6, p_out = 7, p_mix = 8 }; }
 namespace split { enum { p_x1 = 0, p_x2 = 1, p_x3 = 2, p_g1 = 3, p_g2 = 4, p_g3 = 5, p_g4 = 6, p_mix = 7 }; }
 }
-inline const char* const kFxCats[] = {"Dynamics", "Tone", "Filter", "Distort", "Modulation", "Time", "Space", "Tools", "Routing"}; constexpr int kNumFxCats = 9;
+inline const char* const kFxCats[] = {"Dynamics", "Tone", "Filter", "Voice", "Distort", "Modulation", "Time", "Space", "Tools", "Routing"}; constexpr int kNumFxCats = 10;
 }

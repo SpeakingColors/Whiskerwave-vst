@@ -28,4 +28,12 @@ run disp "amount=64;freq=300;pinch=1;fb=.7;spread=1"; run disp "amount=1;pinch=-
 run image "width=2;bass=200;mid=-6;side=6;pan=.5"; run haas "time=25;side=0;decor=1;mix=1"
 run util "gain=-12;pan=-.6;mono=1;invert=1;swap=1;dc=1"; run subx "freq=150;amount=1;harm=1;level=6"; run exciter "freq=2000;drive=24;amount=1.5"
 run split "x1=200;x2=1500;g1=-12;g3=6;mix=.7"
+for t in gate deq tape freeze envf voc talk tune fatcat; do run $t ""; done
+run gate "thr=-20;range=-30;hold=100;hyst=10"; run deq "r1=-12;t1=-40;r2=9;t2=-50;r3=-18;t3=-60;q3=4"
+run tape "drive=24;wow=1;flutter=1;bias=-1;bump=9;hf=3000;mix=.5"; run freeze "on=1;size=200;pitch=7;thru=0"
+for k in 1 2 3; do run envf "type=$k;res=.9;range=-3;freq=2000;sens=24"; done
+for k in 1 3 4; do run voc "carrier=$k;shift=5;tune=-12;spread=1"; done; run voc "bands=0;hold=1"; run voc "bands=3;att=50;rel=500"; run voc "carrier=5"
+for k in 0 2 3; do run talk "mode=$k;pos=.4;steps=8;res=1;shift=-.5"; done; run talk "sync=5;glide=0;drive=0"
+run tune "shift=7;mix=.5"; run tune "scale=4;key=1;speed=100"; run tune "fine=50;win=80"
+run fatcat "drive=100"; run fatcat "char=1;drive=70;xs=70;grit=40"; run fatcat "drive=60;fuzz=80;color=60;turbo=50;mix=.5"; run fatcat "char=1;drive=95;xs=95;grit=95;out=-12"; run fatcat "drive=30;xs=60;grit=55;color=15"
 [ $fail = 0 ] && echo "ALL OK" || echo "SOME DIFFS"

@@ -18,7 +18,7 @@ public:
   struct Ev { double t; int on; int n; double v; };
   Ev evq[256]; int nEv = 0;
   int64_t nextStepI = 0; double nextStep = 0; int64_t si = 0; bool arpWas = false;
-  double lastVel = .6, lastKey = .5, lastRnd = 0;
+  double lastVel = .6, lastKey = .5, lastRnd = 0, lastNote = 60, curPitch = 60;
   struct Sm { int k = -1; double n = 0, d = 0, v = 0; int left = 0; }; Sm psm[64];
   float ml[kBlock], mr[kBlock]; Track aux[2], mst, fxo;
   struct Meter { double l = 0, r = 0; }; Meter meter[11]; double limGR = 0;
@@ -59,7 +59,7 @@ public:
   }
   void trigger(int note, double vel) {
     const Idx& ix = I(); const int mode = (int)pv(ix.vmode);
-    lastVel = vel; lastKey = clampd((note - 36) / 60.0, 0, 1); lastRnd = gRng.bi();
+    lastVel = vel; lastKey = clampd((note - 36) / 60.0, 0, 1); lastNote = note; lastRnd = gRng.bi();
     if (mode == 0) {
       for (auto& x : voices) if (x->active && x->gate && x->note == note) { x->fadeKill(6); x->gate = false; break; }
       Voice* v = alloc((int)pv(ix.poly)); if (v->active) v->kill(); S.hasGlide = false; v->start(note, vel, true);
@@ -131,6 +131,8 @@ public:
     else if (arpWas) { arpWas = false; for (int i = 0; i < nEv; i++) if (!evq[i].on) untrigger(evq[i].n); nEv = 0; for (auto& v : voices) if (v->active && v->gate) v->release(); nHeld = 0; nHeldDown = 0; }
     for (int i = 0; i < 4; i++) { const LfoIdx& x = ix.lfo[i]; const int sy = (int)pv(x.sync); const double rate = sy > 0 ? bpm / 60 / kSyncDiv[sy] : pv(x.rate);
       S.gl[i] = glfo[i].tick(dt, rate, (int)pv(x.shape), pv(x.sm), pv(x.fade), S.custom[i], 32); }
+    { const Voice* b = nullptr; for (auto& v : voices) if (v->active && !v->kfd && (!b || v->serial > b->serial)) b = v.get(); curPitch = (b ? b->noteCur : lastNote) + S.bend * pv(ix.bendr); } // pitch of the newest voice, for the Autotune and Vocoder FX
+    if (preFn) preFn(chainCtx);
     for (int t = 0; t < 4; t++) { std::fill(S.tk[t].l, S.tk[t].l + m, 0.f); std::fill(S.tk[t].r, S.tk[t].r + m, 0.f); }
     for (auto& v : voices) if (v->active) { if (v->control(m)) v->render(m); }
     mixdown(m); beat += bb;
@@ -139,7 +141,7 @@ public:
   void peak(int b, const float* L, const float* R, int m) { double pl = 0, pr = 0; for (int i = 0; i < m; i++) { pl = std::max(pl, (double)std::fabs(L[i])); pr = std::max(pr, (double)std::fabs(R[i])); } meter[b].l = std::max(meter[b].l * .92, pl); meter[b].r = std::max(meter[b].r * .92, pr); }
   void runChain(int c, float* L, float* R, int m) { if (chainFn) chainFn(chainCtx, c, L, R, m, 0); }
   void mixdown(int m) {
-    const Idx& ix = I(); if (preFn) preFn(chainCtx);
+    const Idx& ix = I();
     std::fill(mst.l, mst.l + m, 0.f); std::fill(mst.r, mst.r + m, 0.f); std::fill(fxo.l, fxo.l + m, 0.f); std::fill(fxo.r, fxo.r + m, 0.f);
     for (auto& a : aux) { std::fill(a.l, a.l + m, 0.f); std::fill(a.r, a.r + m, 0.f); }
     auto gains = [&](int vi, int pi, double& tl, double& tr) { const double v = pv(vi), pn = pv(pi), tv = v <= -59.9 ? 0 : dbv(v); tl = tv * std::cos((pn * .5 + .5) * kPi / 2) * 1.414; tr = tv * std::sin((pn * .5 + .5) * kPi / 2) * 1.414; };

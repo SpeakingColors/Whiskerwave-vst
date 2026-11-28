@@ -3,6 +3,7 @@
 #include "FxDyn.h"
 #include "FxDist.h"
 #include "FxTime.h"
+#include "FxNew.h"
 namespace whisker {
 inline std::unique_ptr<FxInst> makeFxInst(int type, FxEnv* env) {
   std::unique_ptr<FxInst> p;
@@ -15,6 +16,8 @@ inline std::unique_ptr<FxInst> makeFxInst(int type, FxEnv* env) {
     case FX_delay: p.reset(new FxDelayI()); break; case FX_taps: p.reset(new FxTapsI()); break; case FX_pitch: p.reset(new FxPitchI()); break; case FX_verb: p.reset(new FxVerbI()); break;
     case FX_disp: p.reset(new FxDispI()); break; case FX_image: p.reset(new FxImageI()); break; case FX_haas: p.reset(new FxHaasI()); break; case FX_util: p.reset(new FxUtilI()); break;
     case FX_subx: p.reset(new FxSubxI()); break; case FX_exciter: p.reset(new FxExcI()); break; case FX_stutter: p.reset(new FxStutterI()); break; case FX_split: p.reset(new FxSplitI()); break;
+    case FX_gate: p.reset(new FxGateI()); break; case FX_deq: p.reset(new FxDeqI()); break; case FX_tape: p.reset(new FxTapeI()); break; case FX_gran: p.reset(new FxGranI()); break; case FX_freeze: p.reset(new FxFreezeI()); break;
+    case FX_envf: p.reset(new FxEnvFI()); break; case FX_voc: p.reset(new FxVocI()); break; case FX_talk: p.reset(new FxTalkI()); break; case FX_tune: p.reset(new FxTuneI()); break; case FX_fatcat: p.reset(new FxFatCatI()); break;
     default: break;
   }
   if (p) p->E = env;
