@@ -16,7 +16,10 @@ Free, open source wavetable synth for Linux (VST3). Wavetable oscillators with m
 - Download: [WhiskerWave preview release](https://github.com/SpeakingColors/whiskerwave-vst/releases/tag/v1.9.13-preview) (one zip: WhiskerWave.html, PDF manual, INSTALL.txt).
 - Or open [`docs/mockup/index.html`](docs/mockup/index.html) from this repo in your browser.
 
-The VST3 plugin is **not released yet**: it comes after the C++ port of this exact design. The C++ code in `src/` is still an early scaffold with a placeholder window and is not shipped.
+**VST3 test build v0.2.0.** The plugin now has the full engine, 41 effects, 72 presets and the real window (picture above is the compiled plugin).
+- Download: [WhiskerWave releases](https://github.com/SpeakingColors/whiskerwave-vst/releases) (one zip: installers for Windows, macOS and Linux, PDF manual with a tour of every page, INSTALL.txt).
+- It is a test build: checked by automated comparison with the web engine and by pluginval, not judged by ear yet and not tried in a real DAW by a person.
+- Not in the plugin window yet: Wave Lab, sample loading, the matrix grid view, the Draw and LFO modulator editor, filter curve displays, undo, favourites, themes. See ROADMAP.md.
 
 What the preview has: 6 wavetable oscillators (wavetable, sample and grain engines, unison up to 8, 12 warp modes, FM/AM/ring), sub and noise, 2 filters with 47 types, 8 envelopes, 4 LFOs, drag-to-modulate matrix, 30 effects on tracks and buses, mixer, arp, Wave Lab and 72 presets. Sound quality work so far (measured, not yet heard by ear): lookahead limiter, zero-delay ladder filters, 4x oversampled warp/FM oscillators and distortion effects, phase-aligned dry/wet mixing.
 
