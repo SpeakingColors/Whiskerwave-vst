@@ -25,8 +25,8 @@ Call Stack (most recent call first):
   CMakeLists.txt:11 (juce_add_plugin)
 
 
--- Configuring done (142.3s)
--- Generating done (0.2s)
+-- Configuring done (95.5s)
+-- Generating done (0.1s)
 CMake Warning (unused-cli):
   Manually-specified variables were not used by the project:
 
@@ -39,8 +39,8 @@ MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
   Checking File Globs
   1>Checking Build System
   Generating Whiskerwave_artefacts/JuceLibraryCode/Whiskerwave_resources.rc
-  Building VST3 manifest helper for Whiskerwave
   Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/CMakeLists.txt
+  Building VST3 manifest helper for Whiskerwave
   Whiskerwave_rc_lib.vcxproj -> D:\a\Whiskerwave-vst\Whiskerwave-vst\build\Whiskerwave_rc_lib.dir\Release\Whiskerwave_rc_lib.lib
   -- The CXX compiler identification is MSVC 19.52.37029.0
   -- Detecting CXX compiler ABI info
@@ -48,7 +48,7 @@ MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
   -- Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/18/Enterprise/VC/Tools/MSVC/14.52.37025/bin/Hostx64/x64/cl.exe - skipped
   -- Detecting CXX compile features
   -- Detecting CXX compile features - done
-  -- Configuring done (1.9s)
+  -- Configuring done (1.3s)
   -- Generating done (0.0s)
   -- Build files have been written to: D:/a/Whiskerwave-vst/Whiskerwave-vst/build/vst3_helpers/Whiskerwave
   MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
@@ -59,8 +59,8 @@ MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
     vst3_helper.vcxproj -> D:\a\Whiskerwave-vst\Whiskerwave-vst\build\vst3_helpers\Whiskerwave\vst3_helper.exe
     Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/extras/Build/CMake/juce_vst3_helper/CMakeLists.txt
   Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/CMakeLists.txt
-  Generating juce_binarydata_WhiskerBinary/JuceLibraryCode/BinaryData1.cpp, juce_binarydata_WhiskerBinary/JuceLibraryCode/BinaryData2.cpp, juce_binarydata_WhiskerBinary/JuceLibraryCode/BinaryData3.cpp, juce_binarydata_WhiskerBinary/JuceLibraryCode/BinaryData4.cpp, juce_binarydata_WhiskerBinary/JuceLibraryCode/BinaryData5.cpp, juce_binarydata_WhiskerBinary/JuceLibraryCode/BinaryData6.cpp, juce_binarydata_WhiskerBinary/JuceLibraryCode/BinaryData7.cpp, juce_binarydata_WhiskerBinary/JuceLibraryCode/WhiskerBinary.h
   Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/build/_deps/cat_ui-src/CMakeLists.txt
+  Generating juce_binarydata_WhiskerBinary/JuceLibraryCode/BinaryData1.cpp, juce_binarydata_WhiskerBinary/JuceLibraryCode/BinaryData2.cpp, juce_binarydata_WhiskerBinary/JuceLibraryCode/BinaryData3.cpp, juce_binarydata_WhiskerBinary/JuceLibraryCode/BinaryData4.cpp, juce_binarydata_WhiskerBinary/JuceLibraryCode/BinaryData5.cpp, juce_binarydata_WhiskerBinary/JuceLibraryCode/BinaryData6.cpp, juce_binarydata_WhiskerBinary/JuceLibraryCode/BinaryData7.cpp, juce_binarydata_WhiskerBinary/JuceLibraryCode/WhiskerBinary.h
   CatLookAndFeel.cpp
   CatFrame.cpp
   juce_gui_basics.cpp
@@ -74,9 +74,9 @@ MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
   BinaryData4.cpp
   BinaryData5.cpp
   BinaryData6.cpp
+  juce_gui_basics_5.cpp
   BinaryData7.cpp
   Generating Code...
-  juce_gui_basics_5.cpp
   WhiskerBinary.vcxproj -> D:\a\Whiskerwave-vst\Whiskerwave-vst\build\Release\WhiskerBinary.lib
   juce_graphics.cpp
   juce_graphics_Harfbuzz.cpp
@@ -128,8 +128,8 @@ D:\a\Whiskerwave-vst\Whiskerwave-vst\src\FxDyn.h(64,41): warning C4458: declarat
   juce_audio_plugin_client_ARA.cpp
   juce_audio_plugin_client_LV2.cpp
   juce_audio_plugin_client_Standalone.cpp
-  juce_audio_plugin_client_Unity.cpp
   juce_audio_plugin_client_VST2.cpp
+  juce_audio_plugin_client_Unity.cpp
   juce_audio_plugin_client_VST3.cpp
      Creating library D:/a/Whiskerwave-vst/Whiskerwave-vst/build/Whiskerwave_artefacts/Release/VST3/WhiskerWave.lib and object D:/a/Whiskerwave-vst/Whiskerwave-vst/build/Whiskerwave_artefacts/Release/VST3/WhiskerWave.exp
   Whiskerwave_VST3.vcxproj -> D:\a\Whiskerwave-vst\Whiskerwave-vst\build\Whiskerwave_artefacts\Release\VST3\WhiskerWave.vst3\Contents\x86_64-win\WhiskerWave.vst3
