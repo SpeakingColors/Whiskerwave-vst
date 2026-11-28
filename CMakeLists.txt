@@ -17,7 +17,8 @@ juce_add_plugin(Whiskerwave
     IS_SYNTH TRUE NEEDS_MIDI_INPUT TRUE)
 
 # the 41 wavetables (data/ww_tables.bin, made by tools/export_tables.js) are compiled into the plugin
-juce_add_binary_data(WhiskerBinary NAMESPACE WhiskerBinary HEADER_NAME WhiskerBinary.h SOURCES data/ww_tables.bin data/presets.json)
+juce_add_binary_data(WhiskerBinary NAMESPACE WhiskerBinary HEADER_NAME WhiskerBinary.h SOURCES data/ww_tables.bin data/presets.json
+    data/fonts/barlow_condensed_400.ttf data/fonts/barlow_condensed_600.ttf data/fonts/barlow_condensed_700.ttf data/fonts/jetbrains_mono_400.ttf data/fonts/jetbrains_mono_600.ttf)
 set_target_properties(WhiskerBinary PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_sources(Whiskerwave PRIVATE src/PluginProcessor.cpp src/PluginEditor.cpp)

@@ -49,7 +49,10 @@ public:
     whisker::NodeP nodeFromVar(const juce::var&); juce::var nodeToVar(const whisker::NodeP&) const;
     juce::String freshNodeId();
     void noteFromUi(int note, float vel, bool on) { const juce::SpinLock::ScopedLockType l(uiLock); uiNotes.addEvent(on ? juce::MidiMessage::noteOn(1, note, vel) : juce::MidiMessage::noteOff(1, note), 0); }
+    void midiFromUi(const juce::MidiMessage& m) { const juce::SpinLock::ScopedLockType l(uiLock); uiNotes.addEvent(m, 0); }
     void panicFromUi() { wantPanic = true; }
+    float paramValue(int i) const { return rawP[(size_t) i]->load(); }
+    int tableOf(int osc) const { return (int) rawTab[osc]->load(); }
 
     juce::AudioProcessorValueTreeState apvts;
     whisker::TableCache tables;

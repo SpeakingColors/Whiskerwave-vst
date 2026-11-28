@@ -25,7 +25,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libasound2-dev libx11-dev libxinerama-dev libxext-dev libxrandr-dev libxcursor-dev libxcomposite-dev libfreetype-dev libfontconfig1-dev libgl1-mesa-dev
+          sudo apt-get install -y libasound2-dev libx11-dev libxinerama-dev libxext-dev libxrandr-dev libxcursor-dev libxcomposite-dev libfreetype-dev libfontconfig1-dev libgl1-mesa-dev xvfb
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release  2>&1 | tee -a ci.log; exit ${PIPESTATUS[0]}
       - name: Build
@@ -35,6 +35,12 @@ jobs:
           name: Whiskerwave-${{ runner.os }}
           path: build/Whiskerwave_artefacts/
           if-no-files-found: warn
+      - name: Pictures of the window (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p /tmp/shots
+          WW_SNAPSHOT_DIR=/tmp/shots timeout 90 xvfb-run -a -s "-screen 0 1600x1100x24" "build/Whiskerwave_artefacts/Release/Standalone/WhiskerWave" 2>&1 | tail -n 30 || true
+          ls -la /tmp/shots || true
       - name: Publish log to ci-log branch
         if: always()
         run: |
@@ -45,5 +51,6 @@ jobs:
           git checkout -B ci-log $(git rev-parse --verify -q origin/ci-log || echo HEAD)
           [ -n "$(git rev-parse --verify -q origin/ci-log)" ] || git rm -rf -q . || true
           mkdir -p logs && cp /tmp/logpub/*.tail.log logs/ && git add logs
+          if ls /tmp/shots/*.png >/dev/null 2>&1; then mkdir -p shots && cp /tmp/shots/*.png shots/ && git add shots; fi
           git commit -q -m "ci log ${{ runner.os }} $GITHUB_SHA" || true
           git push origin ci-log || true
