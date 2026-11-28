@@ -25,8 +25,8 @@ Call Stack (most recent call first):
   CMakeLists.txt:11 (juce_add_plugin)
 
 
--- Configuring done (141.8s)
--- Generating done (0.2s)
+-- Configuring done (142.7s)
+-- Generating done (0.1s)
 CMake Warning (unused-cli):
   Manually-specified variables were not used by the project:
 
@@ -39,8 +39,8 @@ MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
   Checking File Globs
   1>Checking Build System
   Generating Whiskerwave_artefacts/JuceLibraryCode/Whiskerwave_resources.rc
-  Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/CMakeLists.txt
   Building VST3 manifest helper for Whiskerwave
+  Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/CMakeLists.txt
   Whiskerwave_rc_lib.vcxproj -> D:\a\Whiskerwave-vst\Whiskerwave-vst\build\Whiskerwave_rc_lib.dir\Release\Whiskerwave_rc_lib.lib
   -- The CXX compiler identification is MSVC 19.52.37029.0
   -- Detecting CXX compiler ABI info
@@ -48,7 +48,7 @@ MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
   -- Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/18/Enterprise/VC/Tools/MSVC/14.52.37025/bin/Hostx64/x64/cl.exe - skipped
   -- Detecting CXX compile features
   -- Detecting CXX compile features - done
-  -- Configuring done (2.0s)
+  -- Configuring done (1.9s)
   -- Generating done (0.0s)
   -- Build files have been written to: D:/a/Whiskerwave-vst/Whiskerwave-vst/build/vst3_helpers/Whiskerwave
   MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
@@ -59,8 +59,8 @@ MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
     vst3_helper.vcxproj -> D:\a\Whiskerwave-vst\Whiskerwave-vst\build\vst3_helpers\Whiskerwave\vst3_helper.exe
     Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/build/_deps/juce-src/extras/Build/CMake/juce_vst3_helper/CMakeLists.txt
   Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/CMakeLists.txt
-  Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/build/_deps/cat_ui-src/CMakeLists.txt
   Generating juce_binarydata_WhiskerBinary/JuceLibraryCode/BinaryData1.cpp, juce_binarydata_WhiskerBinary/JuceLibraryCode/WhiskerBinary.h
+  Building Custom Rule D:/a/Whiskerwave-vst/Whiskerwave-vst/build/_deps/cat_ui-src/CMakeLists.txt
   CatLookAndFeel.cpp
   CatFrame.cpp
   juce_gui_basics.cpp
@@ -84,16 +84,6 @@ MSBuild version 18.12.3-1.26559.12+8df097b6f for .NET Framework
   PluginEditor.cpp
   juce_audio_processors.cpp
   juce_gui_extra.cpp
-D:\a\Whiskerwave-vst\Whiskerwave-vst\src\Voice.h(236,30): warning C4458: declaration of 's1' hides class member [D:\a\Whiskerwave-vst\Whiskerwave-vst\build\Whiskerwave.vcxproj]
-  (compiling source file '../src/PluginProcessor.cpp')
-      D:\a\Whiskerwave-vst\Whiskerwave-vst\src\Voice.h(282,27):
-      see declaration of 'whisker::Voice::s1'
-  
-D:\a\Whiskerwave-vst\Whiskerwave-vst\src\Voice.h(236,30): warning C4458: declaration of 's1' hides class member [D:\a\Whiskerwave-vst\Whiskerwave-vst\build\Whiskerwave.vcxproj]
-  (compiling source file '../src/PluginEditor.cpp')
-      D:\a\Whiskerwave-vst\Whiskerwave-vst\src\Voice.h(282,27):
-      see declaration of 'whisker::Voice::s1'
-  
   juce_gui_basics.cpp
   juce_gui_basics_2.cpp
   juce_gui_basics_3.cpp
