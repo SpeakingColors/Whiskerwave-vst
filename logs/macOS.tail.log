@@ -6,6 +6,12 @@ In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Voi
 /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Tables.h:66:27: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
    66 |         if (sw != 0 || sk != 0)
       |                        ~~ ^  ~
+In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.cpp:1:
+In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.h:3:
+In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxFactory.h:3:
+/Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxDyn.h:79:20: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+   79 |     if (!ll || lsr != sr) { ll.reset(new LookLim(sr)); lsr = sr; adl.assign((size_t)ll->M, 0.f); adr.assign((size_t)ll->M, 0.f); aw = 0; }
+      |                ~~~ ^  ~~
 In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp:1:
 In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.h:2:
 In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Ui.h:4:
@@ -21,12 +27,6 @@ In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Voi
 /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Mod.h:45:58: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
    45 |     if (st == 1 && x == 0 && t <= dt * 1000 + 1e-9 && a0 == 0) v = yy;
       |                                                       ~~ ^  ~
-In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.cpp:1:
-In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.h:3:
-In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxFactory.h:3:
-/Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxDyn.h:79:20: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
-   79 |     if (!ll || lsr != sr) { ll.reset(new LookLim(sr)); lsr = sr; adl.assign((size_t)ll->M, 0.f); adr.assign((size_t)ll->M, 0.f); aw = 0; }
-      |                ~~~ ^  ~~
 In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp:1:
 In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.h:2:
 In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Ui.h:4:
@@ -291,22 +291,22 @@ In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxF
 /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxNew.h:128:61: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
   128 |     if (nb != knb || std::fabs(shift - kshift) > 1e-4 || sr != ksr) { knb = nb; kshift = shift; ksr = sr;
       |                                                          ~~ ^  ~~~
-/Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxNew.h:224:15: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
-  224 |     if (drive != kd || xs != kx || gz != kz || (int)pur != kp) { kd = drive; kx = xs; kz = gz; kp = pur; S.pur = pur; S.d = drive; S.x = xs; S.z = gz;
-      |         ~~~~~ ^  ~~
-/Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxNew.h:224:27: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
-  224 |     if (drive != kd || xs != kx || gz != kz || (int)pur != kp) { kd = drive; kx = xs; kz = gz; kp = pur; S.pur = pur; S.d = drive; S.x = xs; S.z = gz;
-      |                        ~~ ^  ~~
-/Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxNew.h:224:39: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
-  224 |     if (drive != kd || xs != kx || gz != kz || (int)pur != kp) { kd = drive; kx = xs; kz = gz; kp = pur; S.pur = pur; S.d = drive; S.x = xs; S.z = gz;
-      |                                    ~~ ^  ~~
 In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginProcessor.cpp:2:
 In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.h:2:
 /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Ui.h:22:26: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
    22 |     return letterSpacing != 0 ? f.withExtraKerningFactor(letterSpacing / px) : f;
       |            ~~~~~~~~~~~~~ ^  ~
-/Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Ui.h:31:152: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
-   31 |     double toN(double v) const { if (kind == whisker::PK::Exp) return std::log(std::max(v, mn) / mn) / std::log(mx / mn); return (v - mn) / ((mx - mn) != 0 ? (mx - mn) : 1.0); }
+/Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxNew.h:224:15: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+  224 |     if (drive != kd || xs != kx || gz != kz || (int)pur != kp) { kd = drive; kx =/Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Ui.h :x31s:;152 :k zwarning:  comparing floating point with == or != is unsafe [-Wfloat-equal]=
+ gz; kp = pur;    31S | . p u r  d=o upbulre;  tSo.Nd( d=o udbrliev ev;)  Sc.oxn s=t  x{s ;i fS .(zk i=n dg z=;=
+       w| h        ~~~~~ ^  ~~i
+sker:/Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxNew.h:224:27: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+  224 |     if (drive != kd || xs != kx || gz != kz || (int)pur != kp) { kd = drive; kx = xs; kz = gz; kp = pur; S.pur = pur; S.d = drive; S.x = xs; S.z = gz;
+      |                        ~~ ^  ~~
+/Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/FxNew.h:224:39: warning: comparing floating point with == or != is unsafe [-Wfloat-equal]
+  224 |     if (drive != kd || xs != kx || gz != kz || (int)pur != kp) { kd = drive; kx = xs; kz = gz; kp = pur; S.pur = pur; S.d = drive; S.x = xs; S.z = gz;
+      |                                    ~~ ^  ~~
+:PK::Exp) return std::log(std::max(v, mn) / mn) / std::log(mx / mn); return (v - mn) / ((mx - mn) != 0 ? (mx - mn) : 1.0); }
       |                                                                                                                                              ~~~~~~~~~ ^  ~
 In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.cpp:1:
 In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/PluginEditor.h:2:
@@ -366,24 +366,24 @@ In file included from /Users/runner/work/Whiskerwave-vst/Whiskerwave-vst/src/Plu
 [ 65%] Built target Whiskerwave
 [ 68%] Generating Whiskerwave_artefacts/JuceLibraryCode/Whiskerwave_VST3/PkgInfo
 [ 68%] Generating Whiskerwave_artefacts/JuceLibraryCode/Whiskerwave_Standalone/PkgInfo
-[ 69%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
+[ 71%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
 [ 72%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
 [ 72%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
-[ 73%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
-[ 75%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
-[ 76%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
-[ 77%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.mm.o
-[ 78%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AU_1.mm.o
-[ 80%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AU_2.mm.o
-[ 82%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
-[ 82%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AUv3.mm.o
-[ 84%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
-[ 85%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.mm.o
-[ 86%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.mm.o
-[ 88%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.mm.o
-[ 89%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.mm.o
-[ 90%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AU_1.mm.o
-[ 92%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AU_2.mm.o
+[ 73%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
+[ 75%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
+[ 76%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
+[ 77%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
+[ 78%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
+[ 80%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.mm.o
+[ 81%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AU_1.mm.o
+[ 82%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.mm.o
+[ 84%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AU_2.mm.o
+[ 85%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AUv3.mm.o
+[ 86%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AU_1.mm.o
+[ 88%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.mm.o
+[ 89%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.mm.o
+[ 90%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AU_2.mm.o
+[ 92%] Building CXX object CMakeFiles/Whiskerwave_VST3.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.mm.o
 [ 93%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_AUv3.mm.o
 [ 94%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.mm.o
 [ 96%] Building CXX object CMakeFiles/Whiskerwave_Standalone.dir/_deps/juce-src/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.mm.o
