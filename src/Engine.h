@@ -1,284 +1,181 @@
-// Whiskerwave engine core, ported from the mockup's JS engine (dsp1/dsp2/dsp_filt).
-// Milestone 1: wavetable oscillators A, B, C with unison, sub, noise, filters, two envelopes.
-// Not ported yet: warp modes, FM/AM, feedback, sample/granular engines, modulation matrix, FX chains, arp.
+// Engine: voices, mono/legato/poly, arp, global LFOs, tracks, buses and master limiter (port of Engine in dsp3d.js).
+// Audio thread only; the processor feeds it through Engine::noteOn/noteOff/setSmooth and friends.
 #pragma once
-#include <array>
-#include <cassert>
-#include <string>
-#include <atomic>
-#include <cmath>
-#include <cstdint>
+#include "Voice.h"
+#include "Limiter.h"
 #include <memory>
-#include <mutex>
-#include <vector>
-#include "TableNames.h"
+namespace whisker {
+struct ArpSeq { int len = 16; double on[16], vel[16], semi[16], rat[16]; ArpSeq() { for (int i = 0; i < 16; i++) { on[i] = 1; vel[i] = 1; semi[i] = 0; rat[i] = 1; } } };
+using ChainFn = void (*)(void* ctx, int chain, float* L, float* R, int n, int depth);
 
-namespace whisker
-{
-constexpr double kPi = 3.14159265358979323846;
-constexpr double kTau = 2.0 * kPi;
-constexpr int kBlock = 32;           // control rate block, like the JS engine
-constexpr int kMaxVoices = 32;
-constexpr int kLevels = 11;          // band-limited copies of every frame
-constexpr int kStride = kTableLen + 1;
-
-inline double clampd(double x, double a, double b) { return x < a ? a : (x > b ? b : x); }
-inline double mtof(double n) { return 440.0 * std::pow(2.0, (n - 69.0) / 12.0); }
-inline double fastTanh(double x)
-{
-    if (x > 3) return 1;
-    if (x < -3) return -1;
-    const double x2 = x * x; return x * (27 + x2) / (27 + 9 * x2);
-}
-inline double curveG(double x, double k) { return std::abs(k) < 1e-3 ? x : (1 - std::exp(-k * x)) / (1 - std::exp(-k)); }
-
-// ---------------------------------------------------------------- wavetables
-inline void fftInPlace(std::vector<double>& re, std::vector<double>& im, bool inverse)
-{
-    const int n = (int) re.size();
-    for (int i = 1, j = 0; i < n; ++i)
-    {
-        int bit = n >> 1;
-        for (; j & bit; bit >>= 1) j ^= bit;
-        j ^= bit;
-        if (i < j) { std::swap(re[(size_t) i], re[(size_t) j]); std::swap(im[(size_t) i], im[(size_t) j]); }
-    }
-    for (int len = 2; len <= n; len <<= 1)
-    {
-        const double ang = (inverse ? 2.0 : -2.0) * kPi / len, wr = std::cos(ang), wi = std::sin(ang);
-        const int h = len >> 1;
-        for (int i = 0; i < n; i += len)
-        {
-            double cr = 1, ci = 0;
-            for (int k = 0; k < h; ++k)
-            {
-                const size_t a = (size_t) (i + k), b = a + (size_t) h;
-                const double xr = re[b] * cr - im[b] * ci, xi = re[b] * ci + im[b] * cr;
-                re[b] = re[a] - xr; im[b] = im[a] - xi; re[a] += xr; im[a] += xi;
-                const double t = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = t;
-            }
-        }
-    }
-    if (inverse) for (int i = 0; i < n; ++i) { re[(size_t) i] /= n; im[(size_t) i] /= n; }
-}
-
-struct Table
-{
-    std::vector<float> d; // [(level * frames + frame) * kStride + i]
-    const float* frame(int level, int f) const { return &d[((size_t) level * kTableFrames + (size_t) f) * kStride]; }
-};
-
-// Builds the 11 band-limited levels of one table exactly like WT.build() in the JS engine.
-inline std::unique_ptr<Table> buildTable(const int16_t* src, bool taper)
-{
-    auto t = std::make_unique<Table>();
-    t->d.assign((size_t) kLevels * kTableFrames * kStride, 0.f);
-    const int N = kTableLen, H = N / 2;
-    std::vector<double> re((size_t) N), im((size_t) N), r((size_t) N), i2((size_t) N);
-    for (int f = 0; f < kTableFrames; ++f)
-    {
-        for (int i = 0; i < N; ++i) { re[(size_t) i] = src[(size_t) f * N + (size_t) i] / 32767.0; im[(size_t) i] = 0; }
-        fftInPlace(re, im, false);
-        for (int m = 0; m < kLevels; ++m)
-        {
-            const int maxH = std::max(1, H >> m), t0 = (int) std::floor(maxH * 0.7);
-            std::fill(r.begin(), r.end(), 0.0); std::fill(i2.begin(), i2.end(), 0.0);
-            for (int k = 1; k <= maxH && k < H; ++k)
-            {
-                const double g = (taper && m > 0 && k > t0) ? 0.5 + 0.5 * std::cos(kPi * (k - t0) / (maxH + 1 - t0)) : 1.0;
-                r[(size_t) k] = re[(size_t) k] * g; i2[(size_t) k] = im[(size_t) k] * g;
-                r[(size_t) (N - k)] = re[(size_t) (N - k)] * g; i2[(size_t) (N - k)] = im[(size_t) (N - k)] * g;
-            }
-            fftInPlace(r, i2, true);
-            float* o = &t->d[((size_t) m * kTableFrames + (size_t) f) * kStride];
-            for (int i = 0; i < N; ++i) o[i] = (float) r[(size_t) i];
-            o[N] = o[0];
-        }
-    }
-    return t;
-}
-
-// Holds every table that was ever asked for, so the audio thread can use plain pointers without freeing anything.
-class TableCache
-{
+class Engine {
 public:
-    void setSource(const void* data, size_t bytes)
-    { src = static_cast<const int16_t*>(data); assert(bytes >= (size_t) kNumTables * kTableFrames * kTableLen * 2); (void) bytes; }
-    const Table* get(int index) // message thread only (may build)
-    {
-        index = std::max(0, std::min(kNumTables - 1, index));
-        std::lock_guard<std::mutex> lk(m);
-        if (!tabs[(size_t) index] && src)
-        {
-            const std::string cat = kTableCats[index];
-            tabs[(size_t) index] = buildTable(src + (size_t) index * kTableFrames * kTableLen, cat == "FM" || cat == "Bell");
+  Shared S; std::unique_ptr<Voice> voices[kMaxVoices];
+  Lfo glfo[4]; ArpSeq seq;
+  double beat = 0; int nHeldDown = 0;
+  struct Note { int n; double v; };
+  Note held[64]; int nHeld = 0; Note mstack[64]; int nMstack = 0;
+  struct Ev { double t; int on; int n; double v; };
+  Ev evq[256]; int nEv = 0;
+  int64_t nextStepI = 0; double nextStep = 0; int64_t si = 0; bool arpWas = false;
+  double lastVel = .6, lastKey = .5, lastRnd = 0;
+  struct Sm { int k = -1; double n = 0, d = 0, v = 0; int left = 0; }; Sm psm[64];
+  float ml[kBlock], mr[kBlock]; Track aux[2], mst, fxo;
+  struct Meter { double l = 0, r = 0; }; Meter meter[11]; double limGR = 0;
+  float scope[2048] = {}; int sp = 0;
+  double bgL[8] = {}, bgR[8] = {}; bool bgInit[8] = {};
+  std::unique_ptr<LookLim> mlim;
+  ChainFn chainFn = nullptr; void* chainCtx = nullptr;
+  double wheelT = 0, bendT = 0, atT = 0;
+
+  explicit Engine(double sr) { S.sr = sr; for (int i = 0; i < kMaxVoices; i++) voices[i] = std::make_unique<Voice>(S, i); mlim = std::make_unique<LookLim>(sr); }
+  void setSampleRate(double sr) { S.sr = sr; for (auto& v : voices) v->ks = 1 - std::exp(-1 / (sr * .00035)); mlim = std::make_unique<LookLim>(sr); }
+  const Idx& I() const { return idx(); }
+  double pv(int k) const { return S.pv[k]; }
+  void setParam(int k, double v) { S.setParam(k, v); }
+  void setSmooth(int k, double v) {
+    const ParamSpec& p = kParams[k];
+    if (p.kind == PK::List || p.kind == PK::Int) { for (auto& m : psm) if (m.k == k) m.k = -1; setParam(k, v); return; }
+    const double n0 = S.bn[k], n1 = toNorm(k, v); const int steps = std::max(1, (int)std::lround(S.sr * .015 / kBlock));
+    if (std::fabs(n1 - n0) < 1e-9) { setParam(k, v); for (auto& m : psm) if (m.k == k) m.k = -1; return; }
+    Sm* slot = nullptr; for (auto& m : psm) if (m.k == k) { slot = &m; break; } if (!slot) for (auto& m : psm) if (m.k < 0) { slot = &m; break; }
+    if (!slot) { setParam(k, v); return; }
+    slot->k = k; slot->n = n1; slot->d = (n1 - n0) / steps; slot->left = steps; slot->v = v;
+  }
+  // ---- voices
+  Voice* alloc(int poly) {
+    int live = 0; for (auto& v : voices) if (v->active && !v->kfd) live++;
+    auto freeV = [&]() -> Voice* { for (auto& v : voices) if (!v->active) return v.get(); return nullptr; };
+    if (live < poly) { if (Voice* f = freeV()) return f; }
+    Voice* best = nullptr;
+    for (auto& v : voices) { if (!v->active || v->kfd) continue; if (!v->gate && (!best || v->serial < best->serial)) best = v.get(); }
+    if (!best) for (auto& v : voices) { if (!v->active || v->kfd) continue; if (!best || v->serial < best->serial) best = v.get(); }
+    if (best) best->fadeKill(6);
+    if (Voice* f = freeV()) return f;
+    Voice* o = nullptr; for (auto& v : voices) if (v->kfd && (!o || v->kf < o->kf)) o = v.get();
+    if (o) { o->kill(); return o; }
+    if (best) { best->kill(); return best; }
+    return voices[0].get();
+  }
+  void trigger(int note, double vel) {
+    const Idx& ix = I(); const int mode = (int)pv(ix.vmode);
+    lastVel = vel; lastKey = clampd((note - 36) / 60.0, 0, 1); lastRnd = gRng.bi();
+    if (mode == 0) {
+      for (auto& x : voices) if (x->active && x->gate && x->note == note) { x->fadeKill(6); x->gate = false; break; }
+      Voice* v = alloc((int)pv(ix.poly)); if (v->active) v->kill(); S.hasGlide = false; v->start(note, vel, true);
+    } else {
+      Voice* v = voices[0].get(); const bool leg = mode == 2 && v->active && v->gate;
+      S.hasGlide = v->active; S.glideFrom = v->noteCur;
+      int j = 0; for (int i = 0; i < nMstack; i++) if (mstack[i].n != note) mstack[j++] = mstack[i]; nMstack = j; if (nMstack < 64) mstack[nMstack++] = {note, vel};
+      v->start(note, vel, !leg);
+    }
+  }
+  void untrigger(int note) {
+    const Idx& ix = I();
+    if ((int)pv(ix.vmode) == 0) { for (auto& v : voices) if (v->active && v->gate && v->note == note) v->release(); return; }
+    int j = 0; for (int i = 0; i < nMstack; i++) if (mstack[i].n != note) mstack[j++] = mstack[i]; nMstack = j;
+    Voice* v = voices[0].get(); if (!v->active || !v->gate || v->note != note) return;
+    if (nMstack) { const Note b = mstack[nMstack - 1]; S.hasGlide = true; S.glideFrom = v->noteCur; v->start(b.n, b.v, (int)pv(ix.vmode) == 1); } else v->release();
+  }
+  void noteOn(int note, double vel = .8) {
+    const Idx& ix = I();
+    if (pv(ix.arpOn) != 0) {
+      if (pv(ix.arpHold) != 0 && nHeldDown == 0) nHeld = 0; nHeldDown++;
+      int j = 0; for (int i = 0; i < nHeld; i++) if (held[i].n != note) held[j++] = held[i]; nHeld = j; if (nHeld < 64) held[nHeld++] = {note, vel}; return;
+    }
+    trigger(note, vel);
+  }
+  void noteOff(int note) {
+    const Idx& ix = I();
+    if (pv(ix.arpOn) != 0) { nHeldDown = std::max(0, nHeldDown - 1); if (pv(ix.arpHold) == 0) { int j = 0; for (int i = 0; i < nHeld; i++) if (held[i].n != note) held[j++] = held[i]; nHeld = j; } return; }
+    untrigger(note);
+  }
+  void panic() { for (auto& v : voices) v->kill(); nHeld = 0; nMstack = 0; nEv = 0; nHeldDown = 0; }
+  // ---- arp
+  void tickArp(double bb) {
+    const Idx& ix = I(); static const double DIV[6] = {1, .5, .25, .125, 1.0 / 3, 1.0 / 6}; const double div = DIV[(int)pv(ix.arpRate) % 6]; const double end = beat + bb;
+    if (!arpWas) { arpWas = true; si = (int64_t)std::ceil(beat / div); nextStep = si * div; }
+    while (nextStep < end) {
+      const double t = nextStep;
+      Note list[256]; int ln = 0; { Note base[64]; int bn = nHeld; for (int i = 0; i < nHeld; i++) base[i] = held[i];
+        if ((int)pv(ix.arpMode) != 4) std::sort(base, base + bn, [](const Note& a, const Note& b) { return a.n < b.n; });
+        const int oc = std::max(1, (int)pv(ix.arpOct)); for (int o = 0; o < oc; o++) for (int i = 0; i < bn && ln < 256; i++) list[ln++] = {base[i].n + 12 * o, base[i].v}; }
+      if (ln) {
+        const int L = seq.len, i = (int)(si % L), mode = (int)pv(ix.arpMode);
+        if (seq.on[i] != 0) {
+          const double swing = (si % 2) ? pv(ix.arpSwing) * div : 0; Note notes[256]; int nn = 0;
+          if (mode == 5) { for (int k = 0; k < ln; k++) notes[nn++] = list[k]; }
+          else { int idxn = (int)(si % ln);
+            if (mode == 0 || mode == 4) idxn = (int)(si % ln); else if (mode == 1) idxn = ln - 1 - (int)(si % ln);
+            else if (mode == 2) { const int per = std::max(1, 2 * ln - 2), p = (int)(si % per); idxn = p < ln ? p : per - p; } else idxn = (int)std::floor(gRng.next() * ln);
+            notes[nn++] = list[idxn]; }
+          const double r = seq.rat[i] ? seq.rat[i] : 1; const double sub = div / r, gl_ = sub * pv(ix.arpGate);
+          for (int k = 0; k < (int)r; k++) for (int q = 0; q < nn; q++) {
+            const int nnn = notes[q].n + (int)seq.semi[i]; const double v = clampd(notes[q].v * seq.vel[i], .05, 1), t0 = t + swing + k * sub;
+            if (nEv < 254) { evq[nEv++] = {t0, 1, nnn, v}; evq[nEv++] = {t0 + gl_, 0, nnn, 0}; }
+          }
         }
-        return tabs[(size_t) index].get();
+      }
+      si++; nextStep = si * div;
     }
-private:
-    const int16_t* src = nullptr;
-    std::mutex m;
-    std::array<std::unique_ptr<Table>, kNumTables> tabs;
+    std::stable_sort(evq, evq + nEv, [](const Ev& a, const Ev& b) { return a.t < b.t; });
+    int k = 0; while (k < nEv && evq[k].t < end) { if (evq[k].on) trigger(evq[k].n, evq[k].v); else untrigger(evq[k].n); k++; }
+    for (int i = k; i < nEv; i++) evq[i - k] = evq[i]; nEv -= k;
+  }
+  // ---- blocks
+  void block(int m) {
+    const Idx& ix = I(); const double sr = S.sr, dt = m / sr, bpm = pv(ix.bpm), bb = m * bpm / 60 / sr;
+    for (auto& q : psm) { if (q.k < 0) continue; if (--q.left <= 0) { setParam(q.k, q.v); q.k = -1; } else { const double nn = S.bn[q.k] + q.d; S.bn[q.k] = nn; S.pv[q.k] = fromNorm(q.k, nn); } }
+    { const double kk = 1 - std::exp(-dt / .008); S.wheel += (wheelT - S.wheel) * kk; S.bend += (bendT - S.bend) * kk; S.at += (atT - S.at) * kk; }
+    if (pv(ix.arpOn) != 0) tickArp(bb);
+    else if (arpWas) { arpWas = false; for (int i = 0; i < nEv; i++) if (!evq[i].on) untrigger(evq[i].n); nEv = 0; for (auto& v : voices) if (v->active && v->gate) v->release(); nHeld = 0; nHeldDown = 0; }
+    for (int i = 0; i < 4; i++) { const LfoIdx& x = ix.lfo[i]; const int sy = (int)pv(x.sync); const double rate = sy > 0 ? bpm / 60 / kSyncDiv[sy] : pv(x.rate);
+      S.gl[i] = glfo[i].tick(dt, rate, (int)pv(x.shape), pv(x.sm), pv(x.fade), S.custom[i], 32); }
+    for (int t = 0; t < 4; t++) { std::fill(S.tk[t].l, S.tk[t].l + m, 0.f); std::fill(S.tk[t].r, S.tk[t].r + m, 0.f); }
+    for (auto& v : voices) if (v->active) { if (v->control(m)) v->render(m); }
+    mixdown(m); beat += bb;
+  }
+  void swapG(int b, double tl, double tr, double& pl, double& pr) { if (!bgInit[b]) { bgL[b] = tl; bgR[b] = tr; bgInit[b] = true; } pl = bgL[b]; pr = bgR[b]; bgL[b] = tl; bgR[b] = tr; }
+  void peak(int b, const float* L, const float* R, int m) { double pl = 0, pr = 0; for (int i = 0; i < m; i++) { pl = std::max(pl, (double)std::fabs(L[i])); pr = std::max(pr, (double)std::fabs(R[i])); } meter[b].l = std::max(meter[b].l * .92, pl); meter[b].r = std::max(meter[b].r * .92, pr); }
+  void runChain(int c, float* L, float* R, int m) { if (chainFn) chainFn(chainCtx, c, L, R, m, 0); }
+  void mixdown(int m) {
+    const Idx& ix = I();
+    std::fill(mst.l, mst.l + m, 0.f); std::fill(mst.r, mst.r + m, 0.f); std::fill(fxo.l, fxo.l + m, 0.f); std::fill(fxo.r, fxo.r + m, 0.f);
+    for (auto& a : aux) { std::fill(a.l, a.l + m, 0.f); std::fill(a.r, a.r + m, 0.f); }
+    auto gains = [&](int vi, int pi, double& tl, double& tr) { const double v = pv(vi), pn = pv(pi), tv = v <= -59.9 ? 0 : dbv(v); tl = tv * std::cos((pn * .5 + .5) * kPi / 2) * 1.414; tr = tv * std::sin((pn * .5 + .5) * kPi / 2) * 1.414; };
+    for (int t = 0; t < 4; t++) {
+      Track& tk = S.tk[t]; runChain(t, tk.l, tk.r, m);
+      const double s1 = pv(ix.busS1[t]), s2 = pv(ix.busS2[t]); double tl, tr, pl, pr; gains(ix.busVol[t], ix.busPan[t], tl, tr); swapG(t, tl, tr, pl, pr);
+      int dest = (int)pv(ix.busDest[t]); Track* target = nullptr; if (dest >= 3) { const int tt = dest - 2; if (tt > t) target = &S.tk[tt]; else dest = 0; }
+      Track& a1 = aux[0]; Track& a2 = aux[1];
+      for (int i = 0; i < m; i++) {
+        const double w = (i + 1.0) / m, gl_ = pl + (tl - pl) * w, gr_ = pr + (tr - pr) * w, l = tk.l[i] * gl_, r = tk.r[i] * gr_; tk.l[i] = (float)l; tk.r[i] = (float)r;
+        if (s1 > 0) { a1.l[i] += (float)(l * s1); a1.r[i] += (float)(r * s1); } if (s2 > 0) { a2.l[i] += (float)(l * s2); a2.r[i] += (float)(r * s2); }
+        if (target) { target->l[i] += (float)l; target->r[i] += (float)r; } else if (dest == 1) { a1.l[i] += (float)l; a1.r[i] += (float)r; } else if (dest == 2) { a2.l[i] += (float)l; a2.r[i] += (float)r; } else { mst.l[i] += (float)l; mst.r[i] += (float)r; }
+      }
+      peak(t, tk.l, tk.r, m);
+    }
+    for (int x = 0; x < 2; x++) {
+      Track& a = aux[x]; runChain(4 + x, a.l, a.r, m); double tl, tr, pl, pr; gains(ix.busVol[4 + x], ix.busPan[4 + x], tl, tr); swapG(4 + x, tl, tr, pl, pr);
+      static int x1dest = -1; x1dest = pidx("bus.x1.dest");
+      for (int i = 0; i < m; i++) { const double w = (i + 1.0) / m, l = a.l[i] * (pl + (tl - pl) * w), r = a.r[i] * (pr + (tr - pr) * w); a.l[i] = (float)l; a.r[i] = (float)r;
+        if (x == 0 && pv(x1dest) == 1) { aux[1].l[i] += (float)l; aux[1].r[i] += (float)r; } else { fxo.l[i] += (float)l; fxo.r[i] += (float)r; } }
+      peak(4 + x, a.l, a.r, m);
+    }
+    { double tl, tr, pl, pr; gains(ix.busVol[6], ix.busPan[6], tl, tr); swapG(6, tl, tr, pl, pr);
+      for (int i = 0; i < m; i++) { const double w = (i + 1.0) / m, l = fxo.l[i] * (pl + (tl - pl) * w), r = fxo.r[i] * (pr + (tr - pr) * w); fxo.l[i] = (float)l; fxo.r[i] = (float)r; mst.l[i] += (float)l; mst.r[i] += (float)r; }
+      peak(6, fxo.l, fxo.r, m); }
+    runChain(6, mst.l, mst.r, m);
+    { static int mv = pidx("bus.mst.vol"), mp = pidx("bus.mst.pan"); double tv = pv(mv) + pv(ix.master), pn = pv(mp); tv = tv <= -59.9 ? 0 : dbv(tv);
+      const double tl = tv * std::cos((pn * .5 + .5) * kPi / 2) * 1.414, tr = tv * std::sin((pn * .5 + .5) * kPi / 2) * 1.414; double pl, pr; swapG(7, tl, tr, pl, pr);
+      const bool lim = pv(ix.lim) != 0; const double ce = dbv(pv(ix.ceil));
+      for (int i = 0; i < m; i++) { const double w = (i + 1.0) / m; double l = mst.l[i] * (pl + (tl - pl) * w), r = mst.r[i] * (pr + (tr - pr) * w); if (!(l > -40 && l < 40)) l = 0; if (!(r > -40 && r < 40)) r = 0; mst.l[i] = (float)l; mst.r[i] = (float)r; }
+      if (lim) mlim->proc(mst.l, mst.r, m, ce, 140); limGR = mlim->gr;
+      for (int i = 0; i < m; i++) { double l = mst.l[i], r = mst.r[i]; if (l > ce) l = ce; else if (l < -ce) l = -ce; if (r > ce) r = ce; else if (r < -ce) r = -ce;
+        if (!lim) { if (l > 1) l = 1; else if (l < -1) l = -1; if (r > 1) r = 1; else if (r < -1) r = -1; }
+        mst.l[i] = (float)l; mst.r[i] = (float)r; ml[i] = (float)l; mr[i] = (float)r; scope[sp] = (float)((l + r) * .5); sp = (sp + 1) & 2047; }
+      peak(7, mst.l, mst.r, m); }
+  }
+  void process(float* oL, float* oR, int n) { int pos = 0; while (pos < n) { const int m = std::min(kBlock, n - pos); block(m); for (int i = 0; i < m; i++) { oL[pos + i] = ml[i]; oR[pos + i] = mr[i]; } pos += m; } }
 };
-
-// ---------------------------------------------------------------- patch (plain values read once per host block)
-struct OscP
-{
-    bool on = false; const Table* tab = nullptr;
-    float pos = 0, lvl = .6f, pan = 0, ph = 0, rnd = 1, ud = .25f, ub = .5f, usp = .7f, anl = 0, fine = 0;
-    int oct = 0, semi = 0, uv = 1, us = 0, rt = 1;
-    int w1 = 0, w2 = 0, mm = 0, ms = 0; float w1a = 0, w2a = 0, ma = 0, fb = 0; // warp 1/2, FM/AM/ring from source ms (A,B,C,Sub), feedback
-};
-struct FiltP { int type = 0; float cut = 9000, res = .2f, kt = .25f, env = 0; int es = 2; };
-struct EnvP { float a = 2, h = 0, d = 400, s = .7f, r = 180, c = -.4f, ca = 0; };
-struct Patch
-{
-    OscP o[3];
-    FiltP f[2];
-    EnvP e[2];
-    bool serial = true;
-    float master = 3, vel = .6f, bendr = 2;
-    int poly = 16;
-    bool sub = false, nz = false;
-    int subw = 0, subo = -1, subrt = 0, nzt = 0, nzrt = 0;
-    float subl = .5f, subpw = .5f, subfn = 0, subpn = 0, nzl = .3f, nzpn = 0;
-};
-
-// warp modes (wph / wamp in the JS engine)
-inline double wph(int id, double a, double p)
-{
-    switch (id)
-    {
-        case 1: { const double r = 1 + a * 7; return std::fmod(p * r, 1.0); }
-        case 2: return std::pow(p, 1 + a * 3);
-        case 3: return 1 - std::pow(1 - p, 1 + a * 3);
-        case 4: return p < .5 ? .5 * std::pow(2 * p, 1 + a * 3) : 1 - .5 * std::pow(2 * (1 - p), 1 + a * 3);
-        case 5: { const double w = .5 - a * .45; return p < w ? p * .5 / w : .5 + (p - w) * .5 / (1 - w); }
-        case 6: return p * (1 - a) + (p < .5 ? 2 * p : 2 - 2 * p) * a;
-        case 7: return p + a * .25 * std::sin(kTau * p) / kPi * 2;
-        case 8: { const double st = std::max(2.0, std::round(66 - a * 64)); return p + (std::floor(p * st) / st - p) * std::min(1.0, a * 3); }
-        default: return p;
-    }
-}
-inline double wamp(int id, double a, double s, double p)
-{
-    switch (id)
-    {
-        case 9: { double y = s * (1 + a * 6); int n = 0; while ((y > 1 || y < -1) && n++ < 8) y = y > 1 ? 2 - y : -2 - y; return y; }
-        case 10: { const double g = 1 + a * 8; return clampd(s * g, -1, 1) * (1 - .3 * a); }
-        case 11: { const double q = std::pow(2.0, 1 + (1 - a) * 10); return std::round(s * q) / q; }
-        case 12: return p < .5 ? s : s * (1 - 2 * a);
-        default: return s;
-    }
-}
-
-// ---------------------------------------------------------------- envelope (Env.tick in JS)
-struct Env
-{
-    int st = 0; double v = 0, x = 0, v0 = 0, a0 = 0;
-    void on() { a0 = st == 0 ? 0 : v; st = 1; x = 0; }
-    void off() { if (st != 0 && st != 5) { st = 5; x = 0; v0 = v; } }
-    double tick(double dt, double a, double h, double d, double s, double r, double ca, double c)
-    {
-        switch (st)
-        {
-            case 1: x += dt * 1000 / a; if (x >= 1) { x = 0; v = 1; st = h > 0 ? 2 : 3; } else v = a0 + (1 - a0) * curveG(x, ca * 5); break;
-            case 2: x += dt * 1000 / h; v = 1; if (x >= 1) { x = 0; st = 3; } break;
-            case 3: x += dt * 1000 / d; if (x >= 1) { x = 1; st = 4; v = s; } else v = s + (1 - s) * (1 - curveG(x, -c * 5)); break;
-            case 4: v = s; break;
-            case 5: x += dt * 1000 / r; if (x >= 1) { v = 0; st = 0; } else v = v0 * (1 - curveG(x, -c * 5)); break;
-            default: v = 0;
-        }
-        return v;
-    }
-};
-
-// ---------------------------------------------------------------- filter (VFilt in JS; types 0,2,3,6,7,8,10,14..17)
-// type ids are the JS filter list indices.
-struct Filt
-{
-    static constexpr int kC = 16;
-    int type = 0; double sr = 44100, res = 0;
-    double cur[kC] {}, tgt[kC] {}, dlt[kC] {};
-    double ggC = 0, ggT = 0, ggD = 0, kC_ = 0, kT = 0, kD = 0;
-    double s[48] {};
-    int ramp = 0; bool fresh = true;
-
-    void reset() { fresh = true; ramp = 0; std::fill(std::begin(s), std::end(s), 0.0); }
-    void su(double* c, int i, double f, double k) const
-    {
-        f = clampd(f, 20, sr * .47);
-        const double g = std::tan(kPi * f / sr), a1 = 1 / (1 + g * (g + k));
-        c[i * 4] = a1; c[i * 4 + 1] = g * a1; c[i * 4 + 2] = g * g * a1; c[i * 4 + 3] = k;
-    }
-    void set(int t, double fc, double rs, double sampleRate, int n)
-    {
-        sr = sampleRate; res = rs;
-        const bool same = !fresh && t == type;
-        double nc[kC] {}; double ng = 0, nk = 0;
-        fc = clampd(fc, 20, sr * .45);
-        const double q = 2 - 1.96 * rs;
-        if (t == 2 || t == 6 || t == 8 || t == 10) su(nc, 0, fc, q);
-        else if (t == 3 || t == 7) { su(nc, 0, fc, 1.4); su(nc, 1, fc, q); }
-        else if (t >= 14 && t <= 17) { const double g = std::tan(kPi * fc / sr); ng = g / (1 + g); nk = rs * 4; }
-        type = t;
-        if (!same) { for (int i = 0; i < kC; ++i) { cur[i] = tgt[i] = nc[i]; dlt[i] = 0; } ggC = ggT = ng; kC_ = kT = nk; ggD = kD = 0; ramp = 0; fresh = false; return; }
-        const double inv = 1.0 / std::max(1, n);
-        for (int i = 0; i < kC; ++i) { tgt[i] = nc[i]; dlt[i] = (nc[i] - cur[i]) * inv; }
-        ggT = ng; ggD = (ng - ggC) * inv; kT = nk; kD = (nk - kC_) * inv; ramp = n;
-    }
-    void step()
-    {
-        if (ramp <= 0) return;
-        if (--ramp <= 0) { for (int i = 0; i < kC; ++i) cur[i] = tgt[i]; ggC = ggT; kC_ = kT; return; }
-        for (int i = 0; i < kC; ++i) cur[i] += dlt[i];
-        ggC += ggD; kC_ += kD;
-    }
-    double u(int ch, int i, double x, int m)
-    {
-        const int j = i * 4, so = ch * 24 + i * 2;
-        const double a1 = cur[j], a2 = cur[j + 1], a3 = cur[j + 2], k = cur[j + 3];
-        const double v3 = x - s[so + 1], v1 = a1 * s[so] + a2 * v3, v2 = s[so + 1] + a2 * s[so] + a3 * v3;
-        s[so] = 2 * v1 - s[so]; s[so + 1] = 2 * v2 - s[so + 1];
-        const double hp = x - k * v1 - v2;
-        return m == 0 ? v2 : (m == 1 ? v1 : (m == 2 ? hp : (m == 3 ? v2 + hp : v1 * k)));
-    }
-    void lad(int ch, double xi)
-    {
-        double* o = s + ch * 24;
-        const double G = ggC, k = kC_, G2 = G * G, G3 = G2 * G, G4 = G2 * G2, c = 1 - G;
-        const double z1 = o[20], z2 = o[21], z3 = o[22], z4 = o[23];
-        double uu = (xi - k * c * (G3 * z1 + G2 * z2 + G * z3 + z4)) / (1 + k * G4);
-        uu = fastTanh(uu * .3) * 3.333333;
-        double v = (uu - z1) * G; const double y1 = v + z1; o[20] = y1 + v;
-        v = (y1 - z2) * G; const double y2 = v + z2; o[21] = y2 + v;
-        v = (y2 - z3) * G; const double y3 = v + z3; o[22] = y3 + v;
-        v = (y3 - z4) * G; const double y4 = v + z4; o[23] = y4 + v;
-        o[16] = y1; o[17] = y2; o[18] = y3; o[19] = y4;
-    }
-    double one(int ch, double xi)
-    {
-        double* o = s + ch * 24;
-        switch (type)
-        {
-            case 2: return u(ch, 0, xi, 0);
-            case 3: return u(ch, 1, u(ch, 0, xi, 0), 0);
-            case 6: return u(ch, 0, xi, 2);
-            case 7: return u(ch, 1, u(ch, 0, xi, 2), 2);
-            case 8: return u(ch, 0, xi, 4);
-            case 10: return u(ch, 0, xi, 3);
-            case 14: lad(ch, xi); return o[19] * (1 + .5 * res);
-            case 15: lad(ch, xi); return o[17] * (1 + .6 * res);
-            case 16: lad(ch, xi); return o[18] * 1.4 * (1 + .5 * res);
-            case 17: lad(ch, xi); return xi - 4 * o[16] + 6 * o[17] - 4 * o[18] + o[19];
-            default: return xi;
-        }
-    }
-    void proc(double l, double r, double& ol, double& orr)
-    {
-        if (type == 0) { ol = l; orr = r; return; }
-        step();
-        ol = one(0, l); orr = one(1, r);
-    }
-};
-}
+} // namespace whisker

@@ -1,36 +1,37 @@
-// Renders one note with the C++ engine and prints the same statistics as tools/parity_js.js (JS reference).
-// Build without JUCE: g++ -O2 -std=c++17 -Isrc tests/parity_render.cpp -o parity_render
-#include "../src/Voice.h"
+// Renders one note through the C++ engine and prints peak / rms / centroid / band energies, to compare with tools/parity_js.js.
+// Build: g++ -O2 -std=c++17 tests/parity_render.cpp -o /tmp/parity_render
+// Run:   /tmp/parity_render data/ww_tables.bin "a.pos=.26;a.uv=3;slot=l1>a.pos:.5;note=57"
+#include "../src/Engine.h"
 #include <cstdio>
 #include <fstream>
+#include <sstream>
 using namespace whisker;
-int main(int argc, char** argv)
-{
-    const char* bin = argc > 1 ? argv[1] : "data/ww_tables.bin";
-    const std::string which = argc > 2 ? argv[2] : "init";
-    std::ifstream f(bin, std::ios::binary); std::vector<char> data((std::istreambuf_iterator<char>(f)), {});
-    TableCache cache; cache.setSource(data.data(), data.size());
-    Patch P;
-    for (int o = 0; o < 3; ++o) { P.o[o].tab = cache.get(0); P.o[o].anl = .2f; P.o[o].lvl = o == 0 ? .75f : .6f; }
-    P.o[0].on = true; P.f[0].type = 14; P.f[0].cut = 9000; P.f[0].res = .2f; P.f[0].es = 2; P.f[0].env = 0;
-    P.e[1].d = 550; P.e[1].s = .35f; P.e[1].r = 200; P.master = 3;
-    if (which == "wonder") { P.o[0].pos = .26f; P.o[0].uv = 3; }
-    if (which == "warp") { P.o[0].w1 = 1; P.o[0].w1a = .5f; P.o[0].w2 = 9; P.o[0].w2a = .4f; }
-    if (which == "fm") { P.o[0].mm = 1; P.o[0].ms = 1; P.o[0].ma = .3f; P.o[0].fb = .2f; P.o[1].on = true; P.o[1].lvl = 0; P.o[1].semi = 7; P.o[1].rt = 0; }
-    const double sr = 44100; const int N = (int) (4 * sr) / 2048 * 2048;
-    std::vector<double> L((size_t) N), R((size_t) N);
-    Engine e; e.prepare(sr); e.noteOn(57, .8, P);
-    for (int off = 0; off < N; off += 2048) e.render(P, &L[(size_t) off], &R[(size_t) off], 2048);
-    const double g = std::pow(10.0, P.master / 20.0);
-    double pk = 0, ss = 0;
-    for (int i = 0; i < N; ++i) { L[(size_t) i] *= g; R[(size_t) i] *= g; pk = std::max(pk, std::max(std::abs(L[(size_t) i]), std::abs(R[(size_t) i]))); ss += (L[(size_t) i] * L[(size_t) i] + R[(size_t) i] * R[(size_t) i]) / 2; }
-    const int s0 = (int) (N * .3), W = 16384;
-    std::vector<double> re((size_t) W), im((size_t) W, 0.0);
-    for (int i = 0; i < W; ++i) { const double w = .5 - .5 * std::cos(2 * kPi * i / W); re[(size_t) i] = (L[(size_t) (s0 + i)] + R[(size_t) (s0 + i)]) * .5 * w; }
-    fftInPlace(re, im, false);
-    double tot = 0, cen = 0, b1 = 0, b2 = 0, b3 = 0;
-    for (int k = 1; k < W / 2; ++k) { const double fr = k * sr / W, m = re[(size_t) k] * re[(size_t) k] + im[(size_t) k] * im[(size_t) k]; tot += m; cen += m * fr; if (fr < 500) b1 += m; else if (fr < 2000) b2 += m; else if (fr < 8000) b3 += m; }
-    auto db = [&](double x) { return 10 * std::log10(x / tot + 1e-12); };
-    std::printf("peak %.2f rms %.1fdB centroid %.0fHz <500 %.0f 0.5-2k %.0f 2-8k %.0f\n", pk, 10 * std::log10(ss / N + 1e-12), cen / tot, db(b1), db(b2), db(b3));
-    return 0;
+int main(int argc, char** argv) {
+  const char* bin = argc > 1 ? argv[1] : "data/ww_tables.bin"; const std::string ov = argc > 2 ? argv[2] : "";
+  std::ifstream f(bin, std::ios::binary); std::vector<char> raw((std::istreambuf_iterator<char>(f)), {}); if (raw.empty()) { std::puts("no tables"); return 1; }
+  TableCache cache; cache.setSource(raw.data(), raw.size());
+  Engine e(44100); e.setParam(pidx("master"), 3); e.setParam(pidx("lim"), 0);
+  for (const char* k : {"a.anl", "b.anl", "c.anl"}) e.setParam(pidx(k), .2);
+  int note = 57; std::vector<Slot> slots;
+  std::stringstream ss(ov); std::string it;
+  while (std::getline(ss, it, ';')) {
+    if (it.empty()) continue; const auto eq = it.find('='); const std::string k = it.substr(0, eq); const double v = std::atof(it.c_str() + eq + 1);
+    if (k == "note") note = (int)v;
+    else if (k == "slot") { const auto gt = it.find('>'), co = it.find(':'); const std::string s = it.substr(5, gt - 5), d = it.substr(gt + 1, co - gt - 1); const double a = std::atof(it.c_str() + co + 1);
+      static const char* NM[] = {"e1","e2","e3","e4","e5","e6","e7","e8","e9","e10","e11","e12","e13","e14","e15","e16","l1","l2","l3","l4","m1","m2","m3","m4","m5","m6","m7","m8","vel","key","wheel","bend","at","rnd"};
+      int si = -1; for (int i = 0; i < 34; i++) if (s == NM[i]) si = i; Slot sl; sl.src = si; sl.dst = pidx(d); sl.amt = a; slots.push_back(sl); }
+    else { const int p = pidx(k); if (p < 0) { std::printf("unknown param %s\n", k.c_str()); return 1; } e.setParam(p, v); }
+  }
+  for (size_t i = 0; i < slots.size() && i < 64; i++) e.S.slots[i] = slots[i]; e.S.nSlots = (int)std::min<size_t>(64, slots.size());
+  const Table* t0 = cache.get(0); for (int o = 0; o < 6; o++) e.S.tab[o] = t0;
+  e.noteOn(note, .8);
+  const int N = (44100 * 4 / 2048) * 2048; std::vector<float> L(N), R(N);
+  for (int b = 0; b < N / 2048; b++) e.process(&L[b * 2048], &R[b * 2048], 2048);
+  double pk = 0, sq = 0; for (int i = 0; i < N; i++) { pk = std::max({pk, (double)std::fabs(L[i]), (double)std::fabs(R[i])}); sq += (L[i] * L[i] + R[i] * R[i]) / 2.0; }
+  const int s0 = (int)(N * .3), W = 16384; std::vector<double> re(W), im(W, 0.0);
+  for (int i = 0; i < W; i++) { const double w = .5 - .5 * std::cos(2 * kPi * i / W); re[i] = (L[s0 + i] + R[s0 + i]) * .5 * w; } fftInPlace(re, im, false);
+  double tot = 0, cen = 0, b1 = 0, b2 = 0, b3 = 0;
+  for (int k = 1; k < W / 2; k++) { const double fr = k * 44100.0 / W, m = re[k] * re[k] + im[k] * im[k]; tot += m; cen += m * fr; if (fr < 500) b1 += m; else if (fr < 2000) b2 += m; else if (fr < 8000) b3 += m; }
+  auto db = [&](double x) { return 10 * std::log10(x / tot + 1e-12); };
+  std::printf("peak %.2f rms %.1fdB centroid %dHz <500 %.0f 0.5-2k %.0f 2-8k %.0f\n", pk, 10 * std::log10(sq / N + 1e-12), (int)std::lround(cen / tot), db(b1), db(b2), db(b3));
 }

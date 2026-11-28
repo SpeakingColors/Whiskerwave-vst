@@ -1,15 +1,15 @@
 // JS reference for tests/parity_render.cpp. Usage: node tools/parity_js.js /path/to/ww-dsp.js init|wonder
 const fs = require('fs'); const G = {};
 new Function('G', fs.readFileSync(process.argv[2], 'utf8') + ';WWMAKE(G);')(G);
-const which = process.argv[3] || 'init';
+const ov = process.argv[3] || '';
 const e = new G.Engine(44100);
 for (const k in G.PR) e.pv[k] = G.PR[k].d;
 e.pv.master = 3; e.pv.lim = 0; e.pv['a.anl'] = .2; e.pv['b.anl'] = .2; e.pv['c.anl'] = .2;
-if (which === 'wonder') { e.pv['a.pos'] = .26; e.pv['a.uv'] = 3; }
-if (which === 'warp') { e.pv['a.w1'] = 1; e.pv['a.w1a'] = .5; e.pv['a.w2'] = 9; e.pv['a.w2a'] = .4; }
-if (which === 'fm') { e.pv['a.mm'] = 1; e.pv['a.ms'] = 1; e.pv['a.ma'] = .3; e.pv['a.fb'] = .2; e.pv['b.on'] = 1; e.pv['b.lvl'] = 0; e.pv['b.semi'] = 7; e.pv['b.rt'] = 0; }
+let note = 57; const slots = [];
+for (const it of ov.split(';')) { if (!it) continue; const eq = it.indexOf('='), k = it.slice(0, eq), v = parseFloat(it.slice(eq + 1));
+  if (k === 'note') note = v; else if (k === 'slot') { const m = it.slice(5).match(/^(\w+)>([\w.]+):(-?[\d.]+)$/); slots.push({ s: m[1], d: m[2], a: parseFloat(m[3]), u: 0 }); } else { if (!(k in G.PR)) throw new Error('unknown ' + k); e.pv[k] = v; } }
 for (const k in e.pv) e.setParam(k, e.pv[k]);
-e.msg({ t: 'on', n: 57, v: .8 });
+e.msg({ t: 'slots', s: slots }); e.msg({ t: 'on', n: note, v: .8 });
 const N = Math.floor(4 * 44100 / 2048) * 2048, L = new Float32Array(N), R = new Float32Array(N), bl = new Float32Array(2048), br = new Float32Array(2048);
 for (let b = 0; b < N / 2048; b++) { e.process(bl, br, 2048); L.set(bl, b * 2048); R.set(br, b * 2048); }
 function fft(re, im) { const n = re.length; for (let i = 1, j = 0; i < n; i++) { let b = n >> 1; for (; j & b; b >>= 1) j ^= b; j ^= b; if (i < j) { [re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]]; } } for (let len = 2; len <= n; len <<= 1) { const a = -2 * Math.PI / len, wr = Math.cos(a), wi = Math.sin(a); for (let i = 0; i < n; i += len) { let cr = 1, ci = 0; for (let k = 0; k < len / 2; k++) { const u = i + k, v = i + k + len / 2; const tr = re[v] * cr - im[v] * ci, ti = re[v] * ci + im[v] * cr; re[v] = re[u] - tr; im[v] = im[u] - ti; re[u] += tr; im[u] += ti; const t = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = t; } } } }

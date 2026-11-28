@@ -1,115 +1,60 @@
-// Parameter layout. Ids follow the mockup keys with "." replaced by "_" (a.pos -> a_pos).
+// APVTS layout generated from the mockup parameter table (729 parameters) plus six table choices.
 #pragma once
 #include <juce_audio_processors/juce_audio_processors.h>
-#include "Engine.h"
-
-namespace whisker
+#include "ParamTable.h"
+#include "TableNames.h"
+namespace whisker {
+inline juce::String groupOf(const juce::String& key)
 {
-inline const juce::StringArray kFilterNames { "Off", "LP 12", "LP 24", "HP 12", "HP 24", "BP 12", "Notch", "Ladder 24", "Ladder 12", "Acid 18", "Ladder HP" };
-inline const int kFilterJs[] = { 0, 2, 3, 6, 7, 8, 10, 14, 15, 16, 17 }; // mockup filter list indices
-inline const juce::StringArray kUnisonNames { "Classic", "Supersaw", "JP Super", "Octaves", "Power", "Minor" };
-inline const juce::StringArray kWarpNames { "Off", "Sync", "Bend +", "Bend -", "Bend +/-", "PWM", "Mirror", "Asym", "Quantize", "Fold", "Clip", "Crush", "Flip" };
-inline const juce::StringArray kModNames { "None", "FM", "AM", "Ring" };
-inline const juce::StringArray kModSrcNames { "A", "B", "C", "Sub" };
-inline const juce::StringArray kRouteNames { "Dry", "F1", "F2", "F1+F2" };
-inline const juce::StringArray kSubNames { "Sine", "Triangle", "Square", "Saw", "Pulse", "Half Sine", "Soft Square", "Organ" };
-inline const juce::StringArray kNoiseNames { "White", "Pink", "Brown" };
-inline const juce::StringArray kEnvSrcNames { "None", "Env 1", "Env 2" };
-
-inline juce::NormalisableRange<float> expRange(float lo, float hi)
-{
-    return { lo, hi, [](float a, float b, float n) { return a * std::pow(b / a, n); },
-             [](float a, float b, float v) { return std::log(v / a) / std::log(b / a); }, [](float, float, float v) { return v; } };
+    const auto head = key.upToFirstOccurrenceOf(".", false, false);
+    if (key.startsWith("bus.")) return "Bus " + key.fromFirstOccurrenceOf("bus.", false, false).upToFirstOccurrenceOf(".", false, false).toUpperCase();
+    if (key.startsWith("arp.")) return "Arp";
+    if (head.length() == 1 && juce::String("abcdef").containsChar(head[0])) return "Osc " + head.toUpperCase();
+    if (head == "sub" || head == "nz") return head == "sub" ? "Sub Env" : "Noise Env";
+    if (head == "s") return "Sub/Noise";
+    if (head[0] == 'e' && head.length() > 1) return "Env " + head.substring(1);
+    if (head[0] == 'l' && head.length() > 1) return "LFO " + head.substring(1);
+    if (head[0] == 'f' && head.length() > 1) return "Filter " + head.substring(1);
+    return "Global";
 }
-
+inline const char* const* listItems(const char* name, int& n)
+{
+    for (int i = 0; i < kNumLists; ++i) if (std::strcmp(kLists[i].name, name) == 0) { n = kLists[i].n; return kLists[i].items; }
+    n = 0; return nullptr;
+}
 inline juce::AudioProcessorValueTreeState::ParameterLayout makeLayout()
 {
-    using P = juce::ParameterID;
-    std::vector<std::unique_ptr<juce::RangedAudioParameter>> p;
-    auto F = [&](const juce::String& id, const juce::String& nm, float lo, float hi, float def, bool exp = false)
-    { p.push_back(std::make_unique<juce::AudioParameterFloat>(P{ id, 1 }, nm, exp ? expRange(lo, hi) : juce::NormalisableRange<float>(lo, hi), def)); };
-    auto I = [&](const juce::String& id, const juce::String& nm, int lo, int hi, int def)
-    { p.push_back(std::make_unique<juce::AudioParameterInt>(P{ id, 1 }, nm, lo, hi, def)); };
-    auto B = [&](const juce::String& id, const juce::String& nm, bool def)
-    { p.push_back(std::make_unique<juce::AudioParameterBool>(P{ id, 1 }, nm, def)); };
-    auto C = [&](const juce::String& id, const juce::String& nm, const juce::StringArray& s, int def)
-    { p.push_back(std::make_unique<juce::AudioParameterChoice>(P{ id, 1 }, nm, s, def)); };
-
-    F("master", "Master (dB)", -60.f, 6.f, 3.f);
-    I("poly", "Voices", 1, kMaxVoices, 16);
-    F("vel", "Velocity", 0.f, 1.f, .6f);
-    I("bendr", "Bend range", 0, 24, 2);
-    juce::StringArray tabs; for (int i = 0; i < kNumTables; ++i) tabs.add(kTableNames[i]);
-    for (const char* o : { "a", "b", "c" })
+    juce::AudioProcessorValueTreeState::ParameterLayout L;
+    for (int i = 0; i < kNumParams; ++i)
     {
-        const juce::String k(o), n = "OSC " + k.toUpperCase() + " ";
-        B(k + "_on", n + "on", k == "a");
-        C(k + "_tab", n + "table", tabs, 0);
-        F(k + "_pos", n + "wave position", 0.f, 1.f, 0.f);
-        I(k + "_oct", n + "octave", -4, 4, 0);
-        I(k + "_semi", n + "semi", -48, 48, 0);
-        F(k + "_fine", n + "fine (cents)", -100.f, 100.f, 0.f);
-        F(k + "_lvl", n + "level", 0.f, 1.f, k == "a" ? .75f : .6f);
-        F(k + "_pan", n + "pan", -1.f, 1.f, 0.f);
-        F(k + "_ph", n + "start phase", 0.f, 1.f, 0.f);
-        F(k + "_rnd", n + "random phase", 0.f, 1.f, 1.f);
-        I(k + "_uv", n + "unison voices", 1, 8, 1);
-        F(k + "_ud", n + "unison detune", 0.f, 1.f, .25f);
-        C(k + "_us", n + "unison style", kUnisonNames, 0);
-        F(k + "_ub", n + "unison blend", 0.f, 1.f, .5f);
-        F(k + "_usp", n + "unison spread", 0.f, 1.f, .7f);
-        F(k + "_anl", n + "analog", 0.f, 1.f, .2f);
-        C(k + "_rt", n + "route", kRouteNames, 1);
-        C(k + "_w1", n + "warp 1", kWarpNames, 0); F(k + "_w1a", n + "warp 1 amount", 0.f, 1.f, 0.f);
-        C(k + "_w2", n + "warp 2", kWarpNames, 0); F(k + "_w2a", n + "warp 2 amount", 0.f, 1.f, 0.f);
-        C(k + "_mm", n + "mod mode", kModNames, 0); C(k + "_ms", n + "mod source", kModSrcNames, k == "a" ? 1 : 0);
-        F(k + "_ma", n + "mod amount", 0.f, 1.f, 0.f); F(k + "_fb", n + "feedback", 0.f, 1.f, 0.f);
+        const ParamSpec& p = kParams[i]; const juce::ParameterID pid(p.id, 1);
+        const juce::String nm = groupOf(p.key) + " " + p.label;
+        if (p.kind == PK::List)
+        {
+            int n = 0; auto* it = listItems(p.list, n); juce::StringArray sa;
+            const int count = (int) p.mx + 1;
+            for (int k = 0; k < count; ++k) sa.add(it && k < n ? juce::String(it[k]) : juce::String(k));
+            L.add(std::make_unique<juce::AudioParameterChoice>(pid, nm, sa, (int) p.def));
+        }
+        else if (p.kind == PK::Int)
+        {
+            if (p.mn == 0.f && p.mx == 1.f) L.add(std::make_unique<juce::AudioParameterBool>(pid, nm, p.def > .5f));
+            else L.add(std::make_unique<juce::AudioParameterInt>(pid, nm, (int) p.mn, (int) p.mx, (int) p.def));
+        }
+        else if (p.kind == PK::Exp)
+        {
+            const double mn = p.mn, mx = p.mx;
+            juce::NormalisableRange<float> r((float) mn, (float) mx, [mn, mx](float, float, float n) { return (float) (mn * std::pow(mx / mn, (double) n)); },
+                                             [mn, mx](float, float, float v) { return (float) (std::log(std::max((double) v, mn) / mn) / std::log(mx / mn)); });
+            L.add(std::make_unique<juce::AudioParameterFloat>(pid, nm, r, p.def, juce::AudioParameterFloatAttributes().withLabel(p.unit)));
+        }
+        else L.add(std::make_unique<juce::AudioParameterFloat>(pid, nm, juce::NormalisableRange<float>(p.mn, p.mx), p.def, juce::AudioParameterFloatAttributes().withLabel(p.unit)));
     }
-    B("sub_on", "Sub on", false); C("sub_wave", "Sub wave", kSubNames, 0); I("sub_oct", "Sub octave", -4, 1, -1);
-    F("sub_lvl", "Sub level", 0.f, 1.f, .5f); F("sub_pw", "Sub pulse width", .05f, .95f, .5f); F("sub_fine", "Sub fine (cents)", -100.f, 100.f, 0.f);
-    F("sub_pan", "Sub pan", -1.f, 1.f, 0.f); C("sub_rt", "Sub route", kRouteNames, 0);
-    B("nz_on", "Noise on", false); C("nz_type", "Noise type", kNoiseNames, 0); F("nz_lvl", "Noise level", 0.f, 1.f, .3f);
-    F("nz_pan", "Noise pan", -1.f, 1.f, 0.f); C("nz_rt", "Noise route", kRouteNames, 0);
-    for (const char* f : { "f1", "f2" })
+    for (int o = 0; o < 6; ++o)
     {
-        const juce::String k(f), n = "Filter " + k.substring(1) + " ";
-        C(k + "_type", n + "type", kFilterNames, k == "f1" ? 7 : 0);
-        F(k + "_cut", n + "cutoff (Hz)", 20.f, 20000.f, k == "f1" ? 9000.f : 12000.f, true);
-        F(k + "_res", n + "resonance", 0.f, 1.f, .2f);
-        F(k + "_kt", n + "key track", -1.f, 1.f, .25f);
-        F(k + "_env", n + "env amount", -1.f, 1.f, 0.f);
-        C(k + "_es", n + "env source", kEnvSrcNames, 2);
+        juce::StringArray names; for (int t = 0; t < kNumTables; ++t) names.add(kTableNames[t]);
+        L.add(std::make_unique<juce::AudioParameterChoice>(juce::ParameterID(juce::String("abcdef").substring(o, o + 1) + "_tab", 1), "Osc " + juce::String("ABCDEF").substring(o, o + 1) + " Table", names, 0));
     }
-    C("frt", "Filter routing", juce::StringArray { "Serial", "Parallel" }, 0);
-    for (const char* e : { "e1", "e2" })
-    {
-        const juce::String k(e), n = "Env " + k.substring(1) + " ";
-        const bool one = k == "e1";
-        F(k + "_a", n + "attack (ms)", .5f, 10000.f, 2.f, true);
-        F(k + "_h", n + "hold (ms)", 0.f, 2000.f, 0.f);
-        F(k + "_d", n + "decay (ms)", 1.f, 10000.f, one ? 400.f : 550.f, true);
-        F(k + "_s", n + "sustain", 0.f, 1.f, one ? .7f : .35f);
-        F(k + "_r", n + "release (ms)", 1.f, 15000.f, one ? 180.f : 200.f, true);
-        F(k + "_c", n + "curve", -1.f, 1.f, -.4f);
-        F(k + "_ca", n + "attack curve", -1.f, 1.f, 0.f);
-    }
-    // built-in FX (shared catfx code from cat-ui): shimmer delay then reverb
-    C("rvType", "Reverb type", juce::StringArray { "Off", "Plate", "Hall", "Shimmer Plate", "Shimmer Hall" }, 0);
-    F("rvDecay", "Reverb decay", 0.f, 1.f, .6f); F("rvDamp", "Reverb damping (Hz)", 500.f, 16000.f, 6000.f, true);
-    F("rvMix", "Reverb mix", 0.f, 1.f, .25f); F("rvShift", "Reverb shimmer pitch", -12.f, 12.f, 12.f); F("rvShim", "Reverb shimmer amount", 0.f, 1.f, .5f);
-    F("dlMix", "Delay mix (0 = off)", 0.f, 1.f, 0.f); F("dlTime", "Delay time (ms)", 20.f, 2000.f, 400.f, true);
-    F("dlFb", "Delay feedback", 0.f, .95f, .5f); F("dlShift", "Delay shimmer pitch", -12.f, 12.f, 12.f); F("dlShim", "Delay shimmer amount", 0.f, 1.f, 1.f);
-    return { p.begin(), p.end() };
+    return L;
 }
-
-// Factory presets: only values that differ from the defaults above.
-struct FactoryPreset { const char* name; std::vector<std::pair<const char*, float>> v; };
-inline const std::vector<FactoryPreset>& factoryPresets()
-{
-    static const std::vector<FactoryPreset> list = {
-        { "Init", {} },
-        { "Simple Wonder", { { "a_pos", .26f }, { "a_uv", 3.f } } },
-    };
-    return list;
-}
-}
+} // namespace whisker

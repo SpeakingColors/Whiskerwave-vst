@@ -1,8 +1,6 @@
 #pragma once
 #include <juce_audio_processors/juce_audio_processors.h>
-#include <juce_dsp/juce_dsp.h>
-#include <catfx/Fx.h>
-#include "Voice.h"
+#include "Engine.h"
 #include "Params.h"
 
 class WhiskerwaveProcessor : public juce::AudioProcessor, private juce::Timer
@@ -20,10 +18,10 @@ public:
     bool acceptsMidi() const override { return true; }
     bool producesMidi() const override { return false; }
     double getTailLengthSeconds() const override { return 12.0; }
-    int getNumPrograms() override { return (int) whisker::factoryPresets().size(); }
-    int getCurrentProgram() override { return program; }
-    void setCurrentProgram(int i) override;
-    const juce::String getProgramName(int i) override { return whisker::factoryPresets()[(size_t) juce::jlimit(0, getNumPrograms() - 1, i)].name; }
+    int getNumPrograms() override { return 1; }
+    int getCurrentProgram() override { return 0; }
+    void setCurrentProgram(int) override {}
+    const juce::String getProgramName(int) override { return "Init"; }
     void changeProgramName(int, const juce::String&) override {}
     void getStateInformation(juce::MemoryBlock&) override;
     void setStateInformation(const void*, int) override;
@@ -31,22 +29,28 @@ public:
     juce::AudioProcessorValueTreeState apvts;
     whisker::TableCache tables;
     std::atomic<float> outLevel { 0.f };
-    const whisker::Table* tableFor(int osc) const { return tabPtr[osc].load(); }
+
+    // non-parameter engine state (matrix slots, drawn envelopes, custom LFO shapes, arp steps); message thread sets, audio thread picks up
+    struct Config
+    {
+        std::vector<whisker::Slot> slots;
+        float custom[20][32] {}; float draw[16][128] {}; int drawN[16] {};
+        whisker::ArpSeq seq;
+        Config();
+    };
+    void setConfig(const Config& c);
+    Config getConfig() const;
 private:
     void timerCallback() override { refreshTables(); }
     void refreshTables();
-    void fillPatch(whisker::Patch&);
-    std::atomic<float>* raw(const juce::String& id) { return apvts.getRawParameterValue(id); }
+    void syncParams(bool all);
+    void applyPendingConfig();
 
-    whisker::Engine engine;
-    whisker::Patch patch;
-    std::atomic<const whisker::Table*> tabPtr[3] {};
-    int tabIdx[3] { -1, -1, -1 };
-    int program = 0;
-    double sampleRate = 44100.0;
-    float bendNorm = 0.f;
-    juce::dsp::Limiter<float> limiter;
-    std::vector<double> bufL, bufR;
-    catfx::FxRack fx;
+    std::unique_ptr<whisker::Engine> engine;
+    std::vector<std::atomic<float>*> rawP; std::vector<float> lastP;
+    std::atomic<float>* rawTab[6] {};
+    std::atomic<const whisker::Table*> tabPtr[6] {}; int tabIdx[6] { -1, -1, -1, -1, -1, -1 }; double tabSw[6] {}, tabSk[6] {};
+    mutable juce::CriticalSection cfgLock; Config cfg; std::atomic<bool> cfgDirty { false };
+    double sampleRate = 44100.0; int lastLatency = -1;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(WhiskerwaveProcessor)
 };
